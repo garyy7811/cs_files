@@ -1,0 +1,4 @@
+dependencies {
+    merged project( ':flash:swcs:flash.utils.spark' )
+    merged project( ':flash:swcs:flash.labyrinth.cloud.spark' )
+}

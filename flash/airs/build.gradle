@@ -1,0 +1,180 @@
+import jp.classmethod.aws.gradle.s3.AmazonS3FileUploadTask
+
+buildscript {
+    repositories {
+        //mavenLocal()
+        maven {
+            url csConfig.mavenDependencyRepoUrl
+        }
+    }
+
+    dependencies {
+        classpath "org.gradlefx:gradlefx:$gradlefxVersion"
+        classpath "jp.classmethod.aws:gradle-aws-plugin:$jpClassmethodGradlePluginVersion"
+    }
+}
+
+subprojects {
+
+    type = 'air'
+
+
+    air {
+        applicationDescriptor = buildDir.path + "/air-config.xml"
+        keystore = csConfig.csCloudAirKeyStore
+        storepass = csConfig.csCloudAirStorepass
+
+        includeFileTrees = [fileTree( dir: buildDir.path, include: '*.xml' )]
+
+        tsa = 'http://sha256timestamp.ws.symantec.com/sha256/timestamp'
+    }
+
+
+    task copyAndFilterPackConf {
+        doLast {
+            copy {
+                from fileTree( dir: 'pack-conf', include: '*.*' )
+                into buildDir.path
+
+                Map tmp = [:];
+                csConfig.each { tmp.put( it.key, it.value ) }
+                tmp.csVersion = tmp.csVersion.replaceAll( '-SNAPSHOT', '' )
+                tmp.projectName = project.name
+                tmp.projectOutput = project.output
+                filter { String line ->
+                    tmp.each {
+                        line = line.replaceAll( "\\\$\\{" + it.key + "\\}", it.value )
+                    }
+                    return line
+                }
+            }
+        }
+    }
+    copyAndFilterSwfCompileConfig.dependsOn copyAndFilterPackConf
+
+    compileFlex.dependsOn copyAndFilterSwfCompileConfig
+
+
+    clean.doLast {
+        copy {
+            from fileTree( dir: 'pack-conf', include: '*.*' )
+            into buildDir.path
+
+            Map tmp = [:];
+            csConfig.each { tmp.put( it.key, it.value ) }
+            tmp.csVersion = tmp.csVersion.replaceAll( '-SNAPSHOT', '' )
+            tmp.projectName = project.name
+            tmp.projectOutput = project.output
+            filter { String line ->
+                tmp.each {
+                    line = line.replaceAll( "\\\$\\{" + it.key + "\\}", it.value )
+                }
+                return line
+            }
+        }
+    }
+
+
+    def pckgTask = project.tasks[ "package" ]
+
+    task uploadToS3( type: AmazonS3FileUploadTask ) {
+        overwrite true
+
+        file file( buildDir.absolutePath + "/" + output )
+        bucketName csConfig.build_aws_s3_bucket
+        key 'cscloud-' + csConfig.csVersionRevision + "/" + output + ".air"
+
+    }
+    uploadToS3.dependsOn pckgTask
+
+
+    if( tasks.hasProperty( 'idea' ) ){
+        tasks.idea.dependsOn copyAndFilterPackConf
+    }
+
+
+
+    task copyAndFilterSwfCompileTestConfig( type: Copy ) {
+        FileCollection inputFiles = fileTree( 'src/test/compile.config' )
+        inputs.properties csConfig
+        inputs.files inputFiles
+
+        from inputFiles
+        into 'src/test/actionscript'
+
+        Map tmp = [:];
+        csConfig.each { k, v -> tmp.put( k, v ) }
+        tmp.projectOutput = project.output
+        tmp.integraTestSwfFile = buildDir.absolutePath + "/" + output + ".swf"
+        expand( tmp )
+    }
+
+
+    final String EMBEDDING_FLEXUNITRUNNER = '\n' + '    <!--\n' +
+            '    !!!!!!!!!!!!!!CODE ABOVE IS COPIED FROM AppMain.mxml !!!!!!!!!!!!!\n' +
+            '    !!!!!!!!!!!!!!CODE BELOW IS EMBEDDED CODE FOR RUNNING TEST !!!!!!!!!!\n' + '    -->\n' +
+            '    <fx:Script>\n' + '        <![CDATA[\n' + '        import mx.logging.LogEventLevel;\n' +
+            '        import org.flexunit.listeners.CIListener;\n' +
+            '        import org.flexunit.runner.FlexUnitCore;\n' + '        <% fullyQualifiedNames.each { %>\n' +
+            '            import $it;\n' + '        <% } %>\n' + '\n' +
+            '        public function currentRunTestSuite():Array {\n' +
+            '            var testsToRun:Array = new Array();\n' + '            <% testClasses.each { %>\n' +
+            '                testsToRun.push($it);\n' + '            <% } %>\n' + '            return testsToRun;\n' +
+            '        }\n' + '\n' + '        private function onCreationComplete():void {\n' +
+            '            var core:FlexUnitCore = new FlexUnitCore();\n' +
+            '            core.addListener(new CIListener());\n' + '            core.run(currentRunTestSuite());\n' +
+            '        }\n' + '        ]]>\n' + '    </fx:Script>\n' +
+            '    <flexUnitUIRunner:TestRunnerBase xmlns:flexUnitUIRunner="http://www.adobe.com/2009/flexUnitUIRunner"\n' +
+            '            creationComplete="onCreationComplete();"/>\n' + '</s:WindowedApplication>'
+
+    task copyAndEmebeddedFlexUnitRunner( type: Copy ) {
+        from 'src/main/flex/AppMain.mxml'
+        into 'src/test/actionscript'
+        rename { 'TestAppMain.mxml' }
+        filter { String line ->
+            if( line.equals( '</s:WindowedApplication>' ) ){
+                line = EMBEDDING_FLEXUNITRUNNER
+            }
+            /*else if( line.startsWith( '<s:WindowedApplication ' ) ){
+                return '<s:WindowedApplication visible="false" ' + line.substring( 23 )
+            }*/
+            return line
+        }
+    }
+
+
+    dependencies {
+        test files( rootProject.file( 'flash/test/flexunit/flexUnitTasks-4.2.0-20140410.jar' ).absolutePath,
+                rootProject.file( 'flash/test/flexunit/flexunit-4.2.0-20140410-flex_4.12.0.swc' ).absolutePath,
+                rootProject.
+                        file( 'flash/test/flexunit/flexunit-cilistener-4.2.0-20140410-4.12.0.swc' ).absolutePath,
+                rootProject.
+                        file( 'flash/test/flexunit/flexunit-uilistener-4.2.0-20140410-4.12.0.swc' ).absolutePath )
+    }
+
+    flexUnit {
+        if( flexHome.startsWith( '/' ) ){
+            command = flexHome + "/bin/adl"
+        }
+        else{
+            command = flexHome + "/bin/adl.exe"
+        }
+        player = 'air'
+        template = 'src/test/actionscript/TestAppMain.mxml'
+
+        String debugging = '-debug=' + csConfig.csSwfDebug
+        String conditionalCompileDebugging = '-define+=CONFIG::debugging,' + csConfig.csSwfCompileDebugging
+        String conditionalCompileProduction = '-define+=CONFIG::release,' + csConfig.csSwfCompileProduction
+
+        additionalCompilerOptions =
+                [debugging, conditionalCompileDebugging, conditionalCompileProduction, '-advanced-telemetry']
+    }
+
+    testFx.dependsOn copyAndEmebeddedFlexUnitRunner
+
+    copyAndEmebeddedFlexUnitRunner.dependsOn copyAndFilterSwfCompileTestConfig
+    copyAndFilterSwfCompileTestConfig.dependsOn compileFlex
+
+}
+
+

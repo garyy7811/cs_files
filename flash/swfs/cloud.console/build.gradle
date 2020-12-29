@@ -1,0 +1,25 @@
+dependencies {
+    merged project( ':flash:swcs:flash.utils.spark' )
+    merged project( ':flash:swcs:flash.cloudconsole.spark' )
+    merged project( ':flash:swcs:flash.labyrinth.cloud.spark' )
+}
+
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient
+import com.amazonaws.services.simpleemail.model.*
+
+uploadToS3.doLast {
+    String tmp = csConfig.cs_config
+    if( tmp.length() > 11 && tmp.split( "_" ).length > 2 && csConfig.build_notify_email?.trim() ){
+        tmp = tmp.substring( tmp.indexOf( "cs_config" ) + 10, tmp.length() - 11 )
+        def title = "CS-Cloud Console deployed to Environment:" + tmp.toUpperCase()
+        def content = csConfig.build_aws_s3_url + "/" + prefix +
+                "index.html \n Check out the document:\n https://docs.google.com/document/d/1XXW919rynxsaNlA8yeN6IQ8agnekkj9MCKtxY-omBu0/"
+
+        new AmazonSimpleEmailServiceClient().sendEmail( new SendEmailRequest().withSource( 'Teamcity@cs.cc' ).
+                withDestination( new Destination().withToAddresses( csConfig.build_notify_email ) ).
+                withMessage( new Message().
+                        withSubject( new Content().withData( title ) ).
+                        withBody( new Body().
+                                withText( new Content().withData( content ) ) ) ) );
+    }
+}

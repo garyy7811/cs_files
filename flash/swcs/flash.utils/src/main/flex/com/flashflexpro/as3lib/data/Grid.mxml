@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 5/29/2015.
+-->
+<utils:MxmlEventDispatcher xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:utils="com.flashflexpro.as3lib.utils.*"
+    implements="com.flashflexpro.as3lib.IWithContext">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.utils.RootContextModule;
+
+        import org.apache.flex.collections.ArrayList;
+
+        private var _context:RootContextModule;
+
+
+        [Bindable(event="contextChanged")]
+        public function get context():RootContextModule{
+            return _context;
+        }
+
+        public function set context( value:RootContextModule ):void{
+            if( value != _context ){
+                _context = value;
+                dispatchEvent( new Event( "contextChanged" ) );
+            }
+        }
+
+        [Bindable]
+        public var visibleRowIndices:Vector.<int>;
+
+        [Bindable]
+        public var sortColDataField:GridColumn;
+
+        [Bindable]
+        public var sortColDesc:Boolean = false;
+
+
+        [Bindable]
+        public var columns:ArrayList;
+
+        [Bindable]
+        public var rows:ArrayList;
+        ]]></fx:Script>
+</utils:MxmlEventDispatcher>

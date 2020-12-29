@@ -1,0 +1,4 @@
+apply from: '../../gradle/spring.gradle'
+dependencies {
+    compile 'com.flashflexpro:simple-amf-all:0.0.1'
+}

@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 4/13/2015.
+-->
+<as3librpc:RpcBase xmlns:fx="http://ns.adobe.com/mxml/2009"
+                   xmlns:as3librpc="com.flashflexpro.as3lib.rpc.*">
+    <fx:Script><![CDATA[
+        import com.customshow.reporting.schema.CSReportingShowDurationSolrSchema;
+        import com.customshow.reporting.schema.CSReportingSlideDurationSolrSchema;
+
+        import mx.formatters.DateFormatter;
+
+        public var queryUrl:String;
+        public var path:String;
+        public var remoteMethodName:String;
+
+        public var args:Array;
+
+        override public function callRemote():Boolean{
+            _request = new URLRequest( queryUrl + "/" + path + "/" + remoteMethodName );
+            return super.callRemote();
+        }
+
+        override protected function getRequestData():Object{
+            var ba:ByteArray = new ByteArray();
+            if( args != null ){
+                ba.writeObject( args );
+            }
+            else{
+                ba.writeObject( null );
+            }
+            return ba;
+        }
+
+        public var callBackOnRawResult:Function;
+        public var callBackOnObjResult:Function;
+
+        override protected function onRawResult( result:Object ):void{
+            super.onRawResult( result );
+
+            if( callBackOnRawResult != null ){
+                if( callBackOnRawResult.apply( null, [ result ] ) ){
+                    return;
+                }
+            }
+
+            var byteArray:ByteArray = ( result as ByteArray );
+            var asObj:* = byteArray.length == 0 ? null : byteArray.readObject();
+
+            if( callBackOnObjResult != null ){
+                if( callBackOnObjResult.apply( null, [ asObj ] ) ){
+                    return;
+                }
+            }
+
+            onObjResult( asObj );
+        }
+
+        protected function onObjResult( obj:* = null ):void{
+            throw new Error( "abstract" )
+        }
+
+        private static function zeroPad( number:uint ):String{
+
+            if( number < 10 ){
+                return "0" + number;
+            }
+
+            return number.toString();
+        }
+
+        private static var _cacheEpicTimeToHMS:Dictionary = new Dictionary();
+
+        public static function epicTimeToHMS( milliseconds:Number ):String{
+            var rt:String = _cacheEpicTimeToHMS[ milliseconds ];
+            if( rt == null ){
+                //todo:fix this
+                milliseconds = milliseconds < 0 ? - milliseconds : milliseconds;
+                var hours:uint = milliseconds / (60 * 60 * 1000);
+                var minutes:uint = (milliseconds / (60 * 1000)) % 60;
+                var seconds:uint = (milliseconds / 1000) % 60;
+                rt = zeroPad( hours ) + ":" + zeroPad( minutes ) + ":" + zeroPad( seconds );
+                _cacheEpicTimeToHMS[ milliseconds ] = rt;
+            }
+            return rt;
+        }
+
+        private static var _cacheEpicTimeToDate:Dictionary = new Dictionary();
+
+        public static function epicTimeToDate( milliseconds:Number ):String{
+            var rt:String = _cacheEpicTimeToDate[ milliseconds ];
+            if( rt == null ){
+                rt = dateFormatter.format( new Date( milliseconds ) );
+                _cacheEpicTimeToDate[ milliseconds ] = rt;
+            }
+            return rt;
+        }
+
+        public static var dateFormatter:DateFormatter = new DateFormatter( "EEE, MMM D, YYYY L:NN A" );
+
+
+        public static const schemaSlideduration:CSReportingSlideDurationSolrSchema = new CSReportingSlideDurationSolrSchema();
+        public static const schemaShowduration:CSReportingShowDurationSolrSchema = new CSReportingShowDurationSolrSchema();
+        ]]></fx:Script>
+</as3librpc:RpcBase>

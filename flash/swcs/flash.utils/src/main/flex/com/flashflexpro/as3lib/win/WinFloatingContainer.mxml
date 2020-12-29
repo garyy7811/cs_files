@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<!--
+  Created by yanggang on 5/12/2016.
+-->
+<utils:MxmlEventDispatcher xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:utils="com.flashflexpro.as3lib.utils.*"
+                           implements="com.flashflexpro.as3lib.IWithContext">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.IWithContext;
+        import com.flashflexpro.as3lib.utils.RootContextModule;
+
+        import mx.collections.IList;
+
+        import org.apache.flex.collections.ArrayList;
+
+        private var _context:RootContextModule;
+        [Bindable(event="contextChanged")]
+        public function get context():RootContextModule{
+            return _context;
+        }
+
+        public function set context( value:RootContextModule ):void{
+            if( value != _context ){
+                _context = value;
+                dispatchEvent( new Event( "contextChanged" ) );
+            }
+        }
+
+
+        private var _winModelLst:IList = new ArrayList();
+        [Bindable(event="winModelLstChanged")]
+        public function get winModelLst():IList{
+            return _winModelLst;
+        }
+
+        public function get topWin():IWithContext{
+            return _winModelLst.getItemAt( _winModelLst.length - 1 ) as IWithContext;
+        }
+
+
+        public function addWin( wm:IWithContext ):Boolean{
+            if( _winModelLst.getItemIndex( wm ) >= 0 ){
+                swapToFront( wm );
+                return false;
+            }
+            else{
+                _winModelLst.addItem( wm );
+            }
+            return true;
+        }
+
+        private var _swappingToFront:IWithContext;
+        [Bindable(event="swappingToFrontChanged")]
+        public function get swappingToFront():IWithContext{
+            return _swappingToFront;
+        }
+
+        private function setSwappingToFront( value:IWithContext ):void{
+            if( value != _swappingToFront ){
+                _swappingToFront = value;
+                dispatchEvent( new Event( "swappingToFrontChanged" ) );
+            }
+        }
+
+
+        public function swapToFront( wm:IWithContext ):Boolean{
+            var idx:int = _winModelLst.getItemIndex( wm );
+            CONFIG::debugging{
+                if( idx < 0 ){
+                    throw new Error( "what?" );
+                }//debug
+            }
+            if( idx >= 0 && idx < _winModelLst.length - 1 ){
+                setSwappingToFront( wm );
+                _winModelLst.addItem( _winModelLst.removeItemAt( idx ) );
+                setSwappingToFront( null );
+                return true;
+            }
+            return false;
+        }
+
+        public function removeWin( wm:IWithContext, playEffect:Boolean = false ):Boolean{
+            var idx:int = _winModelLst.getItemIndex( wm );
+            if( idx >= 0 ){
+                _winModelLst.removeItemAt( idx );
+                return true;
+            }
+            else{
+                CONFIG::debugging{
+                    throw new Error( this + ".removeWin " );
+                }
+            }
+            return false;
+        }
+
+        ]]></fx:Script>
+</utils:MxmlEventDispatcher>

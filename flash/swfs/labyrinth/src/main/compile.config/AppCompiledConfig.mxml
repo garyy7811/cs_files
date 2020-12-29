@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<utils:MxmlEventDispatcher xmlns:fx="http://ns.adobe.com/mxml/2009"
+                           xmlns:utils="com.flashflexpro.as3lib.utils.*">
+    <fx:Declarations>
+        <fx:String id="apiUrl">${swfCloudConsoleApiUrl}</fx:String>
+        <fx:String id="buildStr">${csVersionBuildRBStr}</fx:String>
+    </fx:Declarations>
+</utils:MxmlEventDispatcher>

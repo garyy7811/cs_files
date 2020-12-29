@@ -1,0 +1,25 @@
+mainClassName = "com.customshow.lambda.SetEcsTaskDomain"
+
+dependencies {
+    compile "com.amazonaws:aws-java-sdk-s3:$awsSdkVersion"
+    compile "com.amazonaws:aws-java-sdk-ec2:$awsSdkVersion"
+    compile "com.amazonaws:aws-java-sdk-ecs:$awsSdkVersion"
+    compile "com.amazonaws:aws-java-sdk-route53:$awsSdkVersion"
+}
+
+
+if( tasks.hasProperty( "migrateFunction" ) ){
+    task addEcsEventTrigger( type: com.customshow.awsUtils.AddEcsEventTriggerToLambda ) {
+        awsRegion = csConfig.aws_region
+        lambdaFunctionName = csConfig.awsLambdaFunctionName
+        clusterName = csConfig.ecsClusterName
+    }
+    addEcsEventTrigger.dependsOn migrateFunction
+    deployFunctionWithTriggers.dependsOn addEcsEventTrigger
+}
+
+ext.warmup = false
+
+ext.lambdaEnvNames.add( "awsS3ConfigBucket" )
+ext.lambdaEnvNames.add( "awsHostedZoneId" )
+ext.lambdaEnvNames.add( "ecsClusterName" )

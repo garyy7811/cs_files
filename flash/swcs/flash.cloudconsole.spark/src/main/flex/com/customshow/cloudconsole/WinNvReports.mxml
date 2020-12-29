@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 3/28/2016.
+-->
+<win:WebWindow xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:win="com.flashflexpro.as3lib.win.*">
+    <fx:Script><![CDATA[
+        import com.customshow.reporting.reports.CSNvReportingConsole;
+        import com.customshow.reporting.reports.CsReportsRootUI;
+
+        [Bindable(event="modelChanged")]
+        public function get nvReportingConsole():CSNvReportingConsole{
+            return model as CSNvReportingConsole;
+        }
+
+
+        override protected function onCreated( event:Event ):void{
+            super.onCreated( event );
+            var tmp:CsReportsRootUI = new CsReportsRootUI();
+            tmp.reportRoot = nvReportingConsole;
+            addElement( tmp );
+
+
+        }
+        ]]></fx:Script>
+    <fx:Binding source="{'NV reporting'}" destination="modelWin.title"/>
+</win:WebWindow>

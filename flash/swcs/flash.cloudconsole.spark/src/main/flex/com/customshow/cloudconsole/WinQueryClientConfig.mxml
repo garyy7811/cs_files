@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 3/28/2016.
+-->
+<win:WebWindow xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:win="com.flashflexpro.as3lib.win.*" xmlns:client="com.customshow.configPerClient.*">
+    <fx:Script><![CDATA[
+        import com.customshow.configPerClient.PerClientConfigLoadById;
+
+        [Bindable(event="modelChanged")]
+        public function get uploadListModel():PerClientConfigLoadById{
+            return model as PerClientConfigLoadById;
+        }
+        ]]></fx:Script>
+    <fx:Binding source="'clientid:' + uploadListModel.clientId" destination="modelWin.title"/>
+    <win:layout>
+        <s:VerticalLayout/>
+    </win:layout>
+    <client:UIQueryClientConfig model="{model}" width="100%" height="100%"/>
+    <win:botleGroupContent>
+        <s:Label
+                text="{uploadListModel.lastErrorEvent==null?'':( uploadListModel.lastErrorEvent.errorID +':'+uploadListModel.lastErrorEvent.text )}"/>
+    </win:botleGroupContent>
+</win:WebWindow>

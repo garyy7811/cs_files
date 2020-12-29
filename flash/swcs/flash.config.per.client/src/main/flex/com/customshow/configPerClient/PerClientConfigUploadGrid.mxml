@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 4/8/2016.
+-->
+<data:PropertiesGrid xmlns:fx="http://ns.adobe.com/mxml/2009"
+                     xmlns:data="com.flashflexpro.as3lib.data.*" xmlns:ap="org.apache.flex.collections.*"
+                     beans="{perClientConfigLoadById.config==null?null:new ArrayList( [ perClientConfigLoadById.config.upload ] )}">
+    <fx:Script>
+        import com.flashflexpro.as3lib.data.PropertiesGridColumn;
+        import com.flashflexpro.as3lib.data.PropertiesGridRow;
+        import com.flashflexpro.as3lib.data.PropertyDesc;
+        import com.flashflexpro.as3lib.rpc.RpcSpringMvcPost;
+
+        import org.apache.flex.collections.ArrayList;
+
+        [Bindable]
+        public var perClientConfigLoadById:PerClientConfigLoadById;
+
+
+        private var _savingRpc:RpcSpringMvcPost;
+
+        [Bindable(event="savingRpcChanged")]
+        public function get savingRpc():RpcSpringMvcPost{
+            return _savingRpc;
+        }
+
+        private function setSavingRpc( value:RpcSpringMvcPost ):void{
+            if( value != _savingRpc ){
+                _savingRpc = value;
+                dispatchEvent( new Event( "savingRpcChanged" ) );
+            }
+        }
+
+        public function save():void{
+            errorStr = null;
+            var col:PropertiesGridColumn = beans2Cols.getDestBySource( perClientConfigLoadById.config.upload ) as
+                    PropertiesGridColumn;
+
+            var _savingUpload:DynaTableClientConfigUpload = col.copyBeanWithChanges() as DynaTableClientConfigUpload;
+            setSavingRpc( new ConfigPerClientService( context ).saveUploadConfig( onSaveRslt, onSaveFault,
+                    perClientConfigLoadById.clientId, _savingUpload ) );
+            _savingRpc.callRemote();
+        }
+
+        [Bindable]
+        public var errorStr:String;
+
+        private function onSaveFault( err:ErrorEvent ):void{
+            errorStr = "[" + err.errorID + "]{" + err.text + "}";
+            setSavingRpc( null );
+        }
+
+        private function onSaveRslt( rslt:Boolean ):void{
+            if( rslt ){
+                valCol.applyChanges();
+            }
+            errorStr = null;
+            setSavingRpc( null );
+        }
+
+        private var _valCol:PropertiesGridColumn;
+
+        [Bindable(event="valColChanged")]
+        public function get valCol():PropertiesGridColumn{
+            return _valCol;
+        }
+
+        private function setValCol( value:PropertiesGridColumn ):void{
+            if( value != _valCol ){
+                _valCol = value;
+                dispatchEvent( new Event( "valColChanged" ) );
+            }
+        }
+
+        override protected function beanToColumn( bean:Object ):PropertiesGridColumn{
+            var rt:PropertiesGridColumn = super.beanToColumn( bean );
+            CONFIG::debugging{
+                if( _valCol != null ){
+                    throw new Error( "" );
+                }//debug
+            }
+            setValCol( rt );
+            return rt;
+        }
+
+    </fx:Script>
+    <data:propDescs>
+        <ap:VectorList source="{DynaTableClientConfigUpload.allProperties}"/>
+    </data:propDescs>
+</data:PropertiesGrid>

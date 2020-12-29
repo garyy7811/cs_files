@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<rs:RpcSpringMvcPost xmlns:fx="http://ns.adobe.com/mxml/2009"
+                     serviceName="search" remoteMethodName="suggest" xmlns:rs="com.flashflexpro.as3lib.rpc.*">
+    <fx:Script><![CDATA[
+        import mx.collections.ArrayCollection;
+
+        import spark.collections.Sort;
+        import spark.collections.SortField;
+
+        [Bindable]
+        public var autoListModel:ViewTermSuggestModel;
+
+        [Bindable]
+        public var prefixStr:String;
+
+        override protected function onObjResult( r:* = null ):void{
+            var terms:ArrayCollection = new ArrayCollection();
+            if( r != null ){
+                for( var key:String in r ){
+                    terms.addItem( new ViewTermSuggestCountVO( key, r[key] ) );
+                }
+                var sort:Sort = new Sort();
+                sort.fields = [new SortField( "count", true )];
+                terms.sort = sort;
+                terms.refresh();
+            }
+            autoListModel.onResult( prefixStr, terms );
+        }
+
+        override public function callRemote():Boolean{
+            var sm:SearchModel = autoListModel.searchModel;
+            model = sm.context;
+            var fld:QueryField = autoListModel.queryTerm.field;
+            if( fld.queryField != null ){
+                args = [fld.queryField, prefixStr.toLowerCase(), 20];
+            }
+            else{
+                args = [fld.id, fld.isTypeQueryString ? prefixStr.toLowerCase() : prefixStr, 20];
+            }
+            CONFIG::debugging{
+                trace( this + ".callRemote:" + args );
+            }//debug
+
+            if( sm.overridingMethodname != null ){
+                remoteMethodName = sm.overridingMethodname;
+            }
+            if( sm.overridingServiceName != null ){
+                serviceName = sm.overridingServiceName;
+            }
+            return super.callRemote();
+        }
+        ]]></fx:Script>
+</rs:RpcSpringMvcPost>

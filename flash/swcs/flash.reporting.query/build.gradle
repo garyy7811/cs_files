@@ -1,0 +1,21 @@
+type = 'swc'
+
+dependencies {
+    merged project(':flash:swcs:flash.utils')
+    merged project(':flash:swcs:flash.solr.query')
+}
+
+artifacts {
+    archives file(buildDir.absolutePath + "/" + output + ".swc")
+}
+
+
+task generateFlexSolrSchema(type: com.customshow.codegen.flexsolrschema.GenerateFlexSolrSchemaTask) {
+    javaSourceProjects = [ project(':java_modules:java.reporting.solr.bean') ]
+    includeClasses = ['com.customshow.reporting.solr.bean.*']
+    outputDirectory = project.file('tmp/main/flex/com/customshow/reporting/schema')
+    schemaPath = 'com.customshow.reporting.schema'
+    fieldPath = 'com.customshow.solr'
+}
+
+//compileFlex.dependsOn generateFlexSolrSchema

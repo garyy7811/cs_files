@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+                      xmlns:s="library://ns.adobe.com/flex/spark"
+                      xmlns:utils="com.flashflexpro.as3lib.utils.*" xmlns:spark="com.flashflexpro.as3lib.spark.*"
+>
+    <fx:Script><![CDATA[
+        import mx.binding.utils.ChangeWatcher;
+        import mx.events.PropertyChangeEvent;
+
+        private var _model:QueryRelate2Terms;
+
+        [Bindable(event="propertyChange")]
+        public function get model():QueryRelate2Terms{
+            return _model;
+        }
+
+        public function set model( value:QueryRelate2Terms ):void{
+            if( value != _model ){
+                if( _model != null ){
+                    while( _watchers.length > 0 ){
+                        _watchers.pop().unwatch();
+                    }
+                }
+
+                var old:QueryRelate2Terms = _model;
+                _model = value;
+                dispatchEvent( PropertyChangeEvent.createUpdateEvent( this, "model", old, _model ) );
+
+                if( _model != null ){
+                    _watchers.push( ChangeWatcher.watch( model, "query.queryResult.searchModel.context.callInNext".split( "." ), someChanged ) );
+                    _watchers.push( ChangeWatcher.watch( model, "query.queryResult.mouseOverTerm".split( "." ), someChanged ) );
+                    _watchers.push( ChangeWatcher.watch( model, "query.queryResult.searchModel.draggingTerm".split( "." ), someChanged ) );
+                    _watchers.push( ChangeWatcher.watch( model, "parent.field".split( "." ), someChanged ) );
+                    _watchers.push( ChangeWatcher.watch( model, "field", someChanged ) );
+                }
+            }
+        }
+
+        private var _watchers:Vector.<ChangeWatcher> = new <ChangeWatcher>[];
+
+        private function refreshState():void{
+            if( model == null ){
+                return;
+            }
+            var tmp:String = "uniqueFieldNameOff";
+            if( model.parent == null || model.parent.field == null ){
+                if( model.field != null ){
+                    tmp = "uniqueFieldNameOn";
+                }
+            }
+
+            if( model.query.queryResult.mouseOverTerm == model ){
+                tmp += "MouseOver";
+            }
+            else{
+                tmp += "MouseOut";
+            }
+            currentState = tmp;
+        }
+
+
+        private function someChanged( ignoreVar:* ):void{
+            try{ model.query.queryResult.searchModel.context.callInNext.putIn( refreshState, this, null, 7 );}
+            catch( e:Error ){ trace( e.getStackTrace() ) }
+        }
+        ]]></fx:Script>
+    <s:states>
+        <s:State name="uniqueFieldNameOnMouseOver" stateGroups="uniqueFieldNameOn,mouseOver"/>
+        <s:State name="uniqueFieldNameOffMouseOver" stateGroups="uniqueFieldNameOff,mouseOver"/>
+        <s:State name="uniqueFieldNameOnMouseOut" stateGroups="uniqueFieldNameOn,mouseOut"/>
+        <s:State name="uniqueFieldNameOffMouseOut" stateGroups="uniqueFieldNameOff,mouseOut"/>
+    </s:states>
+
+    <s:Rect id="tbFill" left="0" right="0" top="0" bottom="1">
+        <s:fill>
+            <s:LinearGradient rotation="90">
+                <s:GradientEntry color="0xE2E2E2"/>
+                <s:GradientEntry color="0xD9D9D9"/>
+            </s:LinearGradient>
+        </s:fill>
+    </s:Rect>
+    <s:Rect id="tbHilite" left="0" right="0" top="0" bottom="0">
+        <s:stroke>
+            <s:LinearGradientStroke rotation="90" weight="1">
+                <s:GradientEntry color="0xEAEAEA"/>
+                <s:GradientEntry color="0xD9D9D9"/>
+            </s:LinearGradientStroke>
+        </s:stroke>
+    </s:Rect>
+    <s:Rect id="tbDiv" left="0" right="0" height="1" bottom="0">
+        <s:fill>
+            <s:SolidColor color="0xC0C0C0"/>
+        </s:fill>
+    </s:Rect>
+
+    <s:Label text.uniqueFieldNameOn="{model.field.label}"
+             text.uniqueFieldNameOff=
+                     "{( model.term==null&amp;&amp;model.child1.field != model.child2.field)
+                     ?'^_^':''}"
+             textAlign="center" left="15" right="15" top="2" bottom="2"
+             width="100%" fontWeight="bold" id="lbl" toolTip="#t(searchField_{model.field.toolTip})p#"
+             fontStyle="{model.queryStr==null?'italic':'normal'}"
+             color="{model.queryStr==null?0x770000:0}"
+            />
+    <s:HGroup width="100%" top="0" left="5" gap="3" verticalAlign="middle">
+        <s:Label text="X" click="model.close();" toolTip="Remove this term" fontWeight="bold"
+                 visible="{model.parent!=null}" includeInLayout="{model.parent!=null}" includeIn="mouseOver"/>
+        <s:Spacer width="100%"/>
+        <s:BorderContainer minHeight="1" minWidth="1" borderVisible="true"
+                           visible="{model.child1!=null&amp;&amp;model.child2!=null}"
+                           includeInLayout="{model.child1!=null&amp;&amp;model.child2!=null}"
+                           click="model.isVertical = !model.isVertical;"
+                           toolTip="Click change layout direction">
+            <s:Label text="{model.isVertical?'Ｖ':'Ｈ'}" width="12" height="12" textAlign="center"/>
+        </s:BorderContainer>
+        <spark:MoreOptionsButton id="menuButton" click="model.showMenu()" width="16" height="14" includeIn="mouseOver"
+                                 toolTip="{( model.queryStr!=null &amp;&amp; model.queryStr.length > 0)?'Add':'Change to'} new term"/>
+
+    </s:HGroup>
+</s:SkinnableContainer>

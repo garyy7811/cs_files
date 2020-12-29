@@ -1,0 +1,165 @@
+<?xml version="1.0"?>
+<solr:ResultBase xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:as3lib="com.flashflexpro.as3lib.data.*"
+                 xmlns:ap="org.apache.flex.collections.*" xmlns:solr="com.customshow.solr.*">
+    <fx:Script><![CDATA[
+        import com.customshow.solr.query.web.common.DtoFacetResult;
+        import com.customshow.solr.query.web.common.DtoFacetResultRecord;
+
+        private var _query:Query;
+
+        [Bindable(event="queryChanged")]
+        public function get query():Query{
+            return _query;
+        }
+
+        public function sendQuery( q:Query ):void{
+            if( _query != null ){
+                _query.destroy();
+            }
+            discardResults();
+
+            _query = q;
+            dispatchEvent( new Event( "queryChanged" ) );
+            getMoreResults();
+        }
+
+        [Bindable]
+        public var sortField:QueryField;
+
+        [Bindable]
+        public var sortDescending:Boolean;
+
+        private var _numFound:int = - 1;
+        [Bindable(event="numFoundChanged")]
+        public function get numFound():int{
+            return _numFound;
+        }
+
+        override public function onResult( result:DtoFacetResult ):void{
+            for each( var r:DtoFacetResultRecord in result.rQueryRecords ){
+                onResultRecord( r.uid, r.properties );
+            }
+            if( result.rFacetsRecords != null ){
+                for( var i:uint = 0; i < facets.length; i ++ ){
+                    var tmp:ResultFacet = facets.getItemAt( i ) as ResultFacet;
+                    tmp.onResult( result );
+                    tmp.filterTxt = "";
+                }
+            }
+
+            _numFound = result.rNumFound;
+            dispatchEvent( new Event( "numFoundChanged" ) );
+            super.onResult( result );
+        }
+
+        override public function getMoreResults():void{
+            if( _query == null || ( resultList.length == _numFound && _numFound > 0 ) ){
+                CONFIG::debugging{
+                    if( numFound < 0 ){
+                        throw new Error( this + ".getMoreResults " );
+                    }
+                }
+                return;
+            }
+            setRpc( queryResult.searchModel.context.instantiate( SearchWithFacet ) as SearchWithFacet );
+            rpc.startRow = resultList.length;
+            if( resultList.length == 0 ){
+                rpc.rowNum = pageRows;
+                rpc.field2offsetLimitPrefixSort = {};
+                var f:ResultFacet;
+                for( var i:uint = 0; i < facets.length; i ++ ){
+                    f = facets.getItemAt( i ) as ResultFacet;
+                    CONFIG::debugging{
+                        if( 10 > f.pageRows ){
+                            throw new Error( this + ".getMoreResults won't auto scroll and load" );
+                        }
+                    }
+                    rpc.field2offsetLimitPrefixSort[f.field.id] = [0, f.pageRows];
+                }
+            }
+            else{
+                rpc.rowNum = pageRows;
+                rpc.field2offsetLimitPrefixSort = null;
+            }
+            rpc.sortField = sortField;
+            rpc.desc = sortDescending;
+            super.getMoreResults();
+        }
+
+        public function sortResultBy( field:QueryField, sd:Boolean ):void{
+            if( query == null ){
+                return;
+            }
+            discardResults();
+            sortField = field;
+            sortDescending = sd;
+            getMoreResults();
+        }
+
+        override public function discardResults():void{
+            super.discardResults();
+            var length:int = facetFields.length;
+            for( var i:uint = 0; i < length; i ++ ){
+                ( facets.getItemAt( i ) as ResultFacet ).discardResults();
+            }
+        }
+
+
+        private function set rfrResultFacetFields( ignoreVar:* ):void{
+            queryResult.searchModel.context.callInNext.putIn( refreshResultFacetFields );
+        }
+
+        private function refreshResultFacetFields():void{
+            facetFields.removeAll();
+            facetFields.addAll( queryResult.searchModel.initResultFacetFields );
+
+            columnFields.removeAll();
+            columnFields.addAll( queryResult.searchModel.initResultRecordFields );
+        }
+        ]]></fx:Script>
+    <fx:Binding source="queryResult.searchModel.___allFields.length" destination="rfrResultFacetFields"/>
+    <fx:Binding source="queryResult.searchModel.context.callInNext" destination="rfrResultFacetFields"/>
+
+    <fx:Declarations>
+        <ap:ArrayList id="facetFields"/>
+
+        <ap:ArrayList id="facets"/>
+        <as3lib:Map2Lists source="{queryResult.searchModel==null?null:facetFields}"
+                          destination="{facets}"
+                          getDestInst="{field2Facet}" destroyInst="destroyFacet"/>
+    </fx:Declarations>
+    <fx:Script><![CDATA[
+
+        private function field2Facet( f:QueryField ):ResultFacet{
+            var resultFacet:ResultFacet = f.instanciateResultFacet();
+            resultFacet.field = f;
+            resultFacet.queryResult = queryResult;
+            return resultFacet;
+        }
+
+        private function destroyFacet( f:ResultFacet ):void{
+            f.destroy();
+        }
+
+        public function showFacetsMenu():void{
+            queryResult.searchModel.showResultFacetMenu( this );
+        }
+
+        public function removeFacet( tf:QueryField ):void{
+            facetFields.removeItem( tf );
+        }
+        ]]></fx:Script>
+
+    <fx:Declarations>
+        <ap:ArrayList id="columnFields"/>
+    </fx:Declarations>
+    <fx:Script><![CDATA[
+        public function showColumnsMenu():void{
+            queryResult.searchModel.showResultResultMenu( this );
+        }
+
+        public function removeColumnAt( idx:int ):void{
+            columnFields.removeItemAt( idx );
+        }
+        ]]></fx:Script>
+</solr:ResultBase>

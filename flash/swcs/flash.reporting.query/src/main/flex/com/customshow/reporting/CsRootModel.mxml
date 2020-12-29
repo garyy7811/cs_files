@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<!--
+  Created by Gary on 4/9/2015.
+-->
+<utils:RootContextApp xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:utils="com.flashflexpro.as3lib.utils.*"
+                    xmlns:solr="com.customshow.solr.*" xmlns:reporting="com.customshow.reporting.*">
+    <fx:Declarations>
+        <reporting:CsSearchModelActivity id="searchModelActivity" context="{rootApp}" overridingServiceName="activity"/>
+        <solr:QueryResult id="staticQueryResultActivity" searchModel="{searchModelActivity}">
+            <solr:queryModel>
+                <solr:Query queryResult="{staticQueryResultActivity}">
+                    <solr:rootTerm>
+                        <solr:QueryRelate2Terms query="{staticQueryResultActivity.queryModel}" isVertical="true">
+                            <solr:term>
+                                <solr:QueryTermT
+                                        field="{searchModelActivity.activitySolrSchema.showSessionId__si_t_t_f}"/>
+                            </solr:term>
+                        </solr:QueryRelate2Terms>
+                    </solr:rootTerm>
+                </solr:Query>
+            </solr:queryModel>
+        </solr:QueryResult>
+
+
+        <reporting:CsSearchModelSlideDuration id="searchModelSlideDuration" context="{rootApp}"
+                                              overridingServiceName="slideduration"/>
+        <solr:QueryResult id="staticQueryResultSlideDuration" searchModel="{searchModelSlideDuration}">
+            <solr:queryModel>
+                <solr:Query queryResult="{staticQueryResultSlideDuration}">
+                    <solr:rootTerm>
+                        <solr:QueryRelate2Terms query="{staticQueryResultSlideDuration.queryModel}" isVertical="true">
+                            <solr:term>
+                                <solr:QueryTermT
+                                        field="{searchModelSlideDuration.slideDurationSolrSchema.slideShowName__si_t_t_f}"/>
+                            </solr:term>
+                        </solr:QueryRelate2Terms>
+                    </solr:rootTerm>
+                </solr:Query>
+            </solr:queryModel>
+        </solr:QueryResult>
+
+        <reporting:CsSearchModelPresDuration id="searchModelPresDuration" context="{rootApp}"
+                                             overridingServiceName="presduration"/>
+        <solr:QueryResult id="staticQueryResultPresDuration" searchModel="{searchModelPresDuration}">
+            <solr:queryModel>
+                <solr:Query queryResult="{staticQueryResultPresDuration}">
+                    <solr:rootTerm>
+                        <solr:QueryRelate2Terms query="{staticQueryResultPresDuration.queryModel}" isVertical="true">
+                            <solr:term>
+                                <solr:QueryTermT
+                                        field="{searchModelPresDuration.presDurationSolrSchema.slideShowName__si_t_t_f}"/>
+                            </solr:term>
+                        </solr:QueryRelate2Terms>
+                    </solr:rootTerm>
+                </solr:Query>
+            </solr:queryModel>
+        </solr:QueryResult>
+
+        <reporting:CsSearchModelShowDuration id="searchModelShowDuration" context="{rootApp}"
+                                             overridingServiceName="showduration"/>
+        <solr:QueryResult id="staticQueryResultShowDuration" searchModel="{searchModelShowDuration}">
+            <solr:queryModel>
+                <solr:Query queryResult="{staticQueryResultShowDuration}">
+                    <solr:rootTerm>
+                        <solr:QueryRelate2Terms query="{staticQueryResultShowDuration.queryModel}" isVertical="true">
+                            <solr:term>
+                                <solr:QueryTermT
+                                        field="{searchModelShowDuration.showDurationSolrSchema.slideShowName__si_t_t_f}"/>
+                            </solr:term>
+                        </solr:QueryRelate2Terms>
+                    </solr:rootTerm>
+                </solr:Query>
+            </solr:queryModel>
+        </solr:QueryResult>
+    </fx:Declarations>
+    <fx:Script><![CDATA[
+        ]]></fx:Script>
+</utils:RootContextApp>

@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<s:GridColumn xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+              showDataTips="true" minWidth="40"
+              itemRenderer="spark.skins.spark.DefaultGridItemRenderer"
+              headerRenderer="com.customshow.solr.SearchViewRecordGridHeaderRenderer"
+              labelFunction="getLabelTxt" dataTipFunction="getTipTxt">
+    <fx:Script><![CDATA[
+        [Bindable]
+        public var queryField:QueryField;
+
+        private function getTipTxt( recordDto:Object, col:GridColumn ):String{
+            var rt:String;
+
+            var dtoFieldName:String = queryField.id;
+            var dynaIndex:int = dtoFieldName.indexOf( "__" );
+            if( dynaIndex > 0 ){
+                dtoFieldName = dtoFieldName.substr( 0, dynaIndex );
+            }
+            var dt:Object = recordDto[dtoFieldName];
+            if( dt == null ){
+                rt = "";
+            }
+            else if( dt is String || dt is Number ){
+                rt = String( dt );
+            }
+            else if( dt is Array ){
+                rt = ( dt as Array ).join( "; " );
+            }
+            if( queryField.isTypeSlideIndex ){
+                var tmpIndex:int = dt as int;
+                rt = tmpIndex < 0 ? "" : String( tmpIndex + 1 );
+            }
+
+            return rt;
+        }
+
+        private function getLabelTxt( recordDto:Object, col:GridColumn ):String{
+            var rt:String;
+
+            var dtoFieldName:String = queryField.id;
+            var dynaIndex:int = dtoFieldName.indexOf( "__" );
+            if( dynaIndex > 0 ){
+                dtoFieldName = dtoFieldName.substr( 0, dynaIndex );
+            }
+            var dt:Object = recordDto[dtoFieldName];
+            if( dt == null ){
+                rt = "";
+            }
+            else if( dt is Array ){
+                rt = ( dt as Array ).join( "; " );
+            }
+            else if( queryField.isTypeNumDate && dt != null ){
+                rt = new Date( dt ).toString();
+            }
+            else if( queryField.isTypeTimeLen ){
+                var milliseconds:Number = dt as Number;
+                rt = QueryField.epicTimeToHMS( milliseconds );
+            }
+            else if( queryField.isTypeSlideIndex ){
+                var tmpIndex:int = dt as int;
+                rt = tmpIndex < 0 ? "" : String( tmpIndex + 1 );
+            }
+            else{
+                rt = String( dt );
+            }
+
+            return rt;
+        }
+        ]]></fx:Script>
+    <fx:Binding source="queryField.sortable" destination="sortable"/>
+    <fx:Binding source="queryField.label" destination="headerText"/>
+    <fx:Binding source="queryField.citationColWidth" destination="width"/>
+</s:GridColumn>

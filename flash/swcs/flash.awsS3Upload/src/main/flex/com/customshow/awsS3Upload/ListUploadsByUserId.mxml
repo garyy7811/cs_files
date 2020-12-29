@@ -1,0 +1,140 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 3/23/2016.
+-->
+<rpc:RpcGrid xmlns:fx="http://ns.adobe.com/mxml/2009"
+             xmlns:rpc="com.flashflexpro.as3lib.rpc.*"
+             xmlns:ap="org.apache.flex.collections.*"
+             xmlns:data="com.flashflexpro.as3lib.data.*"
+             sortColDesc="true">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.data.GridColumn;
+        import com.flashflexpro.as3lib.data.PropertyDesc;
+        import com.flashflexpro.as3lib.utils.RootContextModule;
+
+        import mx.collections.IList;
+
+        [Bindable]
+        public var userId:String = "1";
+
+        [Bindable]
+        public var uploadTimeTo:Date = new Date();
+
+        [Bindable]
+        public var selectedUpload:DynaTableAwsS3Upload;
+
+        override public function reloadGrid():void{
+            super.reloadGrid();
+            selectedUpload = null;
+        }
+
+        override public function loadMore():Boolean{
+            if( rpcLoadGrid != null ){
+                return false;
+            }
+
+            if( uploadTimeTo == null ){
+                uploadTimeTo = new Date();
+            }
+
+            var timeTo:Date;
+            if( lastResult == null ){
+                var tn:Number = uploadTimeTo.getTime();
+                if( sortColDesc ){
+                    tn += 24 * 3600000;
+                }
+                timeTo = new Date( tn );
+            }
+            else if( lastResult.length > 0 ){
+                var tmp:* = sortColDesc ? lastResult.getItemAt( lastResult.length - 1 ) : lastResult.getItemAt( 0 );
+                var tmpStamp:Number = ( tmp as DynaTableAwsS3Upload ).applyTimeStamp;
+                tmpStamp = sortColDesc ? tmpStamp - 1 : tmpStamp + 1;
+                timeTo = new Date( tmpStamp );
+            }
+            else{
+                //all loaded
+                return false;
+            }
+
+            rpcLoadGrid = new AwsS3UploadService( context ).loadByUserId( onLoaded, onError, userId, timeTo, 50,
+                    sortColDesc );
+            rpcLoadGrid.callRemote();
+            return true;
+        }
+
+        public function get lastResult():IList{
+            return lastQueryResult as IList;
+        }
+
+
+        [Bindable(event="contextChanged")]
+        public function get contextUpload():RootContextUpload{
+            return context as RootContextUpload;
+        }
+
+        override public function onLoaded( rslt:Object ):Boolean{
+            var rt:Boolean = super.onLoaded( rslt );
+            if( rslt is IList ){
+                rows.addAll( rslt as IList );
+            }
+            return rt;
+        }
+
+        private var _uploadDateFields:Array;
+
+        protected function getDateFields():Array{
+            if( _uploadDateFields == null ){
+                _uploadDateFields = [DynaTableAwsS3Upload.PROP_DESC_applyTimeStamp,
+                    DynaTableAwsS3Upload.PROP_DESC_fileRefCreationDate,
+                    DynaTableAwsS3Upload.PROP_DESC_uploadedConfirmTimeStamp,
+                    DynaTableAwsS3Upload.PROP_DESC_uploadedByClientTime,
+                    DynaTableAwsS3Upload.PROP_DESC_fileRefModificationDate];
+            }
+            return _uploadDateFields;
+        }
+
+        override public function set context( value:RootContextModule ):void{
+            if( value == context ){
+                return;
+            }
+            super.context = value;
+
+            var colProps:Vector.<PropertyDesc> = DynaTableAwsS3Upload.allProperties;
+            const len:int = colProps.length;
+            for( var j:int = 0; j < len; j ++ ){
+                var desc:PropertyDesc = colProps[j] as PropertyDesc;
+                if( desc == DynaTableAwsS3Upload.PROP_DESC_awSAccessKeyId ||
+                        desc == DynaTableAwsS3Upload.PROP_DESC_s3Bucket ||
+                        desc == DynaTableAwsS3Upload.PROP_DESC_version ||
+                        desc == DynaTableAwsS3Upload.PROP_DESC_awSAccessKeyId ||
+                        desc == DynaTableAwsS3Upload.PROP_DESC_fileRefCreationDate ||
+                        desc == DynaTableAwsS3Upload.PROP_DESC_fileRefCreator ||
+                        desc == DynaTableAwsS3Upload.PROP_DESC_fileRefModificationDate ||
+                        desc == DynaTableAwsS3Upload.PROP_DESC_uploadedConfirmTimeStamp ||
+                        desc == DynaTableAwsS3Upload.PROP_DESC_uploadedByClientTime ){
+                    continue;
+                }
+                var column:GridColumn = new GridColumn();
+                column.label = desc.name;
+
+                column.dataField = desc.name;
+                if( getDateFields().indexOf( desc ) >= 0 ){
+                    column.labelFunction = getCellLabelDate;
+                }
+                //                column.sortable = true;
+                columns.addItem( column );
+            }
+        }
+
+        protected function getCellLabelDate( row:DynaTableAwsS3Upload, col:GridColumn ):String{
+            var rt:Date = new Date();
+            rt.setTime( row[col.dataField] );
+            return rt.toLocaleString()
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+        <ap:ArrayList id="columns"/>
+    </fx:Declarations>
+    <fx:Binding source="userId" destination="rfrReloadGrid"/>
+    <fx:Binding source="uploadTimeTo" destination="rfrReloadGrid"/>
+</rpc:RpcGrid>

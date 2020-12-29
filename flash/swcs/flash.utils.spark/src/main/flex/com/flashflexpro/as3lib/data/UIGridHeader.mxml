@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!--
+  Created by yanggang on 4/3/2016.
+-->
+<data:UIGridItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:data="com.flashflexpro.as3lib.data.*"
+                         xmlns:s="library://ns.adobe.com/flex/spark" creationComplete="onCreationComplete( event );">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.utils.RootContextApp;
+
+        import mx.events.FlexEvent;
+
+
+        protected function onCreationComplete( event:FlexEvent ):void{
+            addElement( arrow );
+            addElement( labelDisplayyyy );
+        }
+
+
+        private function set rfrSort( ignoreVar:* ):void{
+            RootContextApp.inst.callInNext.putIn( refreshSort );
+        }
+
+        private function refreshSort():void{
+            arrow.scaleY = uiGrid.gridModel.sortColDesc ? -1 : 1;
+        }
+        ]]></fx:Script>
+    <fx:Binding source="{uiGrid.gridModel.sortColDesc}" destination="rfrSort"/>
+    <data:layout>
+        <s:HorizontalLayout verticalAlign="middle" horizontalAlign="center" gap="1" paddingLeft="2"/>
+    </data:layout>
+    <fx:Declarations>
+        <s:Path id="arrow" data="M 3.5 7.0 L 0.0 0.0 L 7.0 0.0 L 3.5 7.0"
+                includeInLayout="{uiGrid.gridModel.sortColDataField == gridColumn.model}"
+                visible="{uiGrid.gridModel.sortColDataField == gridColumn.model}">
+            <s:fill>
+                <s:RadialGradient rotation="90" focalPointRatio="1">
+                    <s:GradientEntry id="arrowFill1" color="0" alpha="0.6"/>
+                    <s:GradientEntry id="arrowFill2" color="0" alpha="0.8"/>
+                </s:RadialGradient>
+            </s:fill>
+        </s:Path>
+        <s:Label width="100%" height="100%" id="labelDisplayyyy" verticalAlign="middle" textAlign="center"
+                 maxDisplayedLines="1" fontWeight="bold" text="{gridColumn.model.label}"
+                 toolTip="{gridColumn.model.label}"/>
+    </fx:Declarations>
+</data:UIGridItemRenderer>

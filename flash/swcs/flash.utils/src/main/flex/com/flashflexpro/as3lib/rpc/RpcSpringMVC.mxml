@@ -1,0 +1,174 @@
+<?xml version="1.0"?>
+<rs:RpcInList xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:rs="com.flashflexpro.as3lib.rpc.*">
+    <fx:Script><![CDATA[
+        [Bindable]
+        public var restUrl:String = null;
+
+        [Bindable]
+        public var serviceName:String = null;
+
+        [Bindable]
+        public var remoteMethodName:String;
+
+
+        [Bindable]
+        public var urlExtra:String;
+
+
+        protected function refreshRequestUrl():String{
+            CONFIG::debugging{
+                if( restUrl == null && model == null ){
+                    throw new Error( "No URL found" );
+                }//debug
+                if( serviceName == null ){
+                    throw new Error( "No service name !" );
+                }
+            }
+
+
+            var url:String = null;
+            var mn:String = remoteMethodName;
+            if( mn == null ){
+                var myclsName:String = getQualifiedClassName( this ).split( "::" )[1];
+                mn = myclsName.charAt( 0 ).toLowerCase() + myclsName.substr( 1 );
+            }
+            url = ( restUrl == null ? model.restUrl : restUrl ) + "/" + serviceName + "/" + mn;
+
+            var extr:String = null;
+            if( urlExtra != null ){
+                extr = urlExtra;
+            }
+            else if( model != null && model.urlExtra != null ){
+                extr = model.urlExtra;
+            }
+            if( extr != null ){
+                if( url.substr( url.length - 1 ) != "/" ){
+                    url += "/";
+                }
+                url += extr;
+            }
+            return url;
+        }
+
+        override public function callRemote():Boolean{
+            if( _request == null ){
+                var url:String = refreshRequestUrl();
+                CONFIG::debugging{
+                    if( serviceName == null ){
+                        throw new Error( this + serviceName );
+                    }//debug
+                    if( args != null ){
+                        CC.log( "args len:" + args.length );
+                    }
+                }//debug
+                _request = new URLRequest( url );
+            }
+            return super.callRemote();
+        }
+        ]]></fx:Script>
+    <fx:Script><![CDATA[
+        import mx.utils.Base64Decoder;
+
+        [Bindable]
+        public var args:Array;
+
+        public var callBackOnRawResult:Function;
+        public var callBackOnObjResult:Function;
+        public var callBackOnError:Function;
+
+
+        override protected function onRawResult( result:Object ):void{
+            super.onRawResult( result );
+
+            if( callBackOnRawResult != null ){
+                if( callBackOnRawResult.apply( null, [result] ) ){
+                    return;
+                }
+            }
+            var byteArray:ByteArray;
+            if( result is String ){
+                var decoder:Base64Decoder = new Base64Decoder();
+                decoder.decode( result as String );
+                byteArray = decoder.toByteArray();
+            }
+            else if( result is ByteArray ){
+                byteArray = ( result as ByteArray );
+            }
+            else{
+                throw new Error( 'unknown format!!' );
+            }
+
+            var asObj:* = byteArray.length == 0 ? null : byteArray.readObject();
+
+            if( asObj instanceof RpcError ){
+                var re:RpcError = asObj as RpcError;
+                onFault( new ErrorEvent( ErrorEvent.ERROR, false, false, re.message, re.code ) );
+                return;
+            }
+
+            if( callBackOnObjResult != null ){
+                if( callBackOnObjResult.apply( null, [asObj] ) ){
+                    return;
+                }
+            }
+
+            onObjResult( asObj );
+        }
+
+        /*
+         if( asObj is DtoException ){
+         onServerException( asObj as DtoException );
+         }
+         else{
+         onObjResult( asObj );
+         }
+         }
+
+         protected function onServerException( dtoException:DtoException ):void{
+         CC.log( dtoException.stack );
+         }*/
+
+
+        protected function onObjResult( asObj:* = null ):void{
+            CONFIG::debugging{
+                CC.log( "RpcSpringMVC.onObjResult->arguments len:" + arguments.length );
+            }//debug
+        }
+
+
+        override protected function onFault( event:ErrorEvent ):void{
+            super.onFault( event );
+            if( callBackOnError != null ){
+                callBackOnError.apply( null, [event] );
+            }
+        }
+
+        private static var securityPolicyLoaded:Boolean = false;
+
+        private function set rfrCrsdXml( ignoreVar:* ):void{
+            if( securityPolicyLoaded ){
+                return;
+            }
+
+            var u:String = restUrl;
+            if( u == null && model != null ){
+                u = model.restUrl;
+            }
+
+            if( u == null ){
+                return;
+            }
+            var arr:Array = u.split( "/" );
+
+            while( arr.length > 4 ){
+                arr.pop();
+            }
+
+            var url:String = arr.join( "/" ) + "/crossdomain.xml";
+            Security.loadPolicyFile( url );
+            securityPolicyLoaded = true;
+        }
+        ]]></fx:Script>
+    <fx:Binding source="model.restUrl" destination="rfrCrsdXml"/>
+    <fx:Binding source="restUrl" destination="rfrCrsdXml"/>
+</rs:RpcInList>

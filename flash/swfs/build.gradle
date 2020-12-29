@@ -1,0 +1,146 @@
+buildscript {
+    repositories {
+        //mavenLocal()
+        maven {
+            name 'local nexus'
+            url csConfig.mavenDependencyRepoUrl
+        }
+    }
+
+    dependencies {
+        classpath "org.gradlefx:gradlefx:$gradlefxVersion"
+        classpath "jp.classmethod.aws:gradle-aws-plugin:$jpClassmethodGradlePluginVersion"
+    }
+}
+
+
+import com.amazonaws.services.s3.AmazonS3Client
+import com.fasterxml.jackson.databind.ObjectMapper
+import jp.classmethod.aws.gradle.s3.AmazonS3FileUploadTask
+import com.amazonaws.services.s3.model.ObjectMetadata
+
+apply plugin: 'jp.classmethod.aws.s3'
+
+task crossdomainXmlToDownloadbucket( type: AmazonS3FileUploadTask ) {
+    file file( "crossdomain.xml" )
+    bucketName csConfig.awsS3DownloadBucket
+    key "crossdomain.xml"
+
+    def m = new ObjectMetadata()
+    m.setCacheControl( "no-cache, no-store" )
+    objectMetadata = m
+}
+
+task crossdomainXmlToBuckets( type: AmazonS3FileUploadTask, dependsOn: crossdomainXmlToDownloadbucket ) {
+    file file( "crossdomain.xml" )
+    bucketName csConfig.awsS3UploadBucket
+    key "crossdomain.xml"
+
+    def m = new ObjectMetadata()
+    m.setCacheControl( "no-cache, no-store" )
+    objectMetadata = m
+}
+
+crossdomainXmlToDownloadbucket.dependsOn rootProject.project( ":flash" ).tasks.createBuildBucket
+crossdomainXmlToBuckets.dependsOn rootProject.project( ":java_modules" ).tasks.createS3Buckets
+
+subprojects {
+    type = 'swf'
+
+    if( csConfig.csDebugInLocalExploded == 'true' ){
+        def servr = rootProject.allprojects.find { it.path.equals( ':java_wars:servletAPI' ) }
+        if( servr != null ){
+            buildDir = servr.buildDir.absolutePath + "/exploded/" + project.name
+        }
+    }
+
+    task copyJspSwfWrapper( type: Copy ) {
+        String wrapperDir = rootProject.rootDir.absolutePath + '/flash/wrapper.template'
+
+        Map tmp = [:];
+        csConfig.each { k, v -> tmp.put( k, v ) }
+        if( tmp.swf == null ){
+            tmp.swf = output
+        }
+        if( tmp.title == null ){
+            tmp.title = name
+        }
+        if( tmp.bgcolor == null ){
+            tmp.bgcolor = '#000000'
+        }
+
+        if( tmp.version_major == null ){
+            tmp.version_major = '11'
+        }
+        if( tmp.version_minor == null ){
+            tmp.version_minor = '1'
+        }
+        if( tmp.version_revision == null ){
+            tmp.version_revision = '0'
+        }
+        if( tmp."exit.url" == null ){
+            tmp."exit.url" = 'end'
+        }
+        if( tmp.build_cdn_url == null ){
+            tmp.build_cdn_url = ''
+        }
+        if( tmp.build_cdn_url.length() > 1 ){
+            if( !tmp.build_cdn_url.endsWith( '/' ) ){
+                tmp.build_cdn_url += '/'
+            }
+            tmp.build_cdn_url += 'cscloud-' + csConfig.csVersionBuildRBStr + '/'
+        }
+
+        from( wrapperDir ) {
+            include '*.jsp'
+            include '*.html'
+            filter { String line ->
+                tmp.each {
+                    line = line.replaceAll( "\\\$\\{" + it.key + "\\}", it.value )
+                }
+                return line
+            }
+        }
+        from( wrapperDir ) {
+            exclude '*.jsp'
+            exclude '*.html'
+        }
+
+        into project.buildDir.absolutePath
+    }
+
+    copyJspSwfWrapper.dependsOn( copyAndFilterSwfCompileConfig )
+    compileFlex.dependsOn( copyJspSwfWrapper )
+
+
+    task uploadToS3( type: jp.classmethod.aws.gradle.s3.SyncTask, dependsOn: compileFlex ) {
+        source project.buildDir
+        bucketName csConfig.build_aws_s3_bucket
+        prefix 'cscloud-' + csConfig.csVersionBuildRBStr + '/' + project.name + '/'
+        doLast {
+            println 'Uploaded to S3 with URL:' + csConfig.build_aws_s3_url + "/" + prefix + "index.html"
+
+            HashMap objMap = new HashMap()
+            objMap.put( "name", project.name )
+            objMap.put( "path", project.path )
+            objMap.put( "buildStr", csConfig.csVersionBuildRBStr )
+            objMap.put( "htmlUrl", csConfig.build_aws_s3_url + "/" + prefix + "index.html" )
+            objMap.put( "flashUrl", csConfig.build_aws_s3_url + "/" + prefix + output + ".swf" )
+
+            byte[] bInfoBytes = new ObjectMapper().writeValueAsBytes( objMap );
+
+            AmazonS3Client s3Client = new AmazonS3Client()
+
+            final ObjectMetadata binfoMt = new ObjectMetadata();
+            binfoMt.setContentType( "text/html" );
+            binfoMt.setContentLength( bInfoBytes.length );
+            binfoMt.setCacheControl( "no-cache" )
+
+            def p = project.path.replaceAll( ":", "-" ).replaceAll( "/", "-" )
+            s3Client.putObject( csConfig.build_aws_s3_bucket, "build-info-" + p + ".json",
+                    new ByteArrayInputStream( bInfoBytes ), binfoMt )
+        }
+    }
+
+    uploadToS3.dependsOn parent.tasks.crossdomainXmlToBuckets
+}

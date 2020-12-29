@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<solr:SolrBeanSchema xmlns:fx="http://ns.adobe.com/mxml/2009"
+                       xmlns:ap="org.apache.flex.collections.*"
+                       xmlns:solr="com.customshow.solr.*"
+                                xmlns:schema="com.customshow.reporting.schema.*"
+                                xmlns:field="com.customshow.solr.*">
+    <fx:Script><![CDATA[
+        private var _allAdded:Boolean = false;
+        override public function getAllFields():ArrayList{
+            if( !_allAdded ){
+                ___allFields.addAll( ___CSReportingSolrAbstractSchema );
+                _allAdded = true;
+            }
+            return super.getAllFields();
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+        <ap:ArrayList id="___CSReportingSolrAbstractSchema">
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="clientSessionId__si_t_t_f"  name="clientSessionId"  label="clientSessionId"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="showSessionId__si_t_t_f"  name="showSessionId"  label="showSessionId"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="flexClientId__si_t_t_f"  name="flexClientId"  label="flexClientId"  searchModel="{searchModel}" />
+       </ap:ArrayList>
+    </fx:Declarations>
+</solr:SolrBeanSchema>

@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 6/3/2015.
+-->
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+                   backgroundColor="#ffffff" borderVisible="false" minWidth="{1.15*height}">
+    <fx:Script><![CDATA[
+        [Bindable]
+        public var titleText:String;
+
+        [Bindable]
+        public var value:String;
+
+        [Bindable]
+        public var divPer:Number;
+
+        [Bindable]
+        public var footColor:uint = 0;
+        ]]></fx:Script>
+    <s:layout>
+        <s:VerticalLayout horizontalAlign="center"/>
+    </s:layout>
+    <s:Group>
+        <s:layout>
+            <s:VerticalLayout horizontalAlign="center" gap="3" paddingTop="15" paddingBottom="5" />
+        </s:layout>
+        <s:Label text="{titleText}" color="#8e8e8e" fontSize="16"/>
+        <s:Spacer height="22"/>
+        <s:Label text="{value==null?'-':value}" color="#7a7a7a" fontSize="36"/>
+        <s:Spacer height="22"/>
+        <s:HGroup left="0" right="{arrow.width}" horizontalAlign="center" verticalAlign="middle">
+            <s:Path id="arrow" data="M 3.5 7.0 L 0.0 0.0 L 7.0 0.0 L 3.5 7.0" scaleY="{ divPer > 0 ? -2 : 2 }" scaleX="2" visible="{!isNaN(divPer)}">
+                <s:fill>
+                    <s:RadialGradient rotation="90" focalPointRatio="1">
+                        <s:GradientEntry id="arrowFill1" color="{divPer>0?0x00ff00:0xff0000}" alpha="0.6"/>
+                        <s:GradientEntry id="arrowFill2" color="{divPer>0?0x00ff00:0xff0000}" alpha="0.8"/>
+                    </s:RadialGradient>
+                </s:fill>
+            </s:Path>
+            <s:Label text="{divPer > 0 ? '+' : ' '}{isNaN(divPer)?'-':divPer.toString()}%" color="#7e7e7e" fontSize="16"/>
+        </s:HGroup>
+        <s:Label text="v.s. previous period" color="#7e7e7e" fontSize="10"/>
+    </s:Group>
+    <s:Rect width="100%" height="4">
+        <s:fill>
+            <s:SolidColor color="{footColor}"/>
+        </s:fill>
+    </s:Rect>
+</s:BorderContainer>

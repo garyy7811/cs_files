@@ -1,0 +1,17 @@
+dependencies {
+    merged project( ':flash:swcs:flash.utils.spark' )
+    merged project( ':flash:swcs:flash.awsS3Upload.spark' )
+    merged project( ':flash:swcs:flash.awsS3Download.spark' )
+    merged project( ':flash:swcs:flash.config.per.client.spark' )
+    merged project( ':flash:swcs:flash.videotranscoding.spark' )
+    merged project( ':flash:swcs:flash.labyrinth.cloud.spark' )
+    merged project( ':flash:swcs:flash.search.query.spark' )
+
+    merged project( ':flash:swcs:flash.solr.query' )
+    merged project( ':flash:swcs:flash.solr.query.v' )
+    merged project( ':flash:swcs:flash.reporting.query' )
+    merged project( ':flash:swcs:flash.reporting.reports' )
+    merged project( ':flash:swcs:flash.reporting.reports.mx' )
+
+    merged project( ':flash:swcs:flash.search.query' )
+}

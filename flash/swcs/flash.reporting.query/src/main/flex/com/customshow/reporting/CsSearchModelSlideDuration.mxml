@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<reporting:CsSearchModelAbstract xmlns:fx="http://ns.adobe.com/mxml/2009"
+                                 xmlns:solr="com.customshow.solr.*"
+                                 xmlns:schema="com.customshow.reporting.schema.*"
+                                 xmlns:reporting="com.customshow.reporting.*"
+                                 overridingServiceName="slideduration">
+    <fx:Script><![CDATA[
+        public function set onSchemaReady( value:* ):void{
+            if( schema != slideDurationSolrSchema ){
+                schema = slideDurationSolrSchema;
+                ___allFields.addAll( slideDurationSolrSchema.getAllFields() );
+                queryFields.addAll( slideDurationSolrSchema.getAllFields() );
+                resultRecordFields.addAll( slideDurationSolrSchema.getAllFields() );
+
+                initResultRecordFields.addItem( slideDurationSolrSchema.userEmail__si_t_t_f );
+                initResultRecordFields.addItem( slideDurationSolrSchema.fromSlidePresIndex__i_t_t_f );
+                initResultRecordFields.addItem( slideDurationSolrSchema.fromSlideRefName__si_t_t_f );
+                initResultRecordFields.addItem( slideDurationSolrSchema.startTime__l_t_t_f );
+                initResultRecordFields.addItem( slideDurationSolrSchema.duration__l_t_t_f );
+                initResultRecordFields.addItem( slideDurationSolrSchema.durationNet__l_t_t_f );
+                initResultRecordFields.addItem( slideDurationSolrSchema.endTime__l_t_t_f );
+                initResultRecordFields.addItem( slideDurationSolrSchema.toSlidePresIndex__i_t_t_f );
+                initResultRecordFields.addItem( slideDurationSolrSchema.toSlideRefName__si_t_t_f );
+                initResultRecordFields.addItem( slideDurationSolrSchema.presentationName__si_t_t_f );
+                initResultRecordFields.addItem( slideDurationSolrSchema.slideShowName__si_t_t_f );
+
+
+                resultFacetFields.addAll( slideDurationSolrSchema.getAllFields() );
+
+                initResultFacetFields.addItem( slideDurationSolrSchema.userEmail__si_t_t_f );
+                initResultFacetFields.addItem( slideDurationSolrSchema.presentationName__si_t_t_f );
+                initResultFacetFields.addItem( slideDurationSolrSchema.slideShowName__si_t_t_f );
+                initResultFacetFields.addItem( slideDurationSolrSchema.pauseReasons__si_t_t_t );
+            }
+
+        }
+        ]]></fx:Script>
+    <fx:Binding source="slideDurationSolrSchema" destination="onSchemaReady"/>
+    <fx:Declarations>
+        <schema:CSReportingSlideDurationSolrSchema id="slideDurationSolrSchema" searchModel="{this}"/>
+    </fx:Declarations>
+    <reporting:queryResult>
+        <solr:QueryResult id="staticQueryResultSlideDuration" searchModel="{this}">
+            <solr:queryModel>
+                <solr:Query queryResult="{staticQueryResultSlideDuration}">
+                    <solr:rootTerm>
+                        <solr:QueryRelate2Terms query="{staticQueryResultSlideDuration.queryModel}" isVertical="true">
+                            <solr:term>
+                                <solr:QueryTermT
+                                        field="{slideDurationSolrSchema.slideShowName__si_t_t_f}"/>
+                            </solr:term>
+                        </solr:QueryRelate2Terms>
+                    </solr:rootTerm>
+                </solr:Query>
+            </solr:queryModel>
+        </solr:QueryResult>
+    </reporting:queryResult>
+</reporting:CsSearchModelAbstract>

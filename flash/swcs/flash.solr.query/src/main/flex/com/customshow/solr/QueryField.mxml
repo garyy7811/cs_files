@@ -1,0 +1,150 @@
+<?xml version="1.0"?>
+<as3lib:MxmlEventDispatcher xmlns:fx="http://ns.adobe.com/mxml/2009"
+                            xmlns:as3lib="com.flashflexpro.as3lib.utils.*"
+                            implements="mx.core.IMXMLObject">
+    <fx:Script><![CDATA[
+        import com.customshow.solr.query.web.common.DtoFacetResultRecord;
+
+        [Bindable]
+        public var searchModel:SearchModel;
+
+        [Bindable]
+        public var citationColWidth:uint = 80;
+
+        [Bindable]
+        public var sortable:Boolean = false;
+
+        private var _type:String;
+        public function get type():String{
+            if( _type == null ){
+                _type = id.split( "__" )[1];
+            }
+            return _type;
+        }
+
+        public function get isTypeString():Boolean{
+            return isTypeSentence || isTypeSingleWord || isTypeStringId;
+        }
+
+        public function get isTypeQueryString():Boolean{
+            return isTypeSentence || isTypeSingleWord;
+        }
+
+        public function get isTypeStringId():Boolean{
+            return type.indexOf( "si_" ) == 0;
+        }
+
+        public function get isTypeSingleWord():Boolean{
+            return type.indexOf( "sw_" ) == 0;
+        }
+
+        public function get isTypeSentence():Boolean{
+            return type.indexOf( "stc_" ) == 0;
+        }
+
+
+        public function get isTypeDate():Boolean{
+            return type.indexOf( "dt_" ) == 0;
+        }
+
+
+        public function get isTypeNumber():Boolean{
+            return isTypeLong || isTypeDouble || isTypeInteger;
+        }
+
+        public function get isTypeLong():Boolean{
+            return type.indexOf( "l_" ) == 0;
+        }
+
+        public function get isTypeDouble():Boolean{
+            return type.indexOf( "l_" ) == 0;
+        }
+
+        public function get isTypeInteger():Boolean{
+            return type.indexOf( "i_" ) == 0;
+        }
+
+        public function get isTypeBoolean():Boolean{
+            return type.indexOf( "b_" ) == 0;
+        }
+
+        //todo: move these reporting domain definitions to where it belongs to!
+        private static function zeroPad( number:uint ):String{
+
+            if( number < 10 ){
+                return "0" + number;
+            }
+
+            return number.toString();
+        }
+
+        public static function epicTimeToHMS( milliseconds:Number ):String{
+            var hours:uint = milliseconds / (60 * 60 * 1000);
+            var minutes:uint = (milliseconds / (60 * 1000)) % 60;
+            var seconds:uint = (milliseconds / 1000) % 60;
+            return zeroPad( hours ) + ":" + zeroPad( minutes ) + ":" + zeroPad( seconds );
+        }
+
+        [Bindable]
+        public var isTypeNumDate:Boolean;
+
+        [Bindable]
+        public var isTypeTimeLen:Boolean;
+
+        [Bindable]
+        public var isTypeSlideIndex:Boolean;
+
+
+        [Bindable]
+        public var label:String;
+
+        [Bindable]
+        public var name:String;
+
+        private var _toolTip:String;
+
+        [Bindable(event="toolTipChanged")]
+        public function get toolTip():String{
+            return _toolTip == null ? id : _toolTip;
+        }
+
+        public function set toolTip( value:String ):void{
+            if( value != _toolTip ){
+                _toolTip = value;
+                dispatchEvent( new Event( "toolTipChanged" ) );
+            }
+        }
+
+        public function instanciateResultFacet():ResultFacet{
+            throw new Error( "" );
+        }
+
+        public function instanciateTermClass():QueryTerm{
+            throw new Error( "" );
+        }
+
+        private var _queryField:String = null;
+
+
+        [Bindable(event="queryFieldChanged")]
+        public function get queryField():String{
+            return _queryField == null ? id : _queryField;
+        }
+
+        public function set queryField( value:String ):void{
+            if( value != _queryField ){
+                _queryField = value;
+                dispatchEvent( new Event( "queryFieldChanged" ) );
+            }
+        }
+
+        public function p( r:DtoFacetResultRecord ):*{
+            return r.properties[name];
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+        <fx:String id="url"/>
+        <fx:Boolean id="isArray"/>
+        <fx:Boolean id="isStrID"/>
+    </fx:Declarations>
+</as3lib:MxmlEventDispatcher>

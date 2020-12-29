@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+         xmlns:aspk="com.flashflexpro.as3lib.spark.*" xmlns:data="com.flashflexpro.as3lib.data.*"
+         implements="com.flashflexpro.as3lib.win.IDividableHook,com.flashflexpro.as3lib.IWithContext"
+         width="100%" height="100%" initialize="onInit();" enterFrame="rootApp.callInNext.onEnterFrame();">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.IByModel;
+        import com.flashflexpro.as3lib.IWithContext;
+        import com.flashflexpro.as3lib.utils.RootContextApp;
+        import com.flashflexpro.as3lib.utils.RootContextModule;
+        import com.flashflexpro.as3lib.win.Dividable;
+        import com.flashflexpro.as3lib.win.WebWindow;
+        import com.flashflexpro.as3lib.win.WinFloatingContainer;
+
+        import mx.core.UIComponent;
+        import mx.events.DragEvent;
+        import mx.managers.DragManager;
+
+        private static var _inst:RootDesktop;
+        public static function get inst():RootDesktop{
+            return _inst;
+        }
+
+        protected function onInit():void{
+            _inst = this;
+            ToolTipManagerImplExt.getInstance().toolTipClass = ToolTipEx;
+            rootApp.stage = systemManager.stage;
+            rootApp.appInit();
+        }
+
+
+        public function getUiByModel( modelInst:IWithContext, createNew:Boolean = true ):IByModel{
+            var uiInst:IByModel = modelToUiInst.getValue( modelInst );
+
+            if( uiInst == null ){
+                if( createNew ){
+                    try{
+                        var cls:Class = getUiTypeByModel( modelInst );
+                        uiInst = new cls();
+                    }
+                    catch( e:Error ){
+                        if( e.message.indexOf( "getUiTypeByModel. No match Found:" ) != 0 ){
+                            throw e;
+                        }
+                        uiInst = new WebWindow();
+                    }
+                    uiInst.model = modelInst;
+                }
+                else{
+                    return null;
+                }
+            }
+            var rt:WebWindow = uiInst as WebWindow;
+            if( rt != null ){
+                rt.model = modelInst;
+            }
+            else{
+                rt = new WebWindow();
+                var uiComponent:UIComponent = uiInst as UIComponent;
+                rt.addElement( uiComponent );
+                uiComponent.percentWidth = 100;
+                uiComponent.percentHeight = 100;
+                rt.model = modelInst;
+            }
+
+            modelToUiInst.putValue( modelInst, rt );
+            return rt;
+        }
+
+        protected function getUiTypeByModel( modelInst:IWithContext ):Class{
+            var foundTypes:Array = [];
+
+            for each( var typeCls:Class in modelToUiType.keys ){
+                if( getQualifiedClassName( modelInst ) == getQualifiedClassName( typeCls ) ){
+                    foundTypes.push( typeCls );
+                }
+            }
+
+            if( foundTypes.length == 0 ){
+                throw new Error( "getUiTypeByModel. No match Found:" );
+            }
+            if( foundTypes.length > 1 ){
+                throw new Error( "getUiTypeByModel. Multi matches Found:" + foundTypes.join( ";" ) );
+            }
+            return modelToUiType.getValue( foundTypes[0] );
+        }
+
+        public function getDraggingModel( ev:DragEvent ):IWithContext{
+            return RootContextApp.inst.dragging.model;
+        }
+
+        private function set rfrDragging( ignoreVar:* ):void{
+            if( rootApp.dragging.model != null ){
+                var uiInst:* = getUiByModel( rootApp.dragging.model, false );
+                if( uiInst != null ){
+                    DragManager.doDrag( uiInst, rootApp.dragging, rootApp.dragging.mouseDragging );
+                }
+            }
+        }
+
+        public function get floatingWindows():WinFloatingContainer{
+            return null;
+        }
+
+        [Bindable(event="contextChanged")]
+        public function get rootApp():RootContextApp{
+            return _context as RootContextApp;
+        }
+
+        private var _context:RootContextModule;
+        [Bindable(event="contextChanged")]
+        public function get context():RootContextModule{
+            return _context;
+        }
+
+        public function set context( value:RootContextModule ):void{
+            if( value != _context ){
+                _context = value;
+                dispatchEvent( new Event( "contextChanged" ) );
+            }
+        }
+        ]]></fx:Script>
+    <fx:Binding source="rootApp.dragging.mouseDragging" destination="rfrDragging"/>
+    <fx:Declarations>
+        <aspk:RootDesktopMenu rootApp="{rootApp}" id="rootMenu"/>
+        <data:CrMap id="modelToUiType"/>
+        <data:CrMap id="modelToUiInst"/>
+    </fx:Declarations>
+</s:Group>

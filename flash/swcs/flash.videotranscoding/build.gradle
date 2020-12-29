@@ -1,0 +1,14 @@
+dependencies {
+    merged project( ':flash:swcs:flash.utils' )
+    merged project( ':flash:swcs:flash.config.per.client' )
+    merged project( ':flash:swcs:flash.awsS3Upload' )
+}
+
+
+
+task generateRpcApi( type: com.customshow.codegen.rpcmodel.GenerateFlashRpcApiTask ) {
+    javaSourceProjects = [ project( ':java_modules:java.config.per.client' ), project( ':java_modules:java.videotranscoding' ) ]
+    includeDtoClasses = [ 'com.customshow.videotranscoding.DynaTable*' ]
+    includeServiceClasses = [ 'com.customshow.videotranscoding.TranscodingService' ]
+    outputDirectory = project.file( 'src/main/flex' )
+}

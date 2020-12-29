@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 2/12/2016.
+-->
+<rpc:UIRpcGrid xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:rpc="com.flashflexpro.as3lib.rpc.*"
+               xmlns:data="com.flashflexpro.as3lib.data.*"
+               selectionMode="singleRow"
+               selectedItem="{listResBySearching.selectedResItem}">
+    <fx:Script><![CDATA[
+        import com.customshow.search.indexing.ListResBySearching;
+        import com.customshow.search.indexing.ResourceLibraryItem;
+
+        [Bindable(event="modelChanged")]
+        public function get listResBySearching():ListResBySearching{
+            return gridModel as ListResBySearching;
+        }
+
+        private function set rfrSelectionChanged( v:* ):void{
+            listResBySearching.selectedResItem = selectedItem as ResourceLibraryItem;
+        }
+        ]]></fx:Script>
+    <fx:Binding source="selectedItem" destination="rfrSelectionChanged"/>
+</rpc:UIRpcGrid>

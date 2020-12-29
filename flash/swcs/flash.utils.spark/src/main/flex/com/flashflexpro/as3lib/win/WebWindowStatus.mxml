@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<win:WebWindowDrag xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+                   creationComplete="onCreated( event )" xmlns:win="com.flashflexpro.as3lib.win.*"
+                   visible="{modelWin.visible}" includeInLayout="{modelWin.includeInLayout}"
+                   mouseEnabled="{modelWin.mouseEnabled}"
+>
+    <fx:Script><![CDATA[
+        import mx.events.EffectEvent;
+
+        protected function onCreated( event:Event ):void{
+            if( modelWin != null && modelWin.status == null ){
+                if( winContainerFloating != null ){
+                    CONFIG::debugging{
+                        if( modelWin.status != null || modelWin.goingToStatus != FDWindow.RESIZED ){
+                            throw new Error( "" );
+                        }//debug
+                    }
+                    if( modelWin.moveFrom == null ){
+                        modelWin.moveFrom = new Point( (winContainerFloating.width - barButton.width) /
+                                2, ( winContainerFloating.height - barButton.height) / 2 );
+                    }
+
+                    if( modelWin.moveTo == null ){
+                        modelWin.moveTo =
+                                new Point( (winContainerFloating.width - width) / 2, ( winContainerFloating.height -
+                                        height) / 2 );
+                    }
+
+                    if( modelWin.scaleFrom == null ){
+                        modelWin.scaleFrom = new Point( barButton.width / width, barButton.height / height );
+                    }
+                    modelWin.scaleTo = new Point( 1, 1 );
+
+                    modelWin.fadeFrom = 0;
+                    modelWin.fadeTo = 1;
+                    effect.play();
+                }
+            }
+        }
+
+        public function playEffectAndRemove():void{
+            modelWin.goingToStatus = FDWindow.CLOSED;
+
+            modelWin.scaleFrom = new Point( 1, 1 );
+            modelWin.scaleTo = new Point( barButton.width / width, barButton.height / height );
+
+            modelWin.moveFrom = new Point( x, y );
+            modelWin.moveTo = new Point( x + width / 2 - barButton.width / 2, y + height / 2 - barButton.height / 2 );
+            modelWin.fadeFrom = 1;
+            modelWin.fadeTo = 0;
+            effect.play();
+        }
+
+
+        private function onEffectEnd( event:EffectEvent ):void{
+            if( modelWin.goingToStatus == FDWindow.CLOSED ){
+                winContainerFloating.removeElement( this );
+                return;
+            }
+            modelWin.onEffectEnd();
+        }
+
+        public function onMini():void{
+            modelWin.goingToStatus = FDWindow.MINIMIZED;
+
+            modelWin.restoreSize = new Point( width, height );
+            modelWin.restorePosition = new Point( x, y );
+
+            if( modelWin.restorePosition.x < 10 - width ){
+                modelWin.restorePosition.x = 10 - width;
+            }
+
+            if( modelWin.restorePosition.y < 0 ){
+                modelWin.restorePosition.y = 0;
+            }
+
+            modelWin.scaleFrom = new Point( 1, 1 );
+            modelWin.scaleTo = new Point( barButton.width / width, barButton.height / height );
+
+            modelWin.moveFrom = new Point( x, y );
+            modelWin.moveTo = winContainerFloating.globalToLocal( barButton.localToGlobal( new Point( 0, 0 ) ) );
+
+            modelWin.fadeFrom = 1;
+            modelWin.fadeTo = 1;
+            effect.play();
+        }
+
+        public function onRestoreFromMini():void{
+            modelWin.goingToStatus = modelWin.prevStatus;
+            modelWin.scaleTo = new Point( 1, 1 );
+            modelWin.scaleFrom = new Point( barButton.width / width, barButton.height / height );
+
+            modelWin.moveFrom = winContainerFloating.globalToLocal( barButton.localToGlobal( new Point( 0, 0 ) ) );
+            modelWin.moveTo = modelWin.restorePosition;
+
+            modelWin.fadeFrom = 1;
+            modelWin.fadeTo = 1;
+            effect.play();
+        }
+
+        public function onMax():void{
+            modelWin.goingToStatus = FDWindow.MAXED;
+            explicitWidth = NaN;
+            explicitHeight = NaN;
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+        <s:Parallel id="effect" target="{this}"
+                    effectStart="modelWin.onEffectStart();"
+                    effectEnd="onEffectEnd( event );">
+            <s:Scale
+                    scaleXFrom="{modelWin.scaleFrom.x}" scaleXTo="{modelWin.scaleTo.x}"
+                    scaleYFrom="{modelWin.scaleFrom.y}" scaleYTo="{modelWin.scaleTo.y}"
+            />
+            <s:Move
+                    xFrom="{modelWin.moveFrom.x}" xTo="{modelWin.moveTo.x}"
+                    yFrom="{modelWin.moveFrom.y}" yTo="{modelWin.moveTo.y}"
+            />
+            <s:Fade alphaFrom="{modelWin.fadeFrom}" alphaTo="{modelWin.fadeTo}"/>
+        </s:Parallel>
+    </fx:Declarations>
+</win:WebWindowDrag>

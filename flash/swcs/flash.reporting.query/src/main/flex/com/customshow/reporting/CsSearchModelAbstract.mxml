@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<solr:SearchModel xmlns:fx="http://ns.adobe.com/mxml/2009"
+                  xmlns:solr="com.customshow.solr.*"
+        >
+    <fx:Script><![CDATA[
+        import com.customshow.reporting.schema.CSReportingActivitySolrSchema;
+        import com.customshow.reporting.schema.CSReportingHasUserOwnerDurationSchema;
+        import com.customshow.solr.OperationAddRemoveColumn;
+        import com.customshow.solr.OperationAddRemoveFacet;
+        import com.customshow.solr.OperationQueryAddTerm;
+        import com.customshow.solr.QueryField;
+        import com.customshow.solr.QueryRelate2Terms;
+        import com.customshow.solr.QueryResult;
+        import com.customshow.solr.Result;
+        import com.customshow.solr.SolrBeanSchema;
+        import com.flashflexpro.as3lib.utils.ExecutableMenuItem;
+        import com.flashflexpro.as3lib.utils.ExecutableMenuListing;
+
+        import org.apache.flex.collections.ArrayList;
+
+        override public function showResultFacetMenu( result:Result ):void{
+            context.setMenuOperations(
+                    groupFieldsMenus( result, result.queryResult.searchModel.resultFacetFields, OperationAddRemoveFacet ) );
+        }
+
+        override public function showResultResultMenu( result:Result ):void{
+            context.setMenuOperations( groupFieldsMenus( result, result.queryResult.searchModel.resultRecordFields, OperationAddRemoveColumn ) );
+        }
+
+        override public function showQueryMenu( qr2Terms:QueryRelate2Terms ):void{
+            context.setMenuOperations( groupFieldsMenus( qr2Terms, queryFields, OperationQueryAddTerm ) );
+        }
+
+        private static function groupFieldsMenus( target:Object, fields:ArrayList, operation:Class ):ExecutableMenuListing{
+
+            var menus:Array = [];
+            var owners:Array = [];
+            var users:Array = [];
+            var fls:Array = [];
+            var sls:Array = [];
+            var press:Array = [];
+            for( var i:int = fields.length - 1; i >= 0; i -- ){
+                var queryField:QueryField = fields.getItemAt( i ) as QueryField;
+                var addRemoveFacet:ExecutableMenuItem = new operation( target, queryField );
+                if( queryField.name.indexOf( "user" ) == 0 ){
+                    users.push( addRemoveFacet )
+                }
+                else if( queryField.name.indexOf( "owner" ) == 0 ){
+                    owners.push( addRemoveFacet )
+                }
+                else if( queryField.name.indexOf( "fl" ) == 0 ){
+                    fls.push( addRemoveFacet )
+                }
+                else if( queryField.name.indexOf( "slide" ) == 0 ){
+                    sls.push( addRemoveFacet )
+                }
+                else if( queryField.name.indexOf( "pres" ) == 0 ){
+                    press.push( addRemoveFacet )
+                }
+                else{
+                    menus.push( addRemoveFacet );
+                }
+            }
+
+            if( owners.length > 0 ){
+                menus.push( new ExecutableMenuListing( owners, null, "Owners" ) );
+            }
+            if( users.length > 0 ){
+                menus.push( new ExecutableMenuListing( users, null, "Users" ) );
+            }
+            if( fls.length > 0 ){
+                menus.push( new ExecutableMenuListing( fls, null, "Flash" ) );
+            }
+            if( sls.length > 0 ){
+                menus.push( new ExecutableMenuListing( sls, null, "Slide" ) );
+            }
+            if( press.length > 0 ){
+                menus.push( new ExecutableMenuListing( press, null, "pres" ) );
+            }
+            return new ExecutableMenuListing( menus );
+
+        }
+
+        private function set initFieldsByType( v:SolrBeanSchema ):void{
+            if( schema != null ){
+                if( schema is CSReportingHasUserOwnerDurationSchema ){
+                    var uoSchema:CSReportingHasUserOwnerDurationSchema = schema as CSReportingHasUserOwnerDurationSchema;
+                    uoSchema.startTime__l_t_t_f.isTypeNumDate = true;
+                    uoSchema.endTime__l_t_t_f.isTypeNumDate = true;
+                    uoSchema.lastUpdatedTime__l_t_t_f.isTypeNumDate = true;
+                    uoSchema.duration__l_t_t_f.isTypeTimeLen = true;
+                    uoSchema.durationNet__l_t_t_f.isTypeTimeLen = true;
+                    uoSchema.createTime__l_t_t_f.isTypeNumDate = true;
+                }
+
+                if( schema is CSReportingActivitySolrSchema ){
+                    var actSchema:CSReportingActivitySolrSchema = schema as CSReportingActivitySolrSchema;
+                    actSchema.recTimeStamp__l_t_t_f.isTypeNumDate = true;
+                    actSchema.clientTime__l_t_t_f.isTypeNumDate = true;
+                }
+                var lstOfFields:ArrayList = schema.getAllFields();
+
+                const len:int = lstOfFields.length;
+                for( var j:int = 0; j < len; j ++ ){
+                    var f:QueryField = lstOfFields.getItemAt( j ) as QueryField;
+                    if( f.isArray || f.isStrID || f.isTypeString ){
+                        f.sortable = false;
+                    }
+                    else{
+                        f.sortable = true;
+                    }
+                }
+
+
+            }
+
+        }
+        [Bindable]
+        public var queryResult:QueryResult;
+        ]]></fx:Script>
+    <fx:Binding source="schema" destination="initFieldsByType"/>
+</solr:SearchModel>

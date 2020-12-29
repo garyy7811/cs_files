@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<!--
+  Created by yanggang on 5/12/2016.
+-->
+<mx:ToolTip xmlns:fx="http://ns.adobe.com/mxml/2009"
+            xmlns:mx="library://ns.adobe.com/flex/mx" rollOver="onRollOver( event );" rollOut="onRollOut( event );"
+            click="onClick( event );">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.utils.RootContextApp;
+        import com.flashflexpro.as3lib.utils.ToolTipExm;
+
+        import mx.utils.Base64Decoder;
+
+        use namespace mx_internal;
+
+        protected function onRollOut( event:MouseEvent ):void{
+            ToolTipManagerImplExt.getInstance().mouseRollOverTip = null;
+        }
+
+        protected function onRollOver( event:MouseEvent ):void{
+            ToolTipManagerImplExt.getInstance().mouseRollOverTip = this;
+        }
+
+        protected function onClick( event:MouseEvent = null ):void{
+            _tipModel.loadHtmlTip();
+            _tipModel.whereInStage = new Rectangle( x, y, width, height );
+            RootContextApp.inst.moreHelp( _tipModel );
+        }
+
+        override public function validateSize( recursive:Boolean = false ):void{
+            super.validateSize( recursive );
+            callLater( ToolTipManagerImplExt.getInstance().positionTip );
+        }
+
+        [Bindable]
+        private var _tipModel:ToolTipExm;
+
+        override public function set text( value:String ):void{
+
+            try{
+                var cdr:Base64Decoder = new Base64Decoder();
+                cdr.decode( value );
+                var tmp:ToolTipExm = cdr.toByteArray().readObject();
+                var f:ToolTipExm = _idToTM[tmp.id];
+                if( f == null ){
+                    _idToTM[tmp.id] = tmp;
+                    _tipModel = tmp;
+                }
+                else{
+                    _tipModel = f;
+                    _tipModel.args = tmp.args;
+                }
+
+                if( _tipModel.shortTip == null || _tipModel.shortTip.length == 0 ){
+                    _tipModel.loadHtmlTip();
+                }
+                mouseEnabled = true;
+                return;
+            }
+            catch( e:Error ){
+                CONFIG::debugging{
+//                    CC.log( "ToolTipEx.text->arguments:" + arguments.join( "," ) + "; error: " + e.getStackTrace() );
+                }//debug
+            }
+
+            super.text = value;
+            mouseEnabled = false;
+        }
+
+
+        private function set rfr( ignoreVar:* ):void{
+            if( _tipModel != null ){
+                if( _tipModel.shortTip != null ){
+                    super.text = _tipModel.shortTip;
+                }
+            }
+        }
+        ]]></fx:Script>
+    <fx:Binding source="_tipModel.shortTip" destination="rfr"/>
+    <fx:Binding source="_tipModel.htmlTip" destination="rfr"/>
+
+    <fx:Script><![CDATA[
+        private static const _idToTM:Dictionary = new Dictionary();
+        ]]></fx:Script>
+</mx:ToolTip>

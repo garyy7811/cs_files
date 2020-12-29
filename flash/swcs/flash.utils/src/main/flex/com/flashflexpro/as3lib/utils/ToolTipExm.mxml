@@ -1,0 +1,139 @@
+<?xml version="1.0"?>
+<!--
+  Created by yanggang on 5/11/2016.
+-->
+<utils:MxmlEventDispatcher xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:utils="com.flashflexpro.as3lib.utils.*"
+                           implements="flash.utils.IExternalizable, com.flashflexpro.as3lib.IWithContext">
+    <fx:Metadata>
+        [RemoteClass]
+    </fx:Metadata>
+    <fx:Script><![CDATA[
+        import mx.utils.Base64Encoder;
+
+        public static function getTipM( id:String, shortTip:String = null, args:Array = null ):ToolTipExm{
+            CONFIG::debugging{
+                if( id == null || id.length == 0 ){
+                    throw new Error( "" );
+                }//debug
+            }
+            var rt:ToolTipExm = new ToolTipExm();
+            rt._id = id;
+            rt._shortTip = shortTip;
+            rt.args = args;
+            return rt;
+        }
+
+        public function toString():String{
+            var ba:ByteArray = new ByteArray();
+            ba.writeObject( this );
+            var b64encoder:Base64Encoder = new Base64Encoder();
+            b64encoder.insertNewLines = false;
+            b64encoder.encodeBytes( ba );
+            return b64encoder.toString();
+        }
+
+        public var whereInStage:Rectangle;
+
+        public function set context( m:RootContextModule ):void{
+        }
+
+        public function get context():RootContextModule{
+            return RootContextApp.inst;
+        }
+        ]]></fx:Script>
+
+    <fx:Script><![CDATA[
+        /**
+         * if shorttip is null, it is dynamic, we load immediately
+         */
+        private var _shortTip:String;
+        [Bindable(event="htmlTipChanged")]
+        public function get shortTip():String{
+            return _shortTip;
+        }
+
+        private var _title:String;
+        [Bindable(event="htmlTipChanged")]
+        public function get title():String{
+            return _title;
+        }
+
+
+        private var _args:Array;
+        [Bindable(event="argsChanged")]
+        public function get args():Array{
+            return _args;
+        }
+
+        public function set args( value:Array ):void{
+            if( value != _args ){
+                _args = value;
+                dispatchEvent( new Event( "argsChanged" ) );
+            }
+        }
+
+        public function writeExternal( output:IDataOutput ):void{
+            output.writeObject( _id );
+            output.writeObject( _shortTip );
+            output.writeObject( _title );
+            output.writeObject( _args );
+        }
+
+        public function readExternal( input:IDataInput ):void{
+            _id = input.readObject();
+            _shortTip = input.readObject();
+            _title = input.readObject();
+            _args = input.readObject();
+        }
+        ]]></fx:Script>
+
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.rpc.RpcSpringMvcPost;
+        import com.flashflexpro.as3lib.utils.RootContextApp;
+
+        private var _htmlLoader:RpcSpringMvcPost;
+
+        public function loadHtmlTip():Boolean{
+            if( _htmlLoader == null ){
+                _htmlLoader = RootContextApp.inst.getTipRpc();
+
+                CONFIG::debugging{
+                    if( _htmlLoader == null ){
+                        CC.log( "ToolTipExm.loadHtmlTip-> null html loader:" + new Error().getStackTrace() );
+                        return false;
+                    }
+                }//debug
+
+                _htmlLoader.callBackOnObjResult = onHtmlTipLoaded;
+                _htmlLoader.args = [_id];
+                _htmlLoader.callRemote();
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * 0 -- short tip
+         * 1 -- title
+         * 2 -- htmlTip
+         * @param obj
+         */
+        private function onHtmlTipLoaded( obj:Array ):void{
+            _htmlLoader.destroy();
+            _htmlLoader = null;
+            if( obj[0] != null && obj[0] != shortTip ){
+                _shortTip = obj[0];
+            }
+            _title = obj[1];
+            _htmlTip = obj[2];
+            dispatchEvent( new Event( "htmlTipChanged" ) );
+
+        }
+
+        private var _htmlTip:String;
+        [Bindable(event="htmlTipChanged")]
+        public function get htmlTip():String{
+            return _htmlTip;
+        }
+        ]]></fx:Script>
+</utils:MxmlEventDispatcher>

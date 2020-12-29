@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!--
+  Created by yanggang on 3/27/2016.
+-->
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+          xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:transcoding="com.customshow.videotranscoding.*"
+          implements="com.flashflexpro.as3lib.IByModel">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.IWithContext;
+
+        private var _model:IWithContext;
+
+        [Bindable(event="modelChanged")]
+        public function get model():IWithContext{
+            return _model;
+        }
+
+        public function set model( value:IWithContext ):void{
+            if( value != _model ){
+                _model = value;
+                dispatchEvent( new Event( "modelChanged" ) );
+            }
+        }
+
+
+        [Bindable(event="modelChanged")]
+        public function get listTranscodingByStatus():ListTranscodingByStatus{
+            return _model as ListTranscodingByStatus;
+        }
+        ]]></fx:Script>
+    <s:HGroup width="100%">
+        <s:Button click="listTranscodingByStatus.reloadGrid()"
+                  label="Refreshed {Math.round(listTranscodingByStatus.afterLastRefresh/1000)} secs ago"/>
+        <s:FormItem label="Status:">
+            <s:DropDownList id="statusLst" dataProvider="{listTranscodingByStatus.transStatusLst}"
+                            selectedItem="{listTranscodingByStatus.tranStatus}"
+                            change="listTranscodingByStatus.tranStatus = statusLst.selectedItem"/>
+        </s:FormItem>
+        <s:FormItem label="Before:">
+            <mx:DateField selectedDate="@{listTranscodingByStatus.tranLastUpdateTime}"/>
+        </s:FormItem>
+        <s:Spacer width="100%"/>
+        <s:Button label="Encode with New Formats" click="model.context.escalate( listTranscodingByStatus,
+                    listTranscodingByStatus.selectedTransc.uploadBucketKey )"
+                  enabled="{listTranscodingByStatus.selectedTransc!=null}"/>
+    </s:HGroup>
+
+    <mx:VDividedBox width="100%" height="100%">
+        <transcoding:UIListTranscodingByStatus model="{model}" width="100%" minWidth="640" height="100%"/>
+        <transcoding:UITranscodingDetailInTabs width="100%" height="100%" listTranscoding="{listTranscodingByStatus}"/>
+    </mx:VDividedBox>
+</s:VGroup>

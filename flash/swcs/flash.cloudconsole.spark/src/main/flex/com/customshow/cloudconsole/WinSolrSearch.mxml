@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 3/28/2016.
+-->
+<win:WebWindow xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:win="com.flashflexpro.as3lib.win.*" xmlns:client="com.customshow.configPerClient.*"
+               xmlns:solr="com.customshow.solr.*" xmlns:mx="library://ns.adobe.com/flex/mx">
+    <fx:Script><![CDATA[
+        import com.customshow.reporting.CsSearchModelAbstract;
+
+        [Bindable(event="modelChanged")]
+        public function get solrSearchModel():CsSearchModelAbstract{
+            return model as CsSearchModelAbstract;
+        }
+        ]]></fx:Script>
+    <fx:Binding source="solrSearchModel.overridingServiceName" destination="modelWin.title"/>
+    <win:layout>
+        <s:VerticalLayout/>
+    </win:layout>
+    <s:HGroup verticalAlign="middle" horizontalAlign="center" width="100%">
+        <solr:SearchViewQueryInput termSuggestGroup="{temSuggestGroup}"
+                                   queryResult="{solrSearchModel.queryResult}"/>
+        <s:Button click="solrSearchModel.queryResult.sendQuery();" label="Search"/>
+    </s:HGroup>
+    <mx:HDividedBox width="100%" height="100%">
+        <solr:SearchViewResultHits modelResult="{solrSearchModel.queryResult.resultModel}"
+                                   width="100%"
+                                   height="100%"/>
+        <solr:SearchViewResultStatics modelResult="{solrSearchModel.queryResult.resultModel}"
+                                      width="100%"
+                                      height="100%"/>
+    </mx:HDividedBox>
+    <solr:ViewTermSuggestGroup id="temSuggestGroup" includeInLayout="false"
+                               searchModel="{solrSearchModel}"/>
+    <win:botleGroupContent>
+    </win:botleGroupContent>
+</win:WebWindow>

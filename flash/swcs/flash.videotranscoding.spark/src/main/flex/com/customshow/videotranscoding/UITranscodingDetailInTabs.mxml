@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 6/16/2016.
+-->
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+          xmlns:perConfig="com.customshow.configPerClient.*" xmlns:transcoding="com.customshow.videotranscoding.*">
+
+    <fx:Script><![CDATA[
+        [Bindable]
+        public var listTranscoding:ListTranscoding;
+        ]]></fx:Script>
+    <s:HGroup verticalAlign="middle">
+        <s:Label text="Media Id: {listTranscoding.selectedTransc.mediaId}:"/>
+        <s:Button label="Run job again" click="listTranscoding.runAgain();"
+                  enabled="{listTranscoding.selectedTransc != null }"/>
+        <s:TabBar id="tabBar" enabled="{listTranscoding.selectedTransc != null }">
+            <s:dataProvider>
+                <s:ArrayList>
+                    <fx:String>Media Info</fx:String>
+                    <fx:String>Formats</fx:String>
+                </s:ArrayList>
+            </s:dataProvider>
+        </s:TabBar>
+    </s:HGroup>
+
+    <s:Group width="100%" height="100%" minHeight="240" includeInLayout="{ listTranscoding.selectedTransc != null}"
+             visible="{listTranscoding.selectedTransc != null}">
+        <transcoding:UITranscodingMediaInfo mediaInfo="{listTranscoding.selectedTransc.mediaInfo}"
+                                            width="100%" height="100%"
+                                            includeInLayout="{tabBar.selectedIndex == 0}"
+                                            visible="{tabBar.selectedIndex == 0}"/>
+
+        <perConfig:UITranscodeConfigFormat id="configFormat" width="100%" height="100%"
+                                           includeInLayout="{tabBar.selectedIndex == 1}"
+                                           visible="{tabBar.selectedIndex ==1}">
+            <perConfig:model>
+                <transcoding:TranscodingFormatGrid transcodingRecord="{listTranscoding.selectedTransc}"
+                                                   context="{listTranscoding.context}"/>
+            </perConfig:model>
+        </perConfig:UITranscodeConfigFormat>
+
+    </s:Group>
+</s:VGroup>

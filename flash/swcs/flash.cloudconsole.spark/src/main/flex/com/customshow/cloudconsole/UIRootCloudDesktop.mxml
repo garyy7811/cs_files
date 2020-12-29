@@ -1,0 +1,180 @@
+<?xml version="1.0"?>
+<aspk:RootDesktop xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+                  xmlns:webdesktop="com.flashflexpro.as3lib.win.*" xmlns:aspk="com.flashflexpro.as3lib.spark.*"
+                  xmlns:upload="com.customshow.awsS3Upload.*"
+                  width="100%" height="100%">
+    <fx:Script><![CDATA[
+        import com.customshow.awsS3Upload.ListUploadsByUserId;
+        import com.customshow.configPerClient.LabyrinthEncodingConfig;
+        import com.customshow.configPerClient.PerClientConfigLoadById;
+        import com.customshow.reporting.CsSearchModelActivity;
+        import com.customshow.reporting.CsSearchModelPresDuration;
+        import com.customshow.reporting.CsSearchModelShowDuration;
+        import com.customshow.reporting.CsSearchModelSlideDuration;
+        import com.customshow.search.indexing.ListResBySearching;
+        import com.customshow.videotranscoding.ListTranscodingByBucketkey;
+        import com.customshow.videotranscoding.ListTranscodingByStatus;
+        import com.customshow.videotranscoding.ListTranscodingJoinUploads;
+        import com.customshow.videotranscoding.NewTranscodingWithFormats;
+        import com.flashflexpro.as3lib.utils.ExecutableMenuItem;
+        import com.flashflexpro.as3lib.utils.ExecutableMenuListing;
+        import com.flashflexpro.as3lib.utils.ToolTipExm;
+        import com.flashflexpro.as3lib.win.TTWin;
+        import com.flashflexpro.as3lib.win.WinFloatingContainer;
+
+        [Bindable(event="contextChanged")]
+        public function get rootCloudConsole():RootCloudConsole{
+            return context as RootCloudConsole;
+        }
+
+        public static function get inst():UIRootCloudDesktop{
+            return RootDesktop.inst as UIRootCloudDesktop;
+        }
+
+        override protected function onInit():void{
+            modelToUiType.putValue( PerClientConfigLoadById, WinQueryClientConfig );
+            modelToUiType.putValue( ListTranscodingByBucketkey, WinQueryTranscodingByBucketkey );
+            modelToUiType.putValue( ListTranscodingByStatus, WinQueryTranscodingByStatus );
+            modelToUiType.putValue( ListTranscodingJoinUploads, WinQueryTranscodingWithUploads );
+            modelToUiType.putValue( ListUploadsByUserId, WinQueryUploadThenTransc );
+            modelToUiType.putValue( LabyrinthEncodingConfig, WinLabyrinthEncodingConfig );
+            modelToUiType.putValue( NewTranscodingWithFormats, WinUiNewTranscWithFormats );
+            modelToUiType.putValue( WinTmpPlayerModel, WinTmpPlayer );
+            modelToUiType.putValue( ToolTipExm, TTWin );
+            modelToUiType.putValue( ListResBySearching, WinSearchRes );
+            modelToUiType.putValue( CsSearchModelSlideDuration, WinSolrSearch );
+            modelToUiType.putValue( CsSearchModelShowDuration, WinSolrSearch );
+            modelToUiType.putValue( CsSearchModelPresDuration, WinSolrSearch );
+            modelToUiType.putValue( CsSearchModelActivity, WinSolrSearch );
+            //            modelToUiType.putValue( CSNvReportingConsole, WinNvReports );
+
+            super.onInit();
+        }
+
+        override public function get floatingWindows():WinFloatingContainer{
+            return rootCloudConsole.floatingWindows;
+        }
+
+        private function onStart():void{
+            var mnlst:Array = [];
+            var mi:ExecutableMenuItem = new ExecutableMenuItem();
+            mi.label = "Labyrinth";
+            mi.toExe = function ():void{
+                rootCloudConsole.addLabyrinth();
+            };
+            mnlst.push( mi );
+
+
+            mi = new ExecutableMenuItem();
+            mi.type = ExecutableMenuItem.TYPE_SEPARATOR;
+            mnlst.push( mi );
+
+            mi = new ExecutableMenuItem();
+            mi.label = "New Query UpLoad By UserId";
+            mi.toExe = function ():void{
+                rootCloudConsole.addNewWinQueryDownLoadByUserId();
+            };
+            mnlst.push( mi );
+
+
+            mi = new ExecutableMenuItem();
+            mi.label = "New Query Transcoding History by Upload";
+            mi.toExe = function ():void{
+                rootCloudConsole.addNewWinQueryTranscodingByUpload();
+            };
+            mnlst.push( mi );
+
+            mi = new ExecutableMenuItem();
+            mi.label = "New Query Transcoding with Upload";
+            mi.toExe = function ():void{
+                rootCloudConsole.addNewWinQueryTranscodeWithUpload();
+            };
+            mnlst.push( mi );
+
+
+            mi = new ExecutableMenuItem();
+            mi.label = "New Query UpLoad By Status";
+            mi.toExe = function ():void{
+                rootCloudConsole.addNewWinQueryTranscodingByStatus();
+            };
+            mnlst.push( mi );
+
+
+            mi = new ExecutableMenuItem();
+            mi.label = "New Client Config";
+            mi.toExe = function ():void{
+                rootCloudConsole.addNewWinClientConig();
+            };
+            mnlst.push( mi );
+
+            mi = new ExecutableMenuItem();
+            mi.label = "New Solr Search SlideShow";
+            mi.toExe = function ():void{
+                rootCloudConsole.addSolrSearch( new CsSearchModelShowDuration() );
+            };
+            mnlst.push( mi );
+
+            mi = new ExecutableMenuItem();
+            mi.label = "New Solr Search Presentation";
+            mi.toExe = function ():void{
+                rootCloudConsole.addSolrSearch( new CsSearchModelPresDuration() );
+            };
+            mnlst.push( mi );
+
+            mi = new ExecutableMenuItem();
+            mi.label = "New Solr Search Slide";
+            mi.toExe = function ():void{
+                rootCloudConsole.addSolrSearch( new CsSearchModelSlideDuration() );
+            };
+            mnlst.push( mi );
+
+            mi = new ExecutableMenuItem();
+            mi.label = "New Solr Search Activity";
+            mi.toExe = function ():void{
+                rootCloudConsole.addSolrSearch( new CsSearchModelActivity() );
+            };
+            mnlst.push( mi );
+            /*
+             mi = new ExecutableMenuItem();
+             mi.label = "New Reporting Console";
+             mi.toExe = function ():void{
+             rootCloudConsole.addReporting();
+             };
+             mnlst.push( mi );
+             */
+
+            mi = new ExecutableMenuItem();
+            mi.label = "New Search Resources";
+            mi.toExe = function ():void{
+                rootCloudConsole.addResSearch( );
+            };
+            mnlst.push( mi );
+
+            rootCloudConsole.setMenuOperations( new ExecutableMenuListing( mnlst ) )
+        }
+        ]]></fx:Script>
+    <aspk:layout>
+        <s:VerticalLayout gap="0"/>
+    </aspk:layout>
+
+    <s:Group width="100%" height="100%" id="t2">
+        <webdesktop:DividableWidgetRoot width="100%" height="100%" id="rootCloudDesktopDivWid"
+                                        model="{rootCloudConsole.child1}" floatWindowHook="{this}"/>
+        <webdesktop:WebWinContainer id="winGroup" windowsBar="{winBar}" width="100%"
+                                    height="100%" hook="{this}"
+                                    model="{rootCloudConsole.floatingWindows}"/>
+    </s:Group>
+    <s:BorderContainer width="100%" backgroundColor="0xFFffff" id="bottomBar">
+        <s:layout>
+            <s:HorizontalLayout paddingLeft="3" verticalAlign="middle"/>
+        </s:layout>
+        <s:Button label="Start" click="onStart();"/>
+        <s:TextInput id="csSessionId" text="@{rootApp.urlExtra}" width="100%"
+                     prompt="Input your CsSessionId and hit Enter for authentication here!"/>
+        <upload:SimpleUploadButton label="Upload" model="{rootCloudConsole.uploadRoot}" id="uploadButton"
+                                   authUrl="{rootCloudConsole.uploadRoot.restUrl}"/>
+        <webdesktop:WebWinBar id="winBar" width="100%" height="100%" windowsGroup="{winGroup}"/>
+        <s:Label text="Build:{rootCloudConsole.buildStr}"
+                 toolTip="{ToolTipExm.getTipM('sisisi_id','example of extensive tooltip', ['01','12','23'])}"/>
+    </s:BorderContainer>
+</aspk:RootDesktop>

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!--
+  Created by flash on 3/7/2017.
+-->
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+          xmlns:data="com.flashflexpro.as3lib.data.*" enabled="{model.clientUpload.valCol!=null}">
+    <fx:Script><![CDATA[
+        [Bindable]
+        public var model:PerClientConfigLoadById;
+        ]]></fx:Script>
+    <data:UIPropertiesGrid model="{model.clientUpload}" width="100%" height="100%"/>
+    <s:HGroup>
+        <s:Button label="Submit" enabled="{model.clientUpload.valCol.newValues.length > 0 }"
+                  click="model.clientUpload.save();"/>
+        <s:Button label="Revert" enabled="{model.clientUpload.valCol.newValues.length > 0 }"
+                  click="model.clientUpload.valCol.revert();"/>
+    </s:HGroup>
+</s:VGroup>

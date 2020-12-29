@@ -1,0 +1,142 @@
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
+import com.amazonaws.regions.RegionUtils
+import com.amazonaws.services.s3.AmazonS3Client
+
+buildscript {
+    repositories {
+        //mavenLocal()
+        maven { url csConfig.mavenDependencyRepoUrl }
+    }
+
+    dependencies {
+        classpath "org.gradlefx:gradlefx:$gradlefxVersion"
+        classpath "jp.classmethod.aws:gradle-aws-plugin:$jpClassmethodGradlePluginVersion"
+    }
+}
+
+
+task createBuildBucket{
+    doLast {
+        AmazonS3Client s3Client = new AmazonS3Client( new DefaultAWSCredentialsProviderChain() )
+        if( !s3Client.doesBucketExist( csConfig.build_aws_s3_bucket ) ){
+            s3Client.createBucket( csConfig.build_aws_s3_bucket, RegionUtils.getRegion( csConfig.aws_region ) )
+        }
+    }
+}
+
+
+if( csConfig.build_aws_s3_web_distributionId != null ){
+    task createBuildDistribution( type: com.customshow.awsUtils.CreateCloudFrontDistributions,
+            dependsOn: createBuildBucket ) {
+        awsRegion = csConfig.aws_region
+        s3BucketName = csConfig.build_aws_s3_bucket
+        webDistributionId = csConfig.build_aws_s3_web_distributionId
+        doLast {
+            csConfig.build_aws_s3_url = 'https://' + webDistributionDomain
+            logger.info( " build S3 bucket " + csConfig.build_aws_s3_bucket + " distribution url:" +
+                    csConfig.build_aws_s3_url )
+        }
+    }
+
+}
+
+subprojects {
+    if( project.childProjects.size() == 0 ){
+        evaluationDependsOn( ":java_modules" )
+        apply plugin: 'gradlefx'
+        def taskNames = project.gradle.startParameter.taskNames
+        if( taskNames.contains( "ideaFlashProjects" ) || taskNames.contains( "gradleFxImportWorkaround" ) ){
+            apply plugin: 'ideafx'
+        }
+        apply plugin: 'maven'
+
+        srcDirs = ['src/main/flex']
+
+
+        output = name + "-" + version
+
+        if( csConfig.flexHomeOverride != null && csConfig.flexHomeOverride.length() > 3 ){
+            flexHome = csConfig.flexHomeOverride
+            logger.info( 'override flex_home with' + flexHome )
+        }
+        else{
+            flexHome = System.getenv( 'FLEX_HOME' )
+        }
+
+
+        //the default for a 'swc' library project is 'external'
+        frameworkLinkage = 'merged'
+
+        String debugging = '-debug=' + csConfig.csSwfDebug
+        String conditionalCompileDebugging = '-define+=CONFIG::debugging,' + csConfig.csSwfCompileDebugging
+        String conditionalCompileProduction = '-define+=CONFIG::release,' + csConfig.csSwfCompileProduction
+
+        additionalCompilerOptions =
+                [debugging, conditionalCompileDebugging, conditionalCompileProduction, '-advanced-telemetry']
+
+        uploadArchives {
+            repositories.mavenDeployer {
+                snapshotRepository( url: csConfig.mavenUploadSnapshotRepoUrl ) {
+                    authentication( userName: csConfig.mavenUploadSnapshotRepoUsername,
+                            password: csConfig.mavenUploadSnapshotRepoPassword )
+                }
+                repository( url: csConfig.mavenUploadRepoUrl ) {
+                    authentication( userName: csConfig.mavenUploadRepoUsername,
+                            password: csConfig.mavenUploadRepoPassword )
+                }
+            }
+        }
+        uploadArchives.dependsOn compileFlex
+
+        if( project.path.startsWith( ":flash:airs:" ) || project.path.startsWith( ":flash:swfs:" ) ){
+            apply plugin: 'jp.classmethod.aws.s3'
+
+            mainClass = 'AppMain.mxml'
+
+            task copyAndFilterSwfCompileConfig {
+                doLast {
+
+                    copy {
+                        from fileTree( 'src/main/compile.config' )
+                        into 'src/main/flex'
+
+                        Map tmp = [:];
+                        csConfig.each { k, v -> tmp.put( k, v ) }
+                        tmp.projectOutput = project.output
+                        filter { String line ->
+                            tmp.each {
+                                line = line.replaceAll( "\\\$\\{" + it.key + "\\}", it.value )
+                            }
+                            line = line.replaceAll( "\\\$\\{logName\\}", project.name )
+                            return line
+                        }
+
+                    }
+                }
+            }
+
+            clean.doLast {
+                project.fileTree( 'src/main/compile.config' ).
+                        each { project.file( 'src/main/flex/' + it.name ).deleteOnExit() }
+            }
+
+            afterEvaluate {
+                copyAndFilterSwfCompileConfig.dependsOn rootProject.
+                        project( ":java_modules" ).tasks.createBucketsDistribution
+
+                uploadToS3.dependsOn rootProject.project( ":flash" ).tasks.createBuildDistribution
+            }
+
+            artifacts {
+                archives file( buildDir.absolutePath + "/" + output + ".swf" )
+            }
+        }
+        else{
+            artifacts {
+                archives file( buildDir.absolutePath + "/" + output + ".swc" )
+            }
+        }
+
+    }
+}
+

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 3/18/2016.
+-->
+<data:UIPropertiesGrid xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:data="com.flashflexpro.as3lib.data.*"
+                       xmlns:ap="org.apache.flex.collections.*">
+    <fx:Script><![CDATA[
+        import org.apache.flex.collections.ArrayList;
+
+        [Bindable]
+        public var mediaInfo:DynaTableVideoTranscodingMediaInfo;
+        ]]></fx:Script>
+
+    <data:model>
+        <data:PropertiesGrid beans="{mediaInfo==null?null:new ArrayList( [ mediaInfo] )}" editable="false">
+            <data:propDescs>
+                <ap:VectorList source="{DynaTableVideoTranscodingMediaInfo.properties}"/>
+            </data:propDescs>
+        </data:PropertiesGrid>
+    </data:model>
+
+</data:UIPropertiesGrid>

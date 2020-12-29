@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<schema:CSReportingSlideCollectionSchema xmlns:fx="http://ns.adobe.com/mxml/2009"
+                       xmlns:ap="org.apache.flex.collections.*"
+                       xmlns:solr="com.customshow.solr.*"
+                                xmlns:schema="com.customshow.reporting.schema.*"
+                                xmlns:field="com.customshow.solr.*">
+    <fx:Script><![CDATA[
+        private var _allAdded:Boolean = false;
+        override public function getAllFields():ArrayList{
+            if( !_allAdded ){
+                ___allFields.addAll( ___CSReportingShowDurationSolrSchema );
+                _allAdded = true;
+            }
+            return super.getAllFields();
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+        <ap:ArrayList id="___CSReportingShowDurationSolrSchema">
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="preview__b_t_t_f"  name="preview"  label="preview"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="true"  isStrID="false"  id="slidePositionOfPres__i_t_t_t"  name="slidePositionOfPres"  label="slidePositionOfPres"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="true"  isStrID="false"  id="slideIndexOfPres__i_t_t_t"  name="slideIndexOfPres"  label="slideIndexOfPres"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="appVersion__si_t_t_f"  name="appVersion"  label="appVersion"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="flRy__i_t_t_f"  name="flRy"  label="flRy"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="flRx__i_t_t_f"  name="flRx"  label="flRx"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="flUrl__si_t_t_f"  name="flUrl"  label="flUrl"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="true"  isStrID="true"  id="prestOwnerClientNames__si_t_t_t"  name="prestOwnerClientNames"  label="prestOwnerClientNames"  searchModel="{searchModel}" queryField="query_prestOwnerClientNames__sw_t_f_t" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="flL__si_t_t_f"  name="flL"  label="flL"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="true"  isStrID="false"  id="prestOwnerIds__l_t_t_t"  name="prestOwnerIds"  label="prestOwnerIds"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="true"  isStrID="true"  id="prestOwnerGroupNames__si_t_t_t"  name="prestOwnerGroupNames"  label="prestOwnerGroupNames"  searchModel="{searchModel}" queryField="query_prestOwnerGroupNames__sw_t_f_t" />
+            <field:QueryFieldR isArray="true"  isStrID="false"  id="slidePresIds__l_t_t_t"  name="slidePresIds"  label="slidePresIds"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="true"  isStrID="true"  id="prestOwnerEmails__si_t_t_t"  name="prestOwnerEmails"  label="prestOwnerEmails"  searchModel="{searchModel}" queryField="query_prestOwnerEmails__sw_t_f_t" />
+            <field:QueryFieldT isArray="true"  isStrID="true"  id="slidePresNames__si_t_t_t"  name="slidePresNames"  label="slidePresNames"  searchModel="{searchModel}" queryField="query_slidePresNames__sw_t_f_t" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="flV__si_t_t_f"  name="flV"  label="flV"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="true"  isStrID="true"  id="prestOwnerLastNames__si_t_t_t"  name="prestOwnerLastNames"  label="prestOwnerLastNames"  searchModel="{searchModel}" queryField="query_prestOwnerLastNames__sw_t_f_t" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="appTypeDesktopViewer__i_t_t_f"  name="appTypeDesktopViewer"  label="appTypeDesktopViewer"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="appType__si_t_t_f"  name="appType"  label="appType"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="true"  isStrID="false"  id="prestOwnerClientIds__l_t_t_t"  name="prestOwnerClientIds"  label="prestOwnerClientIds"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="true"  isStrID="true"  id="prestOwnerFirstNames__si_t_t_t"  name="prestOwnerFirstNames"  label="prestOwnerFirstNames"  searchModel="{searchModel}" queryField="query_prestOwneFirstNames__sw_t_f_t" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="processingSource__i_t_t_f"  name="processingSource"  label="processingSource"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="lookUpId__si_t_t_f"  name="lookUpId"  label="lookUpId"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="flArch__si_t_t_f"  name="flArch"  label="flArch"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="flOs__si_t_t_f"  name="flOs"  label="flOs"  searchModel="{searchModel}" queryField="query_flOs__sw_t_f_f" />
+            <field:QueryFieldT isArray="true"  isStrID="true"  id="prestNames__si_t_t_t"  name="prestNames"  label="prestNames"  searchModel="{searchModel}" queryField="query_prestNames__sw_t_f_t" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="appTypeWebViewer__i_t_t_f"  name="appTypeWebViewer"  label="appTypeWebViewer"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="true"  isStrID="false"  id="prestIds__l_t_t_t"  name="prestIds"  label="prestIds"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="appTypeIpadViewer__i_t_t_f"  name="appTypeIpadViewer"  label="appTypeIpadViewer"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="true"  isStrID="false"  id="prestOwnerGroupIds__l_t_t_t"  name="prestOwnerGroupIds"  label="prestOwnerGroupIds"  searchModel="{searchModel}" />
+       </ap:ArrayList>
+    </fx:Declarations>
+</schema:CSReportingSlideCollectionSchema>

@@ -1,0 +1,202 @@
+<?xml version="1.0"?>
+<!--
+  Created by yanggang on 4/4/2016.
+-->
+<data:GridColumn xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:data="com.flashflexpro.as3lib.data.*" editable="true">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.utils.ExecutableMenuItem;
+        import com.flashflexpro.as3lib.utils.ExecutableMenuListing;
+        import com.flashflexpro.as3lib.utils.RootContextApp;
+
+        import mx.utils.ObjectUtil;
+
+
+        [Bindable(event="gridChanged")]
+        public function get propGrid():PropertiesGrid{
+            return grid as PropertiesGrid;
+        }
+
+        private var _bean:Object;
+        [Bindable(event="beanChanged")]
+        public function get bean():Object{
+            return _bean;
+        }
+
+        public function set bean( value:Object ):void{
+            if( value != _bean ){
+                _bean = value;
+                if( _bean != null ){
+                    _newValues = new CrMap();
+                    _invalidateProps = new CrMap();
+                    dispatchEvent( new Event( "newValuesChanged", true ) );
+                    dispatchEvent( new Event( "invalidatePropsSizeChanged", true ) );
+                }
+                dispatchEvent( new Event( "beanChanged" ) );
+            }
+        }
+
+        private var _newValues:CrMap = new CrMap();
+        [Bindable(event="newValuesChanged")]
+        public function get newValues():CrMap{
+            return _newValues;
+        }
+        public function copyBeanWithChanges():Object{
+            var rt:Object = ObjectUtil.copy( bean );
+            newValues.values.forEach( function ( obj:*, index:int, a:* ):void{
+                rt[newValues.keys[index]] = obj;
+            } );
+            return rt;
+        }
+        private var _settingNewValueName:String;
+        public function get settingNewValueName():String{
+            return _settingNewValueName;
+        }
+
+        public function setNewValue( name:String, value:* ):void{
+            if( name == null ){
+                throw new ArgumentError( " need a name!" );
+            }
+            if( _newValues == null && bean[name] == value ){
+                return;
+            }
+            if( _newValues.getValue( name ) == value && bean[name] != value ){
+                return;
+            }
+            _settingNewValueName = name;
+            if( bean[name] == value ){
+                if( _newValues.getValue( name ) != null ){
+                    _newValues.deleteValue( name );
+                }
+                _settingNewValueName = null;
+                return;
+            }
+
+            _newValues.putValue( name, value );
+            var erStr:String = invalidateProperty( name, value, propGrid.getRowByName( name ) );
+            if( erStr != null ){
+                addInvalidateProp( name, erStr );
+            }
+            else{
+                removeInvalidateProp( name );
+            }
+            _settingNewValueName = null;
+        }
+
+        protected function invalidateProperty( name:String, value:*, r:PropertiesGridRow ):String{
+            if( r.desc.notEmpty && value == null || value == "" ){
+                return "Can't be empty";
+            }
+            if( value is String && r.regex != null ){
+                var mtc:Array = (value as String).match( r.regex );
+                if( mtc.length != 1 || mtc[ 0 ] != value ){
+                    return "Can't pass regex: " + r.regex;
+                }
+            }
+            return null;
+        }
+
+        private function removeInvalidateProp( name:String ):void{
+            var i:int = _invalidateProps.keys.indexOf( name );
+            if( i >= 0 ){
+                _invalidateProps.deleteValue( name );
+                dispatchEvent( new Event( "invalidatePropsSizeChanged", true ) )
+            }
+        }
+
+        private function addInvalidateProp( name:String, error:String ):void{
+            if( _invalidateProps.putValue( name, error ) != null ){
+                dispatchEvent( new Event( "invalidatePropsSizeChanged" ) )
+            }
+        }
+
+        private var _invalidateProps:CrMap;
+        [Bindable(event="invalidatePropsSizeChanged")]
+        public function get invalidateProps():CrMap{
+            return _invalidateProps;
+        }
+
+        public function applyChanges(){
+            newValues.values.forEach( function ( obj:*, index:int, a:* ):void{
+                bean[newValues.keys[index]] = obj;
+            } );
+
+            revert();
+        }
+
+
+        public function revert():void{
+            _newValues.clear();
+        }
+
+
+        [Bindable]
+        public var columnLabelDesc:PropertyDesc;
+
+        protected function set rfrLabel( v:* ):void{
+            RootContextApp.inst.callInNext.putIn( refreshLabel );
+        }
+
+        protected function refreshLabel():void{
+            if( columnLabelDesc != null ){
+                label = bean[columnLabelDesc.name];
+            }
+        }
+
+
+        private function set rfrGridInvalidProps( ignoreVar:* ):void{
+            if( _invalidateProps != null ){
+                propGrid.invalidateBean( this );
+            }
+        }
+
+        public function showCellMenu( propRow:PropertiesGridRow ):void{
+
+            var arr:Array = [];
+            var tmp:ExecutableMenuItem;
+
+            tmp = new ExecutableMenuItem();
+            tmp.label = "Cut";
+            tmp.enabled = ( editable && ! propRow.desc.readOnly );
+            tmp.target = this;
+            tmp.toExe = function ():void{
+                System.setClipboard( getCuLLabel( propRow ) );
+                setNewValue( propRow.desc.name, "" );
+            };
+            arr.push( tmp );
+
+            tmp = new ExecutableMenuItem();
+            tmp.label = "Copy";
+            tmp.target = this;
+            tmp.toExe = function ():void{
+                System.setClipboard( getCuLLabel( propRow ) );
+            };
+            arr.push( tmp );
+
+            tmp = new ExecutableMenuItem();
+            tmp.label = "Revert";
+            tmp.target = this;
+            tmp.enabled = ( _newValues.getValue( propRow.desc.name ) != null );
+            tmp.toExe = function ():void{
+                _newValues.deleteValue( propRow.desc.name );
+            };
+            arr.push( tmp );
+
+            if( propGrid != null ){
+                propGrid.context.setMenuOperations( new ExecutableMenuListing( arr ) );
+            }
+        }
+
+        private function getCuLLabel( propRow:PropertiesGridRow ):*{
+            if( _newValues.hasKey( propRow.desc.name ) ){
+                return _newValues.getKey( propRow.desc.name );
+            }
+            else{
+                return bean[propRow.desc.name];
+            }
+        }
+        ]]></fx:Script>
+    <fx:Binding source="invalidateProps" destination="rfrGridInvalidProps"/>
+    <fx:Binding source="propGrid.editable" destination="editable"/>
+    <fx:Binding source="columnLabelDesc" destination="rfrLabel"/>
+    <fx:Binding source="bean" destination="rfrLabel"/>
+</data:GridColumn>

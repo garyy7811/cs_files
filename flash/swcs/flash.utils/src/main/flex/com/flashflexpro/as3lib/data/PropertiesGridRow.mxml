@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!--
+  Created by yanggang on 4/4/2016.
+-->
+<utils:MxmlEventDispatcher xmlns:fx="http://ns.adobe.com/mxml/2009"
+                           xmlns:utils="com.flashflexpro.as3lib.utils.*">
+    <fx:Script><![CDATA[
+        [Bindable]
+        public var desc:PropertyDesc;
+
+        private var _regex:RegExp;
+
+        public function get regex():RegExp{
+            if( desc == null ){
+                throw new Error( "!" );
+            }
+            if( _regex == null && desc.stringRegexp != null && desc.stringRegexp.length > 0 ){
+                _regex = new RegExp( desc.stringRegexp, "g" );
+            }
+            return _regex;
+        }
+
+        public function getCellLabel( col:PropertiesGridColumn ):String{
+            var val:* = col.bean[desc.name];
+            if( val is Number ){
+                var tmp:String = desc.name.toLowerCase();
+                if( tmp.indexOf( "time" ) >= 0 || tmp.indexOf( "date" ) >= 0 ){
+                    return new Date( val ).toDateString();
+                }
+            }
+            return val;
+        }
+        ]]></fx:Script>
+</utils:MxmlEventDispatcher>

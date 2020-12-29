@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 4/13/2015.
+-->
+<as3librpc:RpcBase xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:as3lib="com.flashflexpro.as3lib.*"
+                   xmlns:as3librpc="com.flashflexpro.as3lib.rpc.*">
+    <fx:Script><![CDATA[
+        import com.customshow.reporting.schema.CSReportingShowDurationSolrSchema;
+        import com.customshow.reporting.schema.CSReportingSlideDurationSolrSchema;
+
+        import mx.formatters.DateFormatter;
+        import mx.utils.Base64Decoder;
+        import mx.utils.Base64Encoder;
+
+        public var queryUrl:String;
+        public var serviceName:String;
+        public var remoteMethodName:String;
+        public var csSessionId:String;
+
+        public var args:Array;
+
+        private static var securityPolicyLoaded:Boolean = false;
+
+        override public function callRemote():Boolean{
+            requestContentType = REQUEST_CONTENT_TYPE_TEXT;
+            responseDataFormat = URLLoaderDataFormat.TEXT;
+            var u:String = queryUrl;
+            if( ! securityPolicyLoaded && u != null ){
+                var arr:Array = u.split( "/" );
+
+                while( arr.length > 4 ){
+                    arr.pop();
+                }
+
+                var url:String = arr.join( "/" ) + "/crossdomain.xml";
+                Security.loadPolicyFile( url );
+
+                securityPolicyLoaded = true;
+            }
+            _request = new URLRequest( queryUrl + "/" + serviceName + "/" + remoteMethodName + "/" + csSessionId );
+            return super.callRemote();
+        }
+
+
+        override protected function getRequestData():Object{
+            var ba:ByteArray = new ByteArray();
+            ba.writeObject( args );
+            var cdr:Base64Encoder = new Base64Encoder();
+            cdr.insertNewLines = false;
+            cdr.encodeBytes( ba );
+            var baStr:String = cdr.toString();
+            return baStr;
+        }
+
+
+        public var callBackOnRawResult:Function;
+        public var callBackOnObjResult:Function;
+
+        override protected function onRawResult( result:Object ):void{
+            super.onRawResult( result );
+
+            if( callBackOnRawResult != null ){
+                if( callBackOnRawResult.apply( null, [result] ) ){
+                    return;
+                }
+            }
+
+            var byteArray:ByteArray;
+            if( result is String ){
+                var decoder:Base64Decoder = new Base64Decoder();
+                decoder.decode( result as String );
+                byteArray = decoder.toByteArray();
+            }
+            else if( result is ByteArray ){
+                byteArray = ( result as ByteArray );
+            }
+            else{
+                throw new Error( 'unknown format!!' );
+            }
+            var asObj:* = byteArray.length == 0 ? null : byteArray.readObject();
+
+            if( callBackOnObjResult != null ){
+                if( callBackOnObjResult.apply( null, [asObj] ) ){
+                    return;
+                }
+            }
+
+            onObjResult( asObj );
+        }
+
+        protected function onObjResult( obj:* = null ):void{
+            throw new Error( "abstract" )
+        }
+
+        private static function zeroPad( number:uint ):String{
+
+            if( number < 10 ){
+                return "0" + number;
+            }
+
+            return number.toString();
+        }
+
+        public static function epicTimeToHMS( milliseconds:Number ):String{
+            var hours:uint = milliseconds / (60 * 60 * 1000);
+            var minutes:uint = (milliseconds / (60 * 1000)) % 60;
+            var seconds:uint = (milliseconds / 1000) % 60;
+            return zeroPad( hours ) + ":" + zeroPad( minutes ) + ":" + zeroPad( seconds );
+        }
+
+        public static function epicTimeToDate( milliseconds:Number ):String{
+            return dateFormatter.format( new Date( milliseconds ) );
+        }
+
+        public static var dateFormatter:DateFormatter = new DateFormatter( "EEE, MMM D, YYYY L:NN A" );
+
+        public static const schemaSlideduration:CSReportingSlideDurationSolrSchema = new CSReportingSlideDurationSolrSchema();
+        public static const schemaShowduration:CSReportingShowDurationSolrSchema = new CSReportingShowDurationSolrSchema();
+        ]]></fx:Script>
+</as3librpc:RpcBase>

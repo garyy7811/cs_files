@@ -1,0 +1,6 @@
+dependencies {
+    compile project( ":java_modules:java.sif.utils" )
+
+    compile "com.amazonaws:aws-java-sdk-dynamodb:$awsSdkVersion"
+
+}

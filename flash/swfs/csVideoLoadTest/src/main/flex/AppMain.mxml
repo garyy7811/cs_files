@@ -1,0 +1,124 @@
+<?xml version="1.0"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               applicationComplete="onAppComplete();">
+
+    <fx:Script>
+      <![CDATA[
+        import mx.core.UIComponent;
+
+
+        //        private var _streamPath:String = "mp4:s/test/video/15996_VID_20121030_220727";
+        private var _streamPath:String = "mp4:video/0/1/1A841DE48535E3920C1273528CD255D9/1475522371204/605k?Key-Pair-Id=APKAIEQLPKFFN53SW5ZQ&Signature=IvgZmMSFECf9bS8RvqCecNvolRoTMalizF4PJYeHszt6+balqSXM5eNS5vi7pxNI9pGWt4I6QtXz4O/9I1aufx5LKBTIeW9RRTg1xQ7dlnZDKJT/uWXswmR1gxBjWiViE6CiBuFKfhoX6ge7IVf766SDue0CPZgr02gMDWQYTLvvMhLjtEKHNKr83srBtcuxurJOXY4rQzisHwAEIHX0ql/gNqHpvDtazJWCsx4RL9Mm+K03hHqq0I7XlZUXsBxxZIeI4/P0m5k+AQqT8/g91zKgQ83cv6qBWX+kAxMnZkk1FIVSk2k6b/D+qmt6bpQf8smuIy2yFBVgAT+PlrH1Tg==&Policy=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6IioiLCJDb25kaXRpb24iOnsiRGF0ZUxlc3NUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE0NzU1MjQ1MzV9LCJJcEFkZHJlc3MiOnsiQVdTOlNvdXJjZUlwIjoiMC4wLjAuMC8wIn0sIkRhdGVHcmVhdGVyVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNDc1NTIzNjM1fX19XX0=";
+
+        //        private var _fmsHost:String = "rtmp://sgqkfzacacvoo.cloudfront.net/cfx/st";
+        private var _fmsHost:String = "rtmp://s169w44vggtfj4.cloudfront.net/cfx/st";
+
+        private var _bufferSize:String = null;
+
+        private var _video:flash.media.Video;
+        private var _videoContainer:UIComponent;
+
+        private var _nc:flash.net.NetConnection;
+        private var _ns:flash.net.NetStream;
+
+        private function onAppComplete():void{
+            var params:Object = {};
+
+            var query:String = ExternalInterface.call( "window.location.search.substring", 1 );
+
+            if( query ){
+                var pairs:Array = query.split( "&" );
+                var pair:Array;
+                for( var i:Number = 0; i < pairs.length; i ++ ){
+                    pair = String( pairs[i] ).split( "=" );
+                    params[pair[0]] = pair[1];
+                }
+            }
+
+            if( params['streamPath'] != null ){
+                _streamPath = params['streamPath'];
+            }
+
+            if( params['fmsHost'] != null ){
+                _fmsHost = params['fmsHost'];
+            }
+
+            if( params['bufferSize'] != null ){
+                _bufferSize = params['bufferSize'];
+            }
+
+            _video = new Video();
+            _videoContainer = new UIComponent();
+            this.addElement( _videoContainer );
+            _videoContainer.addChild( _video );
+            _nc = new NetConnection();
+            _nc.client = this;
+            _nc.addEventListener( NetStatusEvent.NET_STATUS, onNetConnectionStatus );
+            _nc.connect( _fmsHost );
+        }
+
+        private function onNetConnectionStatus( event:NetStatusEvent ):void{
+            ExternalInterface.call( "appendHtmlMsgToBody",
+                    "<p id=\"" + event.info.code + "\">" + event.info.code + "|" + getTimer() + "</p>" );
+
+            switch( event.info.code ){
+                case "NetConnection.Connect.Success":
+                    playVideo();
+                    break;
+                case "NetStream.Play.StreamNotFound":
+                    break;
+            }
+        }
+
+        private function playVideo():void{
+            _ns = new NetStream( _nc );
+            if( _bufferSize != null ){
+                _ns.bufferTime = Number( _bufferSize );
+            }
+            _ns.addEventListener( NetStatusEvent.NET_STATUS, onNetStreamStatus );
+            _ns.client = this;
+            _video.attachNetStream( _ns );
+            _ns.play( _streamPath );
+        }
+
+        public function onBWDone( arg:* = null ):void{
+
+        }
+
+        public function onCuePoint( arg:* = null ):void{
+        }
+
+        public function onDRMContentData( arg:* = null ):void{
+        }
+
+        public function onImageData( arg:* = null ):void{
+        }
+
+        public function onMetaData( arg:* = null ):void{
+        }
+
+        public function onPlayStatus( arg:* = null ):void{
+        }
+
+        public function onSeekPoint( arg:* = null ):void{
+        }
+
+        public function onTextData( arg:* = null ):void{
+        }
+
+        public function onXMPData( arg:* = null ):void{
+        }
+
+        private function onNetStreamStatus( event:NetStatusEvent ):void{
+            var tmp:String = "<p id=\"" + event.info.code + "\">" + event.info.code + "|" + getTimer() + "</p>";
+            trace( tmp );
+            ExternalInterface.call( "appendHtmlMsgToBody", tmp );
+        }
+        ]]>
+   </fx:Script>
+    <s:layout>
+        <s:VerticalLayout/>
+    </s:layout>
+
+</s:Application>

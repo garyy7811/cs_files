@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+<!--
+  Created by yanggang on 5/14/2016.
+-->
+<win:TBPanel xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:win="com.flashflexpro.as3lib.win.*">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.IWithContext;
+
+
+        public static const RESIZED:String = "resized";
+        public static const MAXED:String = "maxed";
+        public static const MINIMIZED:String = "minimized";
+        public static const CLOSED:String = "closed";
+
+        private var _prevStatus:String;
+        [Bindable(event="statusChanged")]
+        public function get prevStatus():String{
+            return _prevStatus;
+        }
+
+        private var _status:String;
+        [Bindable(event="statusChanged")]
+        public function get status():String{
+            return _status;
+        }
+
+        internal function setStatus( value:String ):void{
+            if( value != _status ){
+                _prevStatus = _status;
+                _status = value;
+                dispatchEvent( new Event( "statusChanged" ) );
+            }
+        }
+
+        private var _goingToStatus:String = RESIZED;
+        [Bindable(event="goingToStatusChanged")]
+        public function get goingToStatus():String{
+            return _goingToStatus;
+        }
+
+        public function set goingToStatus( value:String ):void{
+            if( value != _goingToStatus && value != _status ){
+                _goingToStatus = value;
+                dispatchEvent( new Event( "goingToStatusChanged" ) );
+            }
+        }
+
+
+        [Bindable]
+        public var visible:Boolean = true;
+        [Bindable]
+        public var includeInLayout:Boolean = true;
+        [Bindable]
+        public var mouseEnabled:Boolean = true;
+
+        [Bindable]
+        internal var scaleFrom:Point;
+        [Bindable]
+        internal var scaleTo:Point;
+
+        [Bindable]
+        internal var moveFrom:Point;
+        [Bindable]
+        internal var moveTo:Point;
+
+        [Bindable]
+        internal var fadeFrom:Number = NaN;
+        [Bindable]
+        internal var fadeTo:Number;
+
+
+        [Bindable]
+        public var winReg:Point;
+        [Bindable]
+        public var mouseStageReg:Point;
+        [Bindable]
+        public var draggingPosition:Point;
+
+
+        [Bindable]
+        public var restorePosition:Point;
+        [Bindable]
+        public var restoreSize:Point;
+
+
+        [Bindable]
+        public var showCloseButton:Boolean = true;
+
+
+        [Bindable]
+        public var model:IWithContext;
+
+
+        internal function onEffectStart():void{
+            includeInLayout = false;
+            mouseEnabled = false;
+            visible = true;
+        }
+
+        internal function onEffectEnd():void{
+
+            if( goingToStatus == FDWindow.MINIMIZED ){
+                visible = false;
+            }
+            else{
+                visible = true;
+                includeInLayout = true;
+                mouseEnabled = true;
+            }
+            setStatus( goingToStatus );
+            goingToStatus = null;
+        }
+        ]]></fx:Script>
+
+</win:TBPanel>

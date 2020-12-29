@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 2/17/2015.
+-->
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+         xmlns:mxreports="com.customshow.reporting.mxreports.*">
+    <fx:Script><![CDATA[
+        import com.customshow.reporting.mxreports.*;
+        import com.flashflexpro.as3lib.utils.RootContextApp;
+
+        [Bindable]
+        public var queryUrl:String;
+
+        [Bindable]
+        public var slideShowId:String = "2832";
+
+        [Bindable]
+        private var _getReportResult:CsSlideShowSessionHistoryModel;
+
+        private function onGetReport( preview:Boolean ):void{
+            historyReportGrid.queryUrl = queryUrl;
+            historyReportGrid.includePreview = preview;
+            historyReportGrid.slideShowId = slideShowId;
+            historyReportGrid.csSessionId = RootContextApp.inst.urlExtra;
+        }
+        ]]>
+	</fx:Script>
+    <s:layout>
+        <s:VerticalLayout/>
+    </s:layout>
+    <s:FormItem label="slideshow id">
+        <s:TextInput text="@{slideShowId}"/>
+    </s:FormItem>
+    <s:HGroup>
+        <s:CheckBox label="Include preview" id="preview"/>
+        <s:Button label="getReport" click="onGetReport( preview.selected );"/>
+    </s:HGroup>
+    <mxreports:CsSlideShowSessionHistoryReportGridMx id="historyReportGrid" rowHeight="22" width="100%" height="100%"/>
+</s:Panel>

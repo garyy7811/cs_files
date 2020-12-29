@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<!--
+  Created by yanggang on 4/4/2016.
+-->
+<pclient:TranscodeConfigFormatGrid xmlns:fx="http://ns.adobe.com/mxml/2009"
+                                   columnLabelDesc="{DynaTableClientConfigOverride.PROP_DESC_configName}"
+                                   propColType="com.customshow.configPerClient.TranscodeConfigFormatGridColumn"
+                                   xmlns:pclient="com.customshow.configPerClient.*">
+    <fx:Script><![CDATA[
+        import org.apache.flex.collections.ArrayList;
+
+
+        [Bindable]
+        public var perClientConfigLoadById:PerClientConfigLoadById;
+
+        private function set rfrFormats( v:* ):void{
+            perClientConfigLoadById.context.callInNext.putIn( refreshFormats );
+        }
+
+        private function refreshFormats():void{
+            beans.removeAll();
+
+            var tmp:Array = [];
+            for( var key:String in perClientConfigLoadById.config.transcode.formats ){
+                tmp.push( perClientConfigLoadById.config.transcode.formats[key] );
+            }
+            tmp.sort( function ( a:DynaTableClientConfigTranscodeFormat, b:DynaTableClientConfigTranscodeFormat ):int{
+                if( a.bitrate != null && b.bitrate != null ){
+                    if( a.baseConfigId == null ){
+                        return - 1;
+                    }
+                    else if( b.baseConfigId == null ){
+                        return 1;
+                    }
+                    return (a.lastModifiedTime > b.lastModifiedTime) ? - 1 : 1;
+                }
+                else if( a.bitrate != null && b.bitrate == null ){
+                    return - 1;
+                }
+                else if( a.bitrate == null && b.bitrate != null ){
+                    return 1;
+                }
+                else if( a.bitrate == null && b.bitrate == null ){
+                    if( a.baseConfigId == null ){
+                        return - 1;
+                    }
+                    else if( b.baseConfigId == null ){
+                        return 1;
+                    }
+                    return (a.lastModifiedTime > b.lastModifiedTime) ? - 1 : 1;
+                }
+                else{
+                    throw new Error( "" );
+                }
+            } );
+            beans = new ArrayList( tmp );
+        }
+
+        internal function duplicate( f:TranscodeConfigFormatGridColumn ):void{
+            if( f.format.identification == null ){
+                throw new Error( "can't duplicate unsaved format" );
+            }
+            var nb:DynaTableClientConfigTranscodeFormat = new DynaTableClientConfigTranscodeFormat();
+            nb.baseConfigId = f.format.identification;
+            nb.configName = f.format.configName + " copy";
+            beans.addItemAt( nb, beans.getItemIndex( f.format ) + 1 );
+        }
+
+        internal function deleteCol( f:TranscodeConfigFormatGridColumn ):void{
+            if( f.format.identification != null ){
+                perClientConfigLoadById.deleteFormat( f.format );
+            }
+            f.editable = false;
+            beans.removeItemAt( beans.getItemIndex( f.format ) );
+        }
+        ]]></fx:Script>
+    <fx:Binding source="{perClientConfigLoadById.config.transcode.formats}" destination="rfrFormats"/>
+</pclient:TranscodeConfigFormatGrid>

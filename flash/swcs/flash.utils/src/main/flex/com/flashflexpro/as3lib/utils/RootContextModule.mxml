@@ -1,0 +1,141 @@
+<?xml version="1.0"?>
+<utils:MxmlEventDispatcher xmlns:fx="http://ns.adobe.com/mxml/2009"
+                           xmlns:utils="com.flashflexpro.as3lib.utils.*">
+    <fx:Metadata>
+        [Event(name="escalateFromInside", type="com.flashflexpro.as3lib.utils.EscalateFromContextEvent")]
+    </fx:Metadata>
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.rpc.RpcSpringMvcPost;
+
+        import mx.collections.IList;
+
+        [Bindable]
+        public var serverHandleType:uint = RpcSpringMvcPost.SERVER_TYPE_AWS_API_GATEWAY_JSON;
+
+        [Bindable]
+        public var callInNext:CallOnceInNextFrame;
+
+
+        [Bindable]
+        public var restUrl:String;
+
+        [Bindable]
+        public var urlExtra:String;
+
+        [Bindable]
+        public var stage:Stage;
+
+        [Bindable]
+        public var pressedKeys:IList;
+
+        [Bindable]
+        public var rpcOnAir:IList;
+
+        [Bindable]
+        public var rpcWaitQue:IList;
+
+        [Bindable]
+        public var executingItems:IList;
+
+        private var _parent:RootContextModule;
+        public static const parent_CHANGED:String = "parentChanged";
+
+        [Bindable(event="parentChanged")]
+        public function get parent():RootContextModule{
+            return _parent;
+        }
+
+        public function set parent( value:RootContextModule ):void{
+            if( value != _parent ){
+                _parent = value;
+                dispatchEvent( new Event( parent_CHANGED ) );
+            }
+        }
+
+        private var _rootApp:RootContextApp;
+        public static const rootApp_CHANGED:String = "rootAppChanged";
+
+        [Bindable(event="rootAppChanged")]
+        public function get rootApp():RootContextApp{
+            return _rootApp;
+        }
+
+        private function set prRootApp( value:RootContextApp ):void{
+            if( value != _rootApp ){
+                _rootApp = value;
+                dispatchEvent( new Event( rootApp_CHANGED ) );
+            }
+        }
+
+        protected function classNewInst( type:Class ):Object{
+            if( _parent != null ){
+                return _parent.instantiate( type );
+            }
+            return null;
+        }
+
+        public function instantiate( type:Class ):Object{
+            var rt:Object = classNewInst( type );
+            if( rt == null ){
+                return new type();
+            }
+            return rt;
+        }
+
+        private var _dragging:CtxDragSource;
+
+        [Bindable(event="draggingChanged")]
+        public function get dragging():CtxDragSource{
+            return _dragging;
+        }
+
+        internal function drag( value:CtxDragSource ):void{
+            if( value != _dragging ){
+                _dragging = value;
+                dispatchEvent( new Event( "draggingChanged" ) );
+                if( _parent != null ){
+                    _parent.drag( value );
+                }
+                else{
+                    CONFIG::debugging{
+                        if( ! ( this is RootContextApp ) ){
+                            throw new Error( this + ".drag where is my parent " );
+                        }//debug
+                    }
+                }
+            }
+        }
+
+
+        ]]></fx:Script>
+    <fx:Binding source="parent.rootApp" destination="prRootApp"/>
+    <fx:Binding source="rootApp.callInNext" destination="callInNext"/>
+    <fx:Binding source="rootApp.stage" destination="stage"/>
+
+    <fx:Binding source="rootApp.pressedKeys" destination="pressedKeys"/>
+    <fx:Binding source="rootApp.rpcOnAir" destination="rpcOnAir"/>
+    <fx:Binding source="rootApp.rpcWaitQue" destination="rpcWaitQue"/>
+
+    <fx:Script><![CDATA[
+        public function setMenuOperations( value:ExecutableMenuListing ):void{
+            _parent.setMenuOperations( value );
+        }
+
+
+        public function getTipRpc():RpcSpringMvcPost{
+            return null;
+        }
+
+        public function moreHelp( tm:ToolTipExm ):void{
+
+        }
+
+
+        public function escalate( ...args ):void{
+            dispatchEvent( new EscalateFromContextEvent( args ) );
+            if( _parent != null ){
+                _parent.escalate.apply( _parent, args );
+            }
+        }
+        ]]></fx:Script>
+</utils:MxmlEventDispatcher>

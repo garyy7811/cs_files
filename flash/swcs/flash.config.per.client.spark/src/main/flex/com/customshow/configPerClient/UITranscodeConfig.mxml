@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 3/18/2016.
+-->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+         xmlns:local="com.customshow.configPerClient.*" xmlns:data="com.flashflexpro.as3lib.data.*">
+    <fx:Script><![CDATA[
+        [Bindable]
+        public var perClientConfigLoadById:PerClientConfigLoadById;
+        ]]></fx:Script>
+    <s:layout>
+        <s:VerticalLayout paddingLeft="15" paddingRight="15" horizontalAlign="right"/>
+    </s:layout>
+
+    <s:TabBar id="tabBar">
+        <s:dataProvider>
+            <s:ArrayCollection source="[' Transcoding General','Transcoding formats']"/>
+        </s:dataProvider>
+    </s:TabBar>
+    <data:UIPropertiesGrid width="100%" height="100%" model="{perClientConfigLoadById.transcodeGeneral}"
+                           includeInLayout="{tabBar.selectedIndex==0}" visible="{tabBar.selectedIndex==0}"/>
+    <local:UITranscodeConfigFormat width="100%" height="100%" model="{perClientConfigLoadById.transcodeFormats}"
+                                   includeInLayout="{tabBar.selectedIndex==1}" visible="{tabBar.selectedIndex==1}"/>
+</s:Group>

@@ -1,0 +1,59 @@
+buildscript {
+    repositories {
+        //mavenLocal()
+        maven {
+            name 'local nexus'
+            url csConfig.mavenDependencyRepoUrl
+        }
+    }
+
+    dependencies {
+        classpath "org.gradlefx:gradlefx:$gradlefxVersion"
+        classpath group: 'com.customshow', name: 'codeGen', version: '0.0.8'
+    }
+}
+
+subprojects {
+
+    type = 'swc'
+
+    frameworkLinkage = 'external'
+
+    if( System.getenv( "FLASH_PLAYER_EXE" ) != null ){
+        dependencies {
+            test files( rootProject.file( 'flash/test/flexunit/flexUnitTasks-4.2.0-20140410.jar' ).absolutePath,
+                    rootProject.file( 'flash/test/flexunit/flexunit-4.2.0-20140410-flex_4.12.0.swc' ).absolutePath,
+                    rootProject.
+                            file( 'flash/test/flexunit/flexunit-cilistener-4.2.0-20140410-4.12.0.swc' ).absolutePath,
+                    rootProject.
+                            file( 'flash/test/flexunit/flexunit-uilistener-4.2.0-20140410-4.12.0.swc' ).absolutePath )
+        }
+
+        flexUnit {
+            additionalCompilerOptions = ['-debug=' + csConfig.csSwfDebug]
+        }
+    }
+    else{
+        logger.info 'System.getenv( "FLASH_PLAYER_EXE" ) is null NO Flash test can run'
+    }
+    afterEvaluate {
+        if( tasks.hasProperty( "generateRpcApi" ) ){
+            compileFlex.dependsOn generateRpcApi
+        }
+    }
+
+}
+
+task pubReportingLib{
+    doLast{
+        println "Published"
+    }
+}
+
+
+pubReportingLib.dependsOn project.project( "flash.utils.spark" ).uploadArchives
+pubReportingLib.dependsOn project.project( "flash.reporting.dto" ).uploadArchives
+pubReportingLib.dependsOn project.project( "flash.reporting.query" ).uploadArchives
+pubReportingLib.dependsOn project.project( "flash.reporting.reports.mx" ).uploadArchives
+
+

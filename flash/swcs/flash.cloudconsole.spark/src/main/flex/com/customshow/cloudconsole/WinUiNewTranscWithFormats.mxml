@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 3/28/2016.
+-->
+<win:WebWindow xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:win="com.flashflexpro.as3lib.win.*" xmlns:videotranscoding="com.customshow.videotranscoding.*">
+    <fx:Script><![CDATA[
+        import com.customshow.videotranscoding.NewTranscodingWithFormats;
+        import com.flashflexpro.as3lib.utils.RootContextApp;
+        import com.flashflexpro.as3lib.win.TBPanelAlert;
+
+        import mx.events.CloseEvent;
+
+        import spark.components.Alert;
+
+
+        [Bindable(event="modelChanged")]
+        public function get newTranscoding():NewTranscodingWithFormats{
+            return model as NewTranscodingWithFormats;
+        }
+
+        private function set rfrNewEncode( v:* ):void{
+            RootContextApp.inst.callInNext.putIn( refreshNewCodeRslt );
+        }
+
+        private function refreshNewCodeRslt():void{
+            if( newTranscoding.newEncodeResult != null ){
+                if( newTranscoding.newEncodeResult.errorMsg != null ){
+                    tbPanel.alert = new TBPanelAlert( newTranscoding.newEncodeResult.errorMsg, "Error", Alert.OK );
+                }
+                else{
+                    tbPanel.alert =
+                            new TBPanelAlert( newTranscoding.newEncodeResult.mediaId, "MediaId:", Alert.OK, false, function ( ev:CloseEvent ):void{
+                                onCloseButtonClicked();
+                            } );
+                }
+            }
+
+        }
+        ]]></fx:Script>
+    <fx:Binding source="Add new transcode with file {newTranscoding.uploadedFileBucketkey}"
+                destination="modelWin.title"/>
+    <win:layout>
+        <s:VerticalLayout/>
+    </win:layout>
+    <fx:Binding source="newTranscoding.newEncodeResult" destination="rfrNewEncode"/>
+    <videotranscoding:UiNewTranscodingWithFormats model="{newTranscoding}" width="100%" height="100%"/>
+    <s:Button enabled="{newTranscoding.rpcSpringMvcPost==null}" label="Start Transcode"
+              click="newTranscoding.submitTranscodeWithFormats();"/>
+</win:WebWindow>

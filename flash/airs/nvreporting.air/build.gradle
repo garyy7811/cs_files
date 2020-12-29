@@ -1,0 +1,8 @@
+
+dependencies {
+    merged project(':flash:swcs:flash.utils.spark')
+    merged project(':flash:swcs:flash.solr.query')
+    merged project(':flash:swcs:flash.reporting.query')
+    merged project(':flash:swcs:flash.reporting.reports')
+    merged project(':flash:swcs:flash.reporting.reports.mx')
+}

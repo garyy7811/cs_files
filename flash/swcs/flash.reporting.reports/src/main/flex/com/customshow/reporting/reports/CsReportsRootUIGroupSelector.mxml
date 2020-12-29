@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 5/28/2015.
+-->
+<s:DropDownList xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+                xmlns:data="com.flashflexpro.as3lib.data.*"
+                skinClass="com.customshow.reporting.reports.CsReportsRootUIGroupSelectorSkin"
+                prompt="{'Groups'/*rootApp.selectedGroupNameArray.join( ';' )*/}">
+    <fx:Script><![CDATA[
+        import mx.collections.IList;
+
+        [Bindable]
+        public var rootApp:CSNvReportingConsole;
+
+        [Bindable]
+        public var filterStr:String;
+
+        [Bindable]
+        public var filterOn:Boolean;
+
+        override protected function item_mouseDownHandler( event:MouseEvent ):void{
+            //no thanks
+        }
+
+        public function selectAll_None( b:Boolean ):void{
+            var lst:IList = b ? dataProvider : rootApp.groupIdNameLst;
+            for( var j:int = lst.length - 1; j >= 0; j -- ){
+                var gm:CsReportsRootUIGroupModel = lst.getItemAt( j ) as CsReportsRootUIGroupModel;
+                gm.selected = b;
+            }
+            rootApp.refreshGroupSelection();
+        }
+
+        private function set rfrFilterGroup( v:* ):void{
+            rootApp.context.callInNext.putIn( filterGroup );
+        }
+
+        private function filterGroup():void{
+            _filteredLst.removeAll();
+            for( var j:int = rootApp.groupIdNameLst.length - 1; j >= 0; j -- ){
+                var gm:CsReportsRootUIGroupModel = rootApp.groupIdNameLst.getItemAt( j ) as CsReportsRootUIGroupModel;
+                var itemIndex:int = dataProvider.getItemIndex( gm );
+                if( filterStr == null || filterStr.length == 0 ||
+                        gm.name.toLowerCase().indexOf( filterStr.toLowerCase() ) >= 0 ){
+                    _filteredLst.addItem( gm );
+                }
+            }
+        }
+        ]]></fx:Script>
+    <fx:Binding source="rootApp.context.callInNext" destination="rfrFilterGroup"/>
+    <fx:Binding source="rootApp.groupIdNameLst.length " destination="rfrFilterGroup"/>
+    <fx:Binding source="filterStr" destination="rfrFilterGroup"/>
+
+    <fx:Binding source="rootApp.groupIdNameLst.length>4" destination="filterOn"/>
+    <fx:Declarations>
+        <s:ArrayList id="_filteredLst"/>
+        <data:Map2Lists source="{_filteredLst}" destination="{dataProvider}"/>
+    </fx:Declarations>
+    <s:dataProvider>
+        <s:ArrayList/>
+    </s:dataProvider>
+    <s:itemRenderer>
+        <fx:Component>
+            <s:DataRenderer>
+                <fx:Script><![CDATA[
+                    private function onChange( event:Event ):void{
+                        var ra:CSNvReportingConsole = outerDocument.rootApp;
+                        if( ra.context.pressedKeys.getItemIndex( Keyboard.CONTROL ) >= 0 ){
+                            var idx:uint = outerDocument.dataProvider.getItemIndex( data ) + 1;
+                            while( idx < outerDocument.dataProvider.length ){
+                                var itemAt:Object = outerDocument.dataProvider.getItemAt( idx );
+                                if( itemAt.depth <= data.depth ){
+                                    break;
+                                }
+                                itemAt.selected = chk.selected;
+                                idx ++;
+                            }
+                        }
+                        data.selected = chk.selected;
+                        try{
+                            ra.refreshGroupSelection();
+                        }
+                        catch( e:Error ){
+                            chk.selected = ! chk.selected;
+                            data.selected = chk.selected;
+                        }
+                    }
+                    ]]></fx:Script>
+                <s:layout>
+                    <s:HorizontalLayout/>
+                </s:layout>
+                <s:Spacer width="{data.depth*20}"/>
+                <s:CheckBox label="{data.name}" change="onChange( event );" id="chk" selected="{data.selected}"
+                            enabled="{outerDocument.rootApp.context.rpcOnAir.length==0}" width="100%"/>
+            </s:DataRenderer>
+        </fx:Component>
+    </s:itemRenderer>
+</s:DropDownList>

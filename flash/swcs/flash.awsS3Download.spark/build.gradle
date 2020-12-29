@@ -1,0 +1,6 @@
+
+dependencies {
+    merged project(':flash:swcs:flash.utils.spark')
+    internal project(':flash:swcs:flash.awsS3Download')
+    external fileTree(file("${flexHome}/frameworks/libs/air").absolutePath)
+}

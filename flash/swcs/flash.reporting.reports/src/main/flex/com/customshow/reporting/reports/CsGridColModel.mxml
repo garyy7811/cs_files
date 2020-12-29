@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 5/29/2015.
+-->
+<as3lib:MxmlEventDispatcher xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:as3lib="com.flashflexpro.as3lib.utils.*">
+    <fx:Script><![CDATA[
+        [Bindable]
+        public var label:String;
+
+        [Bindable]
+        public var dataField:String;
+
+        [Bindable]
+        public var dataTipField:String;
+
+        [Bindable]
+        public var sortable:Boolean;
+
+        [Bindable]
+        public var filterable:Boolean;
+
+        [Bindable]
+        public var exportable:Boolean = true;
+
+        [Bindable]
+        public var labelFunction:Function;
+
+        [Bindable]
+        public var dataTipFunction:Function;
+
+        [Bindable]
+        public var bottomColor:int = - 1;
+
+        [Bindable]
+        public var width:int = - 1;
+        ]]></fx:Script>
+</as3lib:MxmlEventDispatcher>

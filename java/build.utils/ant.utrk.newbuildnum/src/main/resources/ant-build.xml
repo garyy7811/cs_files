@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<project name="sample" basedir="." default="run">
+
+    <target name="run">
+        <java jar="lib/csdf.jar" fork="true" failonerror="true" logError="true">
+            <arg value="user"/>
+            <arg value="pass"/>
+            <arg value="project"/>
+            <arg value="bundle name"/>
+            <arg value="new build value"/>
+
+            <!-- create build even no issue to update default is false-->
+            <arg value="true"/>
+            <!--disableNotifications default is true -->
+            <arg value="true"/>
+        </java>
+    </target>
+
+</project>

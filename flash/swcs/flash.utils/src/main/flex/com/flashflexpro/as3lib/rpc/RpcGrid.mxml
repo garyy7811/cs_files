@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 5/29/2015.
+-->
+<data:Grid xmlns:fx="http://ns.adobe.com/mxml/2009"
+           xmlns:data="com.flashflexpro.as3lib.data.*">
+    <fx:Script><![CDATA[
+        import org.apache.flex.collections.ArrayList;
+
+
+        [Bindable]
+        public var lastQueryResult:Object;
+
+        [Bindable]
+        public var rpcLoadGrid:RpcSpringMvcPost;
+
+        public function reloadGrid():void{
+            lastQueryResult = null;
+            lastErrorEvent = null;
+            rows = new ArrayList();
+            loadMore();
+        }
+
+        public function loadMore():Boolean{
+            throw new Error( " implement this abstract method !! " );
+        }
+
+        private var _lastLoadedTime:uint = 0;
+        public function get lastLoadedTime():uint{
+            return _lastLoadedTime;
+        }
+
+        private var _afterLastRefresh:uint = 0;
+        [Bindable(event="afterLastRefreshChanged")]
+        public function get afterLastRefresh():uint{
+            return _afterLastRefresh;
+        }
+
+        public function onLoaded( rslt:Object ):Boolean{
+            _lastLoadedTime = getTimer();
+            lastQueryResult = rslt;
+            rpcLoadGrid = null;
+            if( _timer == null ){
+                _timer = new Timer( 999 );
+                _timer.addEventListener( TimerEvent.TIMER, refreshLastResult, false, 0, true );
+                _timer.start();
+            }
+            refreshLastResult();
+            return true;
+        }
+
+        private var _timer:Timer;
+
+        private function refreshLastResult( ev:TimerEvent = null ):void{
+            _afterLastRefresh = getTimer() - _lastLoadedTime;
+            dispatchEvent( new Event( "afterLastRefreshChanged" ) );
+        }
+
+        [Bindable]
+        public var lastErrorEvent:ErrorEvent;
+
+        protected function onError( ev:ErrorEvent ):void{
+            lastErrorEvent = ev;
+            lastQueryResult = null;
+            rpcLoadGrid = null;
+
+        }
+
+
+        protected function set rfrReloadGrid( v:* ):void{
+            context.callInNext.putIn( reloadGrid );
+        }
+        ]]></fx:Script>
+    <fx:Binding source="sortColDataField" destination="rfrReloadGrid"/>
+    <fx:Binding source="sortColDesc" destination="rfrReloadGrid"/>
+</data:Grid>

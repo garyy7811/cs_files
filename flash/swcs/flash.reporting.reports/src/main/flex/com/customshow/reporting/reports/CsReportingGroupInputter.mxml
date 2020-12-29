@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 8/5/2015.
+-->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark">
+    <fx:Script><![CDATA[
+        [Bindable]
+        public var rootApp:CSNvReportingConsole;
+
+        public function removeGroupById( id:Number ):void{
+            for( var j:int = rootApp.groupIdNameLst.length - 1; j >= 0; j -- ){
+                var obj:Object = rootApp.groupIdNameLst.getItemAt( j ) as Object;
+                if( obj.id == id ){
+                    rootApp.groupIdNameLst.removeItemAt( j );
+                    return
+                }
+            }
+        }
+
+        private function addGroupId( text:String ):void{
+            var tmp:Number = Number( text );
+            if( isNaN( tmp ) ){
+                return;
+            }
+            rootApp.addGroup( tmp, tmp + "", 0, 0 );
+        }
+        ]]></fx:Script>
+    <s:layout>
+        <s:HorizontalLayout verticalAlign="middle"/>
+    </s:layout>
+    <s:Scroller width="100%" minHeight="1">
+        <s:DataGroup dataProvider="{rootApp.groupIdNameLst}" width="100%" minHeight="1">
+            <s:layout>
+                <s:HorizontalLayout verticalAlign="middle" horizontalAlign="center"/>
+            </s:layout>
+            <s:itemRenderer>
+                <fx:Component>
+                    <s:DataRenderer>
+                        <s:BorderContainer minHeight="1"
+                                           doubleClickEnabled="true"
+                                           doubleClick="outerDocument.removeGroupById( data.id );"
+                                           toolTip="Double Click to remove me!">
+                            <s:Label text="[{data.id}]:{data.name}" paddingRight="5" paddingTop="5" paddingBottom="5" paddingLeft="5"/>
+                        </s:BorderContainer>
+                    </s:DataRenderer>
+                </fx:Component>
+            </s:itemRenderer>
+        </s:DataGroup>
+    </s:Scroller>
+    <s:FormItem label="Input groupId:">
+        <s:TextInput enter="addGroupId( addingGroupId.text );" id="addingGroupId" toolTip="Enter to add group id !"/>
+    </s:FormItem>
+</s:Group>

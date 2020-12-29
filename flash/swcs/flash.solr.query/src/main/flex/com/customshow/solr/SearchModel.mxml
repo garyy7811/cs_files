@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<utils:MxmlEventDispatcher xmlns:fx="http://ns.adobe.com/mxml/2009"
+                           xmlns:utils="com.flashflexpro.as3lib.utils.*"
+                           xmlns:ap="org.apache.flex.collections.*"
+                           implements="com.flashflexpro.as3lib.IWithContext">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.utils.ExecutableMenuListing;
+        import com.flashflexpro.as3lib.utils.RootContextModule;
+
+        import org.apache.flex.collections.ArrayList;
+
+        [Bindable]
+        public var _context:RootContextModule;
+
+        [Bindable(event="contextChanged")]
+        public function get context():RootContextModule{
+            return _context;
+        }
+
+        public function set context( value:RootContextModule ):void{
+            if( value != _context ){
+                _context = value;
+                dispatchEvent( new Event( "contextChanged" ) );
+            }
+        }
+
+        internal var field2Suggest:Dictionary = new Dictionary();
+
+        [Bindable]
+        public var overridingRestUrl:String;
+        [Bindable]
+        public var overridingServiceName:String;
+        [Bindable]
+        public var overridingMethodname:String;
+
+        private function sortArrayList( lst:ArrayList ):void{
+            var src:Array = lst.toArray();
+
+            src.sort( function ( a:QueryField, b:QueryField ):int{
+                return a.label < b.label ? 1 : - 1;
+            } );
+
+            lst.removeAll();
+            lst.addAll( new ArrayList( src ) );
+        }
+
+        public function findSameTypeQueryFields( type:String ):ArrayList{
+            var rt:ArrayList = new ArrayList();
+            for( var j:int = queryFields.length - 1; j >= 0; j -- ){
+                var queryField:QueryField = queryFields.getItemAt( j ) as QueryField;
+                if( queryField.type == type ){
+                    rt.addItem( queryField );
+                }
+            }
+            sortArrayList( rt );
+            return rt;
+        }
+
+        private var _schema:SolrBeanSchema;
+
+        public function set schema( v:SolrBeanSchema ):void{
+            if( _schema != v ){
+                _schema = v;
+                dispatchEvent( new Event( "schemaChanged" ) );
+            }
+        }
+
+        [Bindable(event="schemaChanged")]
+        public function get schema():SolrBeanSchema{
+            return _schema;
+        }
+
+
+        public function showResultFacetMenu( result:Result ):void{
+            var menus:Array = [];
+            for( var i:int = resultFacetFields.length - 1; i >= 0; i -- ){
+                menus.push( new OperationAddRemoveFacet( result, resultFacetFields.getItemAt( i ) as QueryField ) );
+            }
+            context.setMenuOperations( new ExecutableMenuListing( menus ) );
+        }
+
+        public function showResultResultMenu( result:Result ):void{
+            var menus:Array = [];
+            for( var i:int = resultRecordFields.length - 1; i >= 0; i -- ){
+                menus.push( new OperationAddRemoveColumn( result, resultRecordFields.getItemAt( i ) as QueryField ) );
+            }
+            context.setMenuOperations( new ExecutableMenuListing( menus ) );
+        }
+
+        public function showQueryMenu( qr2Terms:QueryRelate2Terms ):void{
+            var addingFields:Array = [];
+
+            for( var j:int = queryFields.length - 1; j >= 0; j -- ){
+                var adding:OperationQueryAddTerm = new OperationQueryAddTerm( qr2Terms, queryFields.getItemAt( j ) as
+                        QueryField );
+                addingFields.push( adding );
+            }
+            context.setMenuOperations( new ExecutableMenuListing( addingFields ) );
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+
+        <ap:ArrayList id="queryFields"/>
+
+        <ap:ArrayList id="resultFacetFields"/>
+
+        <ap:ArrayList id="initResultFacetFields"/>
+
+        <ap:ArrayList id="resultRecordFields"/>
+
+        <ap:ArrayList id="initResultRecordFields"/>
+
+        <ap:ArrayList id="___allFields"/>
+
+    </fx:Declarations>
+    <fx:Script><![CDATA[
+        private var _draggingTerm:QueryRelate2Terms;
+
+        [Bindable(event="draggingTermChanged")]
+        public function get draggingTerm():QueryRelate2Terms{
+            return _draggingTerm;
+        }
+
+        private function setDraggingTerm( value:QueryRelate2Terms ):void{
+            if( value != _draggingTerm ){
+                _draggingTerm = value;
+                dispatchEvent( new Event( "draggingTermChanged" ) );
+            }
+        }
+        ]]></fx:Script>
+</utils:MxmlEventDispatcher>

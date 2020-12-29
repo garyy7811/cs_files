@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+         xmlns:s="library://ns.adobe.com/flex/spark"
+         implements="mx.core.IDataRenderer"
+         click="onClick( event );" height="100%" width="100%" maxWidth="{window.width}">
+    <fx:Script><![CDATA[
+        private var _win:WebWindow;
+
+        [Bindable(event="dataChanged")]
+        public function get window():WebWindow{
+            return _win;
+        }
+
+        [Bindable(event="dataChanged")]
+        public function get data():Object{
+            return _win;
+        }
+
+        public function set data( value:Object ):void{
+            if( value != _win ){
+                _win = value as WebWindow;
+                if( _win != null ){
+                    _win.barButton = this;
+                }
+                dispatchEvent( new Event( "dataChanged" ) );
+            }
+        }
+
+        private function onClick( event:MouseEvent ):void{
+            event.preventDefault();
+            if( window.effect.isPlaying ){
+                return;
+            }
+            if( window.modelWin.status == FDWindow.MINIMIZED ){
+                window.onRestoreFromMini();
+                window.winContainerFloating.model.swapToFront( window.model );
+            }
+            else{
+                if( isTop() ){
+                    window.onMini();
+                }
+                else{
+                    window.winContainerFloating.model.swapToFront( window.model );
+                }
+            }
+        }
+
+        private function set rfrStatus( ignoreVar:* ):void{
+            try{
+                if( window.modelWin.status == FDWindow.MINIMIZED ){
+                    setCurrentState( "minimized" );
+                }
+                else if( isTop() ){
+                    setCurrentState( "top" );
+                }
+                else{
+                    setCurrentState( "stage" )
+                }
+            }
+            catch( e:Error ){
+            }
+        }
+
+        private function isTop():Boolean{
+            return window.winContainerFloating.model.topWin == window.model;
+        }
+        ]]></fx:Script>
+    <s:states>
+        <s:State name="minimized"/>
+        <s:State name="stage"/>
+        <s:State name="top"/>
+    </s:states>
+    <fx:Binding source="window.modelWin.status" destination="rfrStatus"/>
+    <fx:Binding source="window.winContainerFloating.model.winModelLst.length" destination="rfrStatus"/>
+
+    <!-- background -->
+    <s:Rect
+            left="0" right="0" top="0" bottom="0"
+            radiusX="2" radiusY="2">
+        <s:stroke>
+            <s:SolidColorStroke
+                    weight.top="2" weight.stage="1" weight.minimized="0"
+                    color.top="#999999" color.stage="#dddddd" color.minimized="#bbbbbb"/>
+        </s:stroke>
+        <s:fill>
+            <s:SolidColor color.minimized="#999999"
+                          color.stage="#DDDDDD"
+                          color.top="#bbbbbb"/>
+        </s:fill>
+    </s:Rect>
+
+    <s:Label id="labelDisplay"
+             textAlign="center"
+             verticalAlign="middle"
+             maxDisplayedLines="1"
+             left="2" right="2" top="2" bottom="2"
+             fontWeight.top="bold" maxWidth="280"
+             text="{window.tbPanel.title}" toolTip="{window.tbPanel.title}"/>
+</s:Group>

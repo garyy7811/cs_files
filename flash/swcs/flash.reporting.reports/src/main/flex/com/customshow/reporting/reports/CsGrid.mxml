@@ -1,0 +1,143 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 2/17/2015.
+-->
+<s:DataGrid xmlns:fx="http://ns.adobe.com/mxml/2009"
+            xmlns:s="library://ns.adobe.com/flex/spark" skinClass="com.customshow.reporting.reports.CsGridSkin"
+            xmlns:as3lib="com.flashflexpro.as3lib.data.*" enabled="{model.rpcLoadGrid==null}"
+            selectionMode="multipleRows" resize="rfrCheckLoadMOre = null;" dataProvider="{model.rows}"
+            creationComplete="onCreated();"
+            sortableColumns="true" multiColumnSortingEnabled="true"
+        >
+    <fx:Script><![CDATA[
+        override protected function columnHeaderGroup_clickHandler( event:GridEvent ):void{
+            if( event.column.sortable ){
+                var newSortByCol:CsGridColModel = model.columns.getItemAt( event.column.columnIndex ) as CsGridColModel;
+                if( model.sortColDataField == newSortByCol ){
+                    model.sortColDesc = ! event.column.sortDescending;
+                }
+                else{
+                    model.sortColDataField = newSortByCol;
+                    model.sortColDesc = true;
+                }
+            }
+        }
+
+        private function set rfrSorting( v:* ):void{
+            var col:GridColumn = colMapping.getDestBySource( model.sortColDataField ) as GridColumn;
+            col.sortDescending = model.sortColDesc;
+            if( columnHeaderGroup ){
+                columnHeaderGroup.visibleSortIndicatorIndices = Vector.<int>( [col.columnIndex] );
+            }
+        }
+
+        private function onCreated():void{
+            scroller.verticalScrollBar.addEventListener( Event.CHANGE, checkLoadMoreWhenScroll );
+        }
+        ]]></fx:Script>
+    <fx:Binding source="model.sortColDataField" destination="rfrSorting"/>
+    <fx:Binding source="model.sortColDesc" destination="rfrSorting"/>
+    <fx:Binding source="model.columns.length" destination="rfrSorting"/>
+    <fx:Binding source="model.rows.length" destination="rfrSorting"/>
+    <fx:Script><![CDATA[
+        import spark.components.gridClasses.GridColumn;
+        import spark.events.GridEvent;
+
+        private function checkLoadMoreWhenScroll( v:* = null ):void{
+            rfrCheckLoadMOre = null;
+        }
+
+        private function set rfrCheckLoadMOre( v:* ):void{
+            //grid.getVisibleRowIndices() return empty, it is a Flex bug
+            grid.invalidateDisplayList();
+            model.context.callInNext.putIn( checkToLoadMore1, null, null, 2 );
+        }
+
+        private function checkToLoadMore1():void{
+            if( model.lastQueryResult != null
+                    && model.lastQueryResult.rNumFound > 0
+                    && model.lastQueryResult.rQueryRecords.length > 0
+                    && scroller.verticalScrollBar.maximum > 0
+                    && scroller.verticalScrollBar.value >= scroller.verticalScrollBar.maximum ){
+                model.loadMore();
+            }
+            if( grid.dataProvider != null && grid.dataProvider.length > 0
+                    && grid.height > 0 && grid.getVisibleRowIndices().length == 0 ){
+                rfrCheckLoadMOre = null;
+                return;
+            }
+
+            model.visibleRowIndices = grid.getVisibleRowIndices();
+        }
+
+        [Bindable]
+        public var model:CsGridModel;
+
+        protected function getGridCol( c:CsGridColModel ):GridColumn{
+            var rt:CsGridColumn = new CsGridColumn( c.label, c.width );
+            if( c.labelFunction != null ){
+                rt.labelFunction = function ( r:*, col:GridColumn ):String{
+                    return c.labelFunction.apply( null, [ r, c ] );
+                };
+            }
+            else{
+                rt.dataField = c.dataField;
+            }
+
+            if( c.dataTipFunction != null ){
+                rt.dataTipFunction = function ( r:*, col:GridColumn ):String{
+                    return c.dataTipFunction.apply( null, [ r, c ] );
+                };
+            }
+            else{
+                rt.dataTipField = c.dataTipField;
+            }
+            rt.sortable = c.sortable;
+            return rt;
+        }
+
+        protected function destroyCol( c:CsGridColModel ):void{
+
+        }
+
+        private function set rfrReloadScrollTop( v:* ):void{
+            if( model.lastQueryResult != null ){
+                model.context.callInNext.putIn( scrollToTop, null, null, 3 );
+            }
+        }
+
+        private function scrollToTop():void{
+            checkLoadMoreWhenScroll();
+        }
+        ]]></fx:Script>
+    <fx:Binding source="model.lastQueryResult" destination="rfrReloadScrollTop"/>
+    <fx:Declarations>
+        <as3lib:Map2Lists getDestInst="getGridCol" destroyInst="destroyCol"
+                          source="{model.columns}" destination="{columns}" id="colMapping"/>
+    </fx:Declarations>
+    <s:columns>
+        <s:ArrayList id="columns"/>
+    </s:columns>
+    <fx:Script><![CDATA[
+        private function set rfrInitialLoadMore( v:* ):void{
+            model.context.callInNext.putIn( refreshInitialLoadMore );
+        }
+
+        private function refreshInitialLoadMore():void{
+            try{
+                if( model.lastQueryResult.rNumFound > model.rows.length &&
+                        model.visibleRowIndices.length > model.rows.length ){
+                    model.loadMore();
+                }
+            }
+            catch( e:Error ){
+                CONFIG::debugging{
+                    CC.log( "CsGrid.refreshInitialLoadMore->arguments:" + arguments.join( "," ) );
+                }//debug
+            }
+        }
+        ]]></fx:Script>
+    <fx:Binding source="model.lastQueryResult.rNumFound" destination="rfrInitialLoadMore"/>
+    <fx:Binding source="model.visibleRowIndices" destination="rfrInitialLoadMore"/>
+    <fx:Binding source="model.rows" destination="rfrInitialLoadMore"/>
+</s:DataGrid>

@@ -1,0 +1,119 @@
+<?xml version="1.0"?>
+<s:DataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+            xmlns:aslib="com.flashflexpro.as3lib.data.*" xmlns:ap="org.apache.flex.collections.*" rowHeight="25"
+            enabled="{ modelResult.rpc == null }"
+            initialize="onInit();"
+            dataProvider="{modelResult.resultList}"
+            resize="rfrVisibleRowIndices=null;"
+            rollOver="checkNeedToLoadMore();"
+            selectionMode="multipleRows"
+            rightClick="onRightClick( event );"
+            skinClass="com.flashflexpro.as3lib.spark.DataGridBusySkin">
+    <fx:Script><![CDATA[
+        import mx.controls.Menu;
+        import mx.events.MenuEvent;
+
+        import spark.components.gridClasses.GridColumn;
+        import spark.events.GridEvent;
+        import spark.skins.spark.DefaultGridItemRenderer;
+
+        [Bindable]
+        public var modelResult:Result;
+
+        private function termField2Column( termField:QueryField ):SearchViewRecordGridColum{
+            var col:SearchViewRecordGridColum = new SearchViewRecordGridColum();
+            col.queryField = termField;
+            return col;
+        }
+
+        public function removeColumn( column:GridColumn ):void{
+            modelResult.removeColumnAt( columnsDisplay.getItemIndex( column ) );
+        }
+
+        override protected function columnHeaderGroup_clickHandler( event:GridEvent ):void{
+            if( event.column.sortable ){
+                event.column.sortDescending = ! event.column.sortDescending;
+                var idx:int = columnsDisplay.getItemIndex( event.column );
+                modelResult.sortResultBy( modelResult.columnFields.getItemAt( idx ) as QueryField,
+                        event.column.sortDescending );
+                if( columnHeaderGroup ){
+                    columnHeaderGroup.visibleSortIndicatorIndices = Vector.<int>( [ event.column.columnIndex ] );
+                }
+            }
+        }
+
+        private function onRightClick( event:MouseEvent ):void{
+            var target:DefaultGridItemRenderer = event.target as DefaultGridItemRenderer;
+            if( target == null ){
+                return;
+            }
+            var tip:String = target.column.dataTipFunction( target.data, target.column );
+            var label:String = target.column.labelFunction( target.data, target.column );
+
+            var xml:XML = new XML( "<menuitem/>" );
+            xml.appendChild( new XML( "<menuitem label=\"copy " + label + "\" data=\"" + label + "\"/>" ) )
+            xml.appendChild( new XML( "<menuitem label=\"copy " + tip + "\" data=\"" + tip + "\"/>" ) )
+            var menu:Menu = Menu.createMenu( this, xml, false );
+            menu.labelField = "@label";
+            menu.show( stage.mouseX, stage.mouseY );
+            menu.addEventListener( MenuEvent.ITEM_CLICK, onRightClickSelected );
+        }
+
+        private function onRightClickSelected( event:MenuEvent ):void{
+            event.target.removeEventListener( MenuEvent.ITEM_CLICK, onRightClickSelected );
+            System.setClipboard( String( event.item.@data ) );
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+        <aslib:Map2Lists
+                source="{modelResult.queryResult.searchModel.schema.uid==null?null:modelResult.columnFields}"
+                getDestInst="{termField2Column}"
+                destination="{columnsDisplay}" id="sync2Lists"/>
+    </fx:Declarations>
+    <s:columns>
+        <ap:ArrayList id="columnsDisplay"/>
+    </s:columns>
+
+    <fx:Script><![CDATA[
+        private function onInit():void{
+            scroller.verticalScrollBar.addEventListener( Event.CHANGE, checkNeedToLoadMore );
+            sync2Lists.enabled = true;
+        }
+
+        private function checkNeedToLoadMore( event:Event = null ):void{
+            if( modelResult.numFound > 0 && scroller.verticalScrollBar.value > 0
+                    && scroller.verticalScrollBar.maximum > 0
+                    && scroller.verticalScrollBar.value == scroller.verticalScrollBar.maximum
+            ){
+                modelResult.getMoreResults();
+            }
+            rfrVisibleRowIndices = null;
+        }
+
+        [Bindable]
+        public var visibleRowBegin:uint;
+
+        [Bindable]
+        public var visibleRowEnd:uint;
+
+        public function set rfrVisibleRowIndices( ignoreVar:* ):void{
+            modelResult.queryResult.searchModel.context.callInNext.putIn( refreshVisibleRowIndices );
+        }
+
+        private function refreshVisibleRowIndices():void{
+            var vv:Vector.<int> = grid.getVisibleRowIndices();
+            if( vv == null || vv.length == 0 ){
+                return;
+            }
+            visibleRowBegin = vv[ 0 ] + 1;
+            if( visibleRowEnd > modelResult.resultList.length ){
+                visibleRowEnd = modelResult.resultList.length;
+            }
+            else{
+                visibleRowEnd = vv[ vv.length - 1 ] + 1;
+            }
+        }
+        ]]></fx:Script>
+    <fx:Binding source="modelResult.queryResult.searchModel.context.callInNext" destination="rfrVisibleRowIndices"/>
+    <fx:Binding source="modelResult.resultList.length" destination="rfrVisibleRowIndices"/>
+</s:DataGrid>

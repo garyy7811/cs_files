@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 8/24/2016.
+-->
+<pclient:TranscodeConfigFormatGrid xmlns:fx="http://ns.adobe.com/mxml/2009" beans="{formats}"
+                                   implements="com.flashflexpro.as3lib.IWithContext"
+                                   columnLabelDesc="{DynaTableClientConfigOverride.PROP_DESC_configName}"
+                                   xmlns:pclient="com.customshow.configPerClient.*">
+    <fx:Script><![CDATA[
+        import com.customshow.configPerClient.ConfigPerClientService;
+        import com.customshow.configPerClient.DynaTableClientConfigOverride;
+        import com.customshow.configPerClient.DynaTableClientConfigTranscodeFormat;
+        import com.flashflexpro.as3lib.data.PropertiesGridColumn;
+        import com.flashflexpro.as3lib.rpc.RpcSpringMvcPost;
+
+        import org.apache.flex.collections.ArrayList;
+
+        public function load( uploadedFileBucketkey:String, ref:Object ):void{
+            this.uploadedFileBucketkey = uploadedFileBucketkey;
+            new ConfigPerClientService( transcContext.rootContextClientConfig ).loadDynaTableClientConfigTranscFormats(
+                    onConfigObjBack, null, uploadedFileBucketkey.split( "/" )[0] ).callRemote();
+        }
+
+
+        private function onConfigObjBack( arr:Array ):void{
+            formats = new ArrayList( arr );
+        }
+
+        [Bindable]
+        public var formats:ArrayList;
+
+        [Bindable]
+        public var uploadedFileBucketkey:String;
+
+
+        [Bindable]
+        public var rpcSpringMvcPost:com.flashflexpro.as3lib.rpc.RpcSpringMvcPost;
+
+        public function submitTranscodeWithFormats(){
+            const len:int = beanColumns.length;
+            var changesBeans:ArrayList = new ArrayList();
+            for( var j:int = 0; j < len; j ++ ){
+                var pgc:PropertiesGridColumn = beanColumns.getItemAt( j ) as PropertiesGridColumn;
+                if( pgc.newValues.length > 0 ){
+                    changesBeans.addItem( pgc.copyBeanWithChanges() );
+                }
+            }
+
+            var arr:Array = uploadedFileBucketkey.split( "/" );
+            var applyTimeDotType:String = arr[3];
+            var tt:Array = applyTimeDotType.split( "." );
+            rpcSpringMvcPost =
+                    new TranscodingService( transcContext ).addTranscoding( onNewEncodeResult, onNewEncodeFault, arr[2],
+                            Number( tt[0] ), changesBeans );
+            rpcSpringMvcPost.callRemote();
+        }
+
+        [Bindable]
+        public var newEncodeResult:DynaTableVideoTranscoding;
+
+        private function onNewEncodeResult( rsltDto:DynaTableVideoTranscoding ):void{
+            newEncodeResult = rsltDto;
+        }
+
+        private function onNewEncodeFault( e:ErrorEvent ):void{
+            CONFIG::debugging{
+                CC.log( "NewTranscodingWithFormats.reEncoFault->arguments:" + arguments.join( "," ) );
+            }//debug
+        }
+
+        [Bindable(event="contextChanged")]
+        public function get transcContext():RootContextTranscoding{
+            return context as RootContextTranscoding;
+        }
+
+
+        override protected function initializeDescRows():ArrayList{
+            var rt:ArrayList = super.initializeDescRows();
+
+            rt.removeItem( DynaTableClientConfigTranscodeFormat.PROP_DESC_baseConfigId );
+            rt.removeItem( DynaTableClientConfigOverride.PROP_DESC_identification );
+            rt.removeItem( DynaTableClientConfigOverride.PROP_DESC_configGroup );
+            rt.removeItem( DynaTableClientConfigOverride.PROP_DESC_configName );
+            rt.removeItem( DynaTableClientConfigOverride.PROP_DESC_overrideByUser );
+            rt.removeItem( DynaTableClientConfigOverride.PROP_DESC_overrideComment );
+            rt.removeItem( DynaTableClientConfigOverride.PROP_DESC_enabled );
+            rt.removeItem( DynaTableClientConfigOverride.PROP_DESC_enabledChangedTime );
+            rt.removeItem( DynaTableClientConfigOverride.PROP_DESC_enabledChangedBy );
+            rt.removeItem( DynaTableClientConfigOverride.PROP_DESC_lastModifiedTime );
+
+            return rt;
+        }
+        ]]></fx:Script>
+</pclient:TranscodeConfigFormatGrid>

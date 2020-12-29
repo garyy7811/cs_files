@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 2/17/2015.
+-->
+<s:GridItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" opaqueBackground="#ffffff"
+                    xmlns:s="library://ns.adobe.com/flex/spark" initialize="onInit();">
+    <s:states>
+        <s:State name="normal"/>
+        <s:State name="hovered"/>
+    </s:states>
+
+    <fx:Script><![CDATA[
+        [Bindable]
+        public var text:String;
+
+        [Bindable]
+        public var color:int;
+
+        [Bindable("dataChange")]
+        public function get rowData():CsSlideShowSessionModelRow{
+            return data as CsSlideShowSessionModelRow;
+        }
+
+
+        protected function onInit():void{
+            addElement( myLabel );
+        }
+        ]]></fx:Script>
+
+    <fx:Script><![CDATA[
+        protected function set refresh( v:* ):void{
+            if( column == ( column.grid.dataGrid as CsSlideShowSessionReportGrid).colOrder ){
+                if( rowData.order == null ){
+                    text = "--";
+                }
+                else{
+                    text = rowData.order[0] + "";
+                }
+            }
+            else if( column.dataField != null ){
+                text = data[column.dataField];
+            }
+            color = ( rowData.order != null ? 0 : 0x888888 );
+        }
+        ]]></fx:Script>
+    <fx:Binding source="width" destination="refresh"/>
+    <fx:Binding source="column.grid.dataGrid.dataProvider" destination="refresh"/>
+    <fx:Binding source="column.dataField" destination="refresh"/>
+    <fx:Binding source="rowData.order.length" destination="refresh"/>
+    <fx:Declarations>
+        <s:Label color="{color}" text="{text}" id="myLabel"/>
+    </fx:Declarations>
+    <s:layout>
+        <s:HorizontalLayout horizontalAlign="left" verticalAlign="middle"/>
+    </s:layout>
+</s:GridItemRenderer>

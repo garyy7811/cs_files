@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 2/17/2015.
+-->
+<s:DataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+            dataProvider="{report.slideRows}" sortableColumns="true" multiColumnSortingEnabled="true"
+            itemRenderer="com.customshow.reporting.mxreports.CsSlideShowSessionReportGridItemRenderer"
+            selectionChanging=" event.preventDefault();" creationComplete="initSort = null;"
+            skinClass="com.customshow.reporting.mxreports.MxCsGridSkin" rollOverColor="white">
+    <fx:Script><![CDATA[
+        [Bindable]
+        public var report:CsSlideShowSessionModel;
+
+        private function sortByOrder( r1:CsSlideShowSessionModelRow, r2:CsSlideShowSessionModelRow,
+                                      col:GridColumn ):int{
+            if( r1.order != null && r2.order != null ){
+                return r1.order[0] > r2.order[0] ? 1 : - 1;
+            }
+            return r1.order == null ? 1 : - 1;
+        }
+
+        private function sortByPresName( row1:CsSlideShowSessionModelRow, row2:CsSlideShowSessionModelRow,
+                                         col:GridColumn ):int{
+            if( row1.presIndexInSS == row2.presIndexInSS ){
+                return row1.slidIndexInPr > row2.slidIndexInPr ? 1 : - 1;
+            }
+            return row1.presIndexInSS > row2.presIndexInSS ? 1 : - 1;
+
+        }
+
+        private function sortBySlideName( r1:CsSlideShowSessionModelRow, r2:CsSlideShowSessionModelRow,
+                                          col:GridColumn ):int{
+            return r1.slidIndexInSS > r2.slidIndexInSS ? 1 : - 1;
+
+        }
+
+        private function sortBySlideDuration( r1:CsSlideShowSessionModelRow, r2:CsSlideShowSessionModelRow,
+                                              col:GridColumn ):int{
+            return r1.duration > r2.duration ? 1 : - 1;
+
+        }
+
+        private function set initSort( v:* ):void{
+            if( report != null && report.slideRows != null ){
+                sortByColumns( new <int>[0], true );
+            }
+        }
+        ]]></fx:Script>
+    <fx:Binding source="report.slideRows" destination="initSort"/>
+    <s:columns>
+        <s:ArrayList>
+            <s:GridColumn id="colOrder" sortable="true" headerText="Order" minWidth="60"
+                          sortCompareFunction="sortByOrder"/>
+            <s:GridColumn id="colPresName" sortable="true" headerText="Presentation" minWidth="120"
+                          sortCompareFunction="sortByPresName"
+                          dataField="presentationName" visible="{report.presentationNames.length > 1 }"/>
+            <s:GridColumn id="colSlideName" sortable="true" headerText="Slide" minWidth="120"
+                          sortCompareFunction="sortBySlideName" dataField="rowSlideName"/>
+            <s:GridColumn id="colSlideDuration" sortable="true" headerText="Duration"
+                          sortCompareFunction="sortBySlideDuration" percentWidth="100"
+                          itemRenderer="com.customshow.reporting.mxreports.CsSlideShowSessionReportGridDurationItemRenderer"/>
+        </s:ArrayList>
+    </s:columns>
+</s:DataGrid>

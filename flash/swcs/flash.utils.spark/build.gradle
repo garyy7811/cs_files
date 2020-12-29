@@ -1,0 +1,11 @@
+localeDir = 'src/main/locales'
+locales = ['en_US']
+
+dependencies {
+    internal project( ':flash:swcs:flash.utils' )
+}
+
+
+artifacts {
+    archives file(buildDir.absolutePath + "/" + output + ".swc")
+}

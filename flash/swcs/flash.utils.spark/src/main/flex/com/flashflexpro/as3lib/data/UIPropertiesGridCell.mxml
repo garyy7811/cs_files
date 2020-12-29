@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 4/6/2016.
+-->
+<data:UIGridCell xmlns:fx="http://ns.adobe.com/mxml/2009"
+                 xmlns:data="com.flashflexpro.as3lib.data.*">
+
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.utils.RootContextApp;
+
+        import mx.events.FlexEvent;
+
+        [Bindable("dataChange")]
+        public function get propRow():PropertiesGridRow{
+            return data as PropertiesGridRow;
+        }
+
+        override protected function onCreateComplete( event:FlexEvent ):void{
+            super.onCreateComplete( event );
+            if( uiGrid.columns.getItemIndex( gridColumn ) == 0 ){
+                labelDisplay.setStyle( "textAlign", "right" );
+                labelDisplay.setStyle( "fontWeight", "bold" );
+            }
+        }
+
+        [Bindable("columnChanged")]
+        public function get propUIColumn():UIPropertiesGridColumn{
+            return column as UIPropertiesGridColumn;
+        }
+
+        private function set rfrInvalidate( v:* ):void{
+            if( propUIColumn.propColumn.settingNewValueName == propRow.desc.name ){
+                rfrNewVal = null;
+            }
+        }
+
+        private function set rfrNewVal( v:* ):void{
+            RootContextApp.inst.callInNext.putIn( checkNewValue );
+        }
+
+        protected function checkNewValue():void{
+            if( propUIColumn != null && propUIColumn.propColumn != null && propDescRow != null ){
+                var newColor:int = COLOR_noChange;
+                var newValue:String = propUIColumn.propColumn.newValues.getValue( propDescRow.desc.name );
+                if( newValue != null ){
+                    var invMsg:String = propUIColumn.propColumn.invalidateProps.getValue( propDescRow.desc.name );
+                    newColor = (invMsg == null ? COLOR_validateChange : COLOR_inValidateChange );
+                }
+                else{
+                    newColor = ( ! propRow.desc.readOnly ? COLOR_noChange : COLOR_readOnly );
+                }
+                labelDisplay.setStyle( "color", newColor );
+            }
+        }
+
+        private static const COLOR_noChange:int = 0x000000;
+        private static const COLOR_readOnly:int = 0x555555;
+        private static const COLOR_validateChange:int = 0x0000ff;
+        private static const COLOR_inValidateChange:int = 0xff0000;
+
+        override protected function onRightClick( event:MouseEvent ):void{
+            propUIColumn.propColumn.showCellMenu( propRow );
+        }
+        ]]></fx:Script>
+    <fx:Binding source="propUIColumn.propColumn.invalidateProps" destination="rfrInvalidate"/>
+
+    <fx:Binding source="propUIColumn.propColumn.newValues.length" destination="rfrNewVal"/>
+    <fx:Binding source="propRow.desc" destination="rfrNewVal"/>
+</data:UIGridCell>

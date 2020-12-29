@@ -1,0 +1,12 @@
+type = 'swc'
+
+dependencies {
+    merged project(':flash:swcs:flash.utils.spark')
+    merged project(':flash:swcs:flash.solr.query')
+    merged project(':flash:swcs:flash.reporting.query')
+}
+
+
+artifacts {
+    archives file(buildDir.absolutePath + "/" + output + ".swc")
+}

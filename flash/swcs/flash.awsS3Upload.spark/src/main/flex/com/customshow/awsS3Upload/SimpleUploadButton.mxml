@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 2/12/2016.
+-->
+<s:Button xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+          creationComplete="onCreated( event );" click="_fr.browse();">
+
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.utils.RootContextModule;
+
+        import mx.events.FlexEvent;
+
+        [Bindable]
+        public var authUrl:String;
+
+        private var _fr:FileReference = new FileReference();
+
+        public function get fr():FileReference{
+            return _fr;
+        }
+
+        [Bindable]
+        public var model:RootContextModule;
+
+        private function onCreated( event:FlexEvent ):void{
+            _fr.addEventListener( Event.SELECT, onSelected );
+            _fr.addEventListener( Event.OPEN, onUploading );
+            _fr.addEventListener( ProgressEvent.PROGRESS, onUploading );
+            _fr.addEventListener( IOErrorEvent.IO_ERROR, onUploading );
+            _fr.addEventListener( SecurityErrorEvent.SECURITY_ERROR, onUploading );
+            _fr.addEventListener( DataEvent.UPLOAD_COMPLETE_DATA, onUploading );
+            _fr.addEventListener( HTTPStatusEvent.HTTP_STATUS, onUploading );
+        }
+
+        private function onUploading( event:Event ):void{
+            CONFIG::debugging{
+                CC.log( "SimpleUploadButton.onUploading->arguments:" + arguments.join( "," ) );
+            }//debug
+            if( event is ProgressEvent ){
+                var tmp:ProgressEvent = ( event as ProgressEvent );
+                label = Math.round( tmp.bytesLoaded * 100 / tmp.bytesTotal ) + "%";
+            }
+            else if( event.type == Event.OPEN ){
+                label = "Uploading";
+                enabled = false;
+            }
+            else if( event is DataEvent ){
+                label = "Uploaded";
+                enabled = true;
+            }
+        }
+
+        private function onSelected( event:Event ):void{
+            _upload.upload( _fr );
+        }
+
+        [Bindable]
+        private var _upload:UploadByCsSessionId;
+        public function get upload():UploadByCsSessionId{
+            return _upload;
+        }
+
+        private function set rfrError( v:* ):void{
+            if( _upload.error is String ){
+                label = _upload.error;
+            }
+            else if( _upload.error is ErrorEvent ){
+                label = _upload.error.message;
+            }
+        }
+
+        private function set rfrNewUpld( v:* ):void{
+            model.callInNext.putIn( refreshNewUpld );
+        }
+
+        private function refreshNewUpld( v:* = null ):void{
+            if( model != null && authUrl != null ){
+                _upload = new UploadByCsSessionId( model.urlExtra, authUrl );
+            }
+        }
+        ]]></fx:Script>
+    <fx:Binding source="authUrl" destination="rfrNewUpld"/>
+    <fx:Binding source="model.urlExtra" destination="rfrNewUpld"/>
+    <fx:Binding source="_upload.error" destination="rfrError"/>
+</s:Button>

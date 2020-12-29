@@ -1,0 +1,347 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 2/17/2015.
+-->
+<local:CsGridModel xmlns:fx="http://ns.adobe.com/mxml/2009"
+                   xmlns:local="com.customshow.reporting.reports.*"
+                   xmlns:utils="com.flashflexpro.as3lib.utils.*"
+                   xmlns:ap="org.apache.flex.collections.*" xmlns:rpc="com.flashflexpro.as3lib.rpc.*"
+                   sortColDataField="{count}" sortColDesc="true"
+>
+    <fx:Metadata>
+        [Event(name="exportCSV", type="flash.events.Event")]
+    </fx:Metadata>
+    <fx:Script><![CDATA[
+        import com.customshow.reporting.solr.query.CSReportingSlideViewStats;
+
+        import org.apache.flex.collections.ArrayList;
+
+        [Bindable]
+        public var thumbNailColWidth:uint;
+
+        private function set rfrReloadBoth( v:* ):void{
+            nvReportConsole.context.callInNext.putIn( reloadTotalNum );
+            rfrReloadGrid = true;
+        }
+
+        private var _rpcLoadTotalNum:RpcSpringMvcPost;
+
+        public function reloadTotalNum():void{
+            if( nvReportConsole.context.urlExtra == null || nvReportConsole.selectedGroupIdArray == null || ! visible ){
+                return;
+            }
+            totalView = null;
+            totalUniqPresNum = null;
+            totalUniqShowNumViewed = null;
+
+            _rpcLoadTotalNum =
+                    new CSReportingSlideViewStats( nvReportConsole.context ).queryTotal( onTotalLoaded, onError,
+                            nvReportConsole.selectedGroupIdArray, nvReportConsole.dateFrom.getTime(),
+                            nvReportConsole.dateTo.getTime() + 24 * 3600 * 1000 );
+            _rpcLoadTotalNum.callRemote();
+        }
+
+        private function onTotalLoaded( arr:Array ):Boolean{
+            var n:Object = arr[0];
+            var p:Object = arr[1];
+            var l:Object = arr[2];
+
+            var nv:uint = 0;
+            var pv:uint = 0;
+
+            //            nv = n[ count.dataField ];
+            nv = n["uniq_slideNum"];
+            //            pv = p[ count.dataField ];
+            pv = p["uniq_slideNum"];
+            totalView = nv.toString();
+            totalViewDivPer = Math.ceil( ( nv - pv ) * 1000 / pv ) / 10;
+
+            nv = n[uniq_presNum.dataField];
+            pv = p[uniq_presNum.dataField];
+            totalUniqPresNum = nv.toString();
+            totalUniqPresNumDivPer = Math.ceil( ( nv - pv ) * 1000 / pv ) / 10;
+
+            nv = n[uniq_showNum.dataField];
+            pv = p[uniq_showNum.dataField];
+            totalUniqShowNumViewed = nv.toString();
+            totalUniqShowNumViewedDivPer = Math.ceil( ( nv - pv ) * 1000 / pv ) / 10;
+
+            totalIsLibPie = ( l == null ? null :
+                    new ArrayList( [{label: "Custom", value: l["false"]}, {label: "Library", value: l["true"]}] ) );
+
+            _rpcLoadTotalNum = null;
+            return true;
+        }
+
+        [Bindable]
+        public var totalView:String;
+        [Bindable]
+        public var totalViewDivPer:Number;
+
+
+        [Bindable]
+        public var totalUniqPresNum:String;
+        [Bindable]
+        public var totalUniqPresNumDivPer:Number;
+
+
+        [Bindable]
+        public var totalUniqShowNumViewed:String;
+        [Bindable]
+        public var totalUniqShowNumViewedDivPer:Number;
+
+        [Bindable]
+        public var totalIsLibPie:ArrayList;
+        ]]></fx:Script>
+    <fx:Binding source="visible" destination="rfrReloadBoth"/>
+    <fx:Binding source="nvReportConsole.dateFrom" destination="rfrReloadBoth"/>
+    <fx:Binding source="nvReportConsole.dateTo" destination="rfrReloadBoth"/>
+    <fx:Binding source="nvReportConsole.selectedGroupIdArray" destination="rfrReloadBoth"/>
+    <fx:Script><![CDATA[
+        import com.customshow.solr.query.web.common.DtoFacetResult;
+        import com.flashflexpro.as3lib.rpc.RpcSpringMvcPost;
+
+
+        private var _rowNumPerLoad:int = 30;
+        public function get rowNumPerLoad():int{
+            return _rowNumPerLoad;
+        }
+
+
+        private function loadNextGrid():void{
+            if( rpcLoadGrid != null || nvReportConsole.selectedGroupIdArray == null || ! visible ){
+                return;
+            }
+            if( lastQueryResult == null ){
+                rows = null;
+            }
+            var offset:int = ( lastQueryResult == null ? 0 : rows.length );
+            rpcLoadGrid = new CSReportingSlideViewStats( nvReportConsole.context ).queryGrid( onLoaded, onError,
+                    nvReportConsole.selectedGroupIdArray, nvReportConsole.dateFrom.getTime(),
+                    nvReportConsole.dateTo.getTime() + 24 * 3600 * 1000, sortColDataField.dataField, sortColDesc,
+                    offset, rowNumPerLoad, queryTerms );
+            rpcLoadGrid.callRemote();
+        }
+
+        override public function onLoaded( rslt:DtoFacetResult ):Boolean{
+            super.onLoaded( rslt );
+
+            if( lastQueryResult.rNumFound > 0 ){
+                if( rows == null ){
+                    rows = new ArrayList();
+                }
+                const len:int = lastQueryResult.rQueryRecords.length;
+                for( var j:int = 0; j < len; j ++ ){
+                    rows.addItem( lastQueryResult.rQueryRecords[j] );
+                }
+            }
+
+            rpcLoadGrid = null;
+            return true;
+        }
+
+
+        override protected function onError( ev:Event ):void{
+            super.onError( ev );
+            rpcLoadGrid = null;
+        }
+
+        override public function loadMore():void{
+            loadNextGrid();
+        }
+
+        private function epicTimeToHMS( r:Object, col:CsGridColModel ):String{
+            return CsQuickRpc.epicTimeToHMS( r[col.dataField] );
+        }
+
+        private function slideIsLibToLabel( r:Object, col:CsGridColModel ):String{
+            return r[col.dataField] == "true" ? "Library" : "Custom";
+        }
+
+        private function getSlideName( r:Object, col:CsGridColModel ):String{
+            var rt:String = r[col.dataField];
+            return (rt == null || rt == "") ? "--" : rt;
+        }
+
+        private function epicTimeToDate( r:Object, col:CsGridColModel ):String{
+            return CsQuickRpc.epicTimeToDate( r[col.dataField] );
+        }
+
+        private function avgShowSlideViewNum( r:Object, col:CsGridColModel ):String{
+            var val:Number = r[col.dataField];
+            return Math.ceil( val * 10 ) / 10 + "";
+        }
+        ]]>
+	</fx:Script>
+
+    <fx:Declarations>
+        <local:CsGridColModel id="slideId" dataField="val" sortable="false" label="Slide ID"/>
+        <local:CsGridColModel id="thumbNail" dataField="thumbNail" sortable="false" label="" exportable="false"
+                              width="144"/>
+        <local:CsGridColModel id="slideName" dataField="slideName" sortable="false" label="Slide Name" filterable="true"
+                              labelFunction="getSlideName"/>
+        <local:CsGridColModel id="slideIsLib" dataField="slideIsLib" sortable="false" label="Library or Custom Slide"
+                              width="85" labelFunction="slideIsLibToLabel" bottomColor="0xff00ff"/>
+
+        <local:CsGridColModel id="ownerFirstName" dataField="ownerFirstName" sortable="false" label="First Name (Owner)"
+                              width="85" filterable="true"/>
+        <local:CsGridColModel id="ownerLastName" dataField="ownerLastName" sortable="false" label="Last Name (Owner)"
+                              width="85" filterable="true"/>
+
+        <local:CsGridColModel id="ownerEmail" dataField="ownerEmail" sortable="false" label="Email (Owner)" width="220"
+                              filterable="true"/>
+        <local:CsGridColModel id="ownerNameAndEmail" dataField="ownerEmail" sortable="false" label="Owner" width="220"
+                              filterable="true"/>
+
+        <local:CsGridColModel id="totolViewDura" dataField="total_dura" sortable="true" label="Time Viewed"
+                              labelFunction="epicTimeToHMS" width="120"/>
+        <local:CsGridColModel id="uniq_viewerNum" dataField="uniq_viewerNum" sortable="true" label="Unique Viewers"
+                              bottomColor="#CC923E" width="85"/>
+        <local:CsGridColModel id="count" dataField="count" sortable="true" label="Total Views" bottomColor="#494B91"
+                              width="85"/>
+
+        <!--<local:CsGridColModel id="total_presNum" dataField="total_presNum" sortable="true" label="total ref num" labelFunction="avgShowSlideViewNum" bottomColor="#8FC2C7" width="64"/>-->
+        <local:CsGridColModel id="uniq_presNum" dataField="uniq_presNum" sortable="true"
+                              label="Times Used in Presentations" bottomColor="#CC923E" width="85"/>
+        <local:CsGridColModel id="uniq_showNum" dataField="uniq_showNum" sortable="true"
+                              label="Times Used in SlideShows" bottomColor="#8fc2c7" width="85"/>
+        <ap:ArrayList id="columns">
+            <!--<fx:Object>{slideId}</fx:Object>-->
+            <fx:Object>{thumbNail}</fx:Object>
+
+            <fx:Object>{slideName}</fx:Object>
+            <fx:Object>{ownerNameAndEmail}</fx:Object>
+            <fx:Object>{count}</fx:Object>
+            <fx:Object>{totolViewDura}</fx:Object>
+            <fx:Object>{uniq_viewerNum}</fx:Object>
+            <fx:Object>{slideIsLib}</fx:Object>
+            <fx:Object>{uniq_presNum}</fx:Object>
+            <fx:Object>{uniq_showNum}</fx:Object>
+        </ap:ArrayList>
+
+        <rpc:RpcListSideLoadOnRun id="loadOnRealtime" visibleRowIndices="{visibleRowIndices}" itemList="{rows}"
+                                  isItemLoaded="{isSideLoaded}" fireRpc="{getSide}"
+                                  callInNext="{nvReportConsole.context.callInNext}"/>
+        <ap:ArrayList id="exportingCols">
+            <fx:Object>{slideName}</fx:Object>
+            <fx:Object>{ownerFirstName}</fx:Object>
+            <fx:Object>{ownerLastName}</fx:Object>
+            <fx:Object>{ownerEmail}</fx:Object>
+            <fx:Object>{count}</fx:Object>
+            <fx:Object>{totolViewDura}</fx:Object>
+            <fx:Object>{uniq_viewerNum}</fx:Object>
+            <fx:Object>{slideIsLib}</fx:Object>
+            <fx:Object>{uniq_presNum}</fx:Object>
+            <fx:Object>{uniq_showNum}</fx:Object>
+        </ap:ArrayList>
+    </fx:Declarations>
+    <fx:Script><![CDATA[
+        import mx.events.CollectionEvent;
+
+        private function isSideLoaded( row:Object ):Boolean{
+            return row[slideName.dataField] != null;
+        }
+
+        private function getSide( rows:Array ):RpcSpringMvcPost{
+            var rpc:RpcSpringMvcPost = new RpcSpringMvcPost();
+            rpc.model = nvReportConsole.context;
+            rpc.restUrl = nvReportConsole.sqlUrl + "/amf";
+            rpc.serverHandleType = RpcSpringMvcPost.SERVER_TYPE_AWS_API_GATEWAY_JSON;
+            rpc.serviceName = "reports";
+            rpc.remoteMethodName = "loadSlideOwnerMeta";
+            rpc.args = [];
+
+            const len:int = rows.length;
+            for( var j:int = 0; j < len; j ++ ){
+                rpc.args.push( rows[j]["val"].toString() );
+            }
+
+            rpc.callBackOnObjResult = onSideLoaded;
+            rpc.callRemote();
+            return rpc;
+        }
+
+        private function onSideLoaded( obj:Object ):Boolean{
+            if( rows == null ){
+                return true;
+            }
+            const len:int = rows.length;
+            for( var j:int = 0; j < len; j ++ ){
+                var r:Object = rows.getItemAt( j );
+                for( var slideId:String in obj ){
+                    if( String( r.val ) == slideId ){
+                        var arr:Array = obj[slideId];
+                        r.slideName = arr[0];
+                        r.slideIsLib = arr[1];
+                        r.ownerFirstName = arr[2];
+                        r.ownerLastName = arr[3];
+                        r.ownerEmail = arr[4];
+                        r.thumbNail = arr[5];
+                        loadOnRealtime.onEachItemLoad( r );
+                        break;
+                    }
+                }
+            }
+            nvReportConsole.context.callInNext.putIn( rows.dispatchEvent, null,
+                    [new CollectionEvent( CollectionEvent.COLLECTION_CHANGE )] );
+            return true;
+        }
+        ]]></fx:Script>
+
+    <fx:Script><![CDATA[
+        import mx.binding.utils.ChangeWatcher;
+        import mx.events.PropertyChangeEvent;
+
+        private var _loadingAllWatcher:ChangeWatcher;
+
+        public function loadAll():void{
+            nvReportConsole.setLoadingAllStatus( true, this );
+            if( lastQueryResult != null && lastQueryResult.rNumFound == rows.length ){
+                triggerMetaLoader();
+                nvReportConsole.setLoadingAllStatus( false, this );
+                return;
+            }
+            _loadingAllWatcher = ChangeWatcher.watch( this, "rpcLoadGrid", rpcLoadGridChanged );
+            loadNextGrid();
+        }
+
+        private function rpcLoadGridChanged( ev:PropertyChangeEvent ):void{
+            triggerMetaLoader();
+
+            if( lastQueryResult.rQueryRecords.length > 0 ){
+                nvReportConsole.context.callInNext.putIn( loadNextGrid, null, null, 20 );
+            }
+            else{
+                _loadingAllWatcher.unwatch();
+                if( loadOnRealtime.numLoading > 0 ){
+                    _loadingAllWatcher = ChangeWatcher.watch( loadOnRealtime, "numLoading", chkGridAllLoaded );
+                }
+                else{
+                    chkGridAllLoaded();
+                }
+            }
+        }
+
+        private function chkGridAllLoaded( ev:PropertyChangeEvent = null ):void{
+            if( loadOnRealtime.numLoading == 0 ){
+                _loadingAllWatcher.unwatch();
+                _loadingAllWatcher = null;
+                nvReportConsole.setLoadingAllStatus( false, this );
+            }
+        }
+
+        private function triggerMetaLoader():void{
+            var idxArr:Vector.<int> = new Vector.<int>();
+            rows.source.forEach( function ( r:Object, i:int, arr:Array ):void{
+                if( r.ownerEmail == null ){
+                    idxArr.push( i );
+                }
+            } );
+            loadOnRealtime.visibleRowIndices = idxArr;
+        }
+
+        override protected function getExportingColumns():ArrayList{
+            return exportingCols;
+        }
+        ]]></fx:Script>
+</local:CsGridModel>

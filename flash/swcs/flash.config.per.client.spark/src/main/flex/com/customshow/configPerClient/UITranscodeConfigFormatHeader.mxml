@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 4/7/2016.
+-->
+<data:UIPropertiesGridHeader xmlns:fx="http://ns.adobe.com/mxml/2009"
+                             xmlns:data="com.flashflexpro.as3lib.data.*"
+                             xmlns:spark="com.flashflexpro.as3lib.spark.*">
+    <fx:Script><![CDATA[
+        import mx.events.FlexEvent;
+
+        override protected function onCreationComplete( event:FlexEvent ):void{
+            super.onCreationComplete( event );
+            addElement( menuBtns );
+        }
+
+        [Bindable("columnChanged")]
+        public function get uiTransConfigColum():UITranscodeConfigFormatColumn{
+            return column as UITranscodeConfigFormatColumn;
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+        <spark:MoreOptionsButton id="menuBtns" click="uiTransConfigColum.transConfigFormatCol.onMenu();" right="3"
+                                 top="3"
+                                 visible="{uiTransConfigColum.transConfigFormatCol != null &amp;&amp;uiTransConfigColum.transConfigFormatCol.bean!=null}"/>
+    </fx:Declarations>
+</data:UIPropertiesGridHeader>

@@ -1,0 +1,121 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 5/13/2016.
+-->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+         xmlns:s="library://ns.adobe.com/flex/spark"
+         xmlns:transcConfig="com.customshow.configPerClient.*"
+         implements="com.flashflexpro.as3lib.IByModel">
+
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.IWithContext;
+        import com.flashflexpro.as3lib.utils.RootContextApp;
+
+
+        private function set rfrState( ignoreVar:* ):void{
+            RootContextApp.inst.callInNext.putIn( refreshState );
+        }
+
+        private function refreshState():void{
+            var tmp:String = encodingConfig.isEditing ? "edit" : "read";
+            tmp += encodingConfig.inDetail ? "Detail" : "Simple";
+            currentState = tmp;
+        }
+
+        [Bindable]
+        public var _model:IWithContext;
+
+
+        [Bindable(event="modelChanged")]
+        public function get encodingConfig():LabyrinthEncodingConfig{
+            return _model as LabyrinthEncodingConfig;
+        }
+
+        [Bindable(event="modelChanged")]
+        public function get model():IWithContext{
+            return _model;
+        }
+
+        public function set model( value:IWithContext ):void{
+            if( value != _model ){
+                _model = value;
+                dispatchEvent( new Event( "modelChanged" ) );
+            }
+        }
+
+
+        private function set rfrInvalidBeans( v:* ):void{
+            if( encodingConfig.invalidateBeans.length > 0 ){
+                var invalidateCol:LabyrinthConfigFormatGridColumn = encodingConfig.invalidateBeans.getItemAt( 0 ) as
+                        LabyrinthConfigFormatGridColumn;
+                encodingConfig.tbPanelModel.botle =
+                        "Format config error: " + invalidateCol.invalidateProps.keys.join( "," ) + " properties";
+            }
+            else{
+                encodingConfig.tbPanelModel.botle = null;
+            }
+        }
+        ]]></fx:Script>
+    <fx:Binding source="encodingConfig.invalidateBeans.length" destination="rfrInvalidBeans"/>
+    <s:layout>
+        <s:VerticalLayout padding="15"/>
+    </s:layout>
+    <fx:Binding source="encodingConfig.isEditing" destination="rfrState"/>
+    <fx:Binding source="encodingConfig.inDetail" destination="rfrState"/>
+    <s:states>
+        <s:State name="readSimple" stateGroups="simple,read"/>
+        <s:State name="editSimple" stateGroups="simple,edit"/>
+        <s:State name="readDetail" stateGroups="detail,read"/>
+        <s:State name="editDetail" stateGroups="detail,edit"/>
+    </s:states>
+    <s:transitions>
+        <s:Transition fromState="*" toState="*">
+            <s:Parallel>
+                <s:Resize target="{resizeContainer}"/>
+                <s:Rotate target="{path}"/>
+            </s:Parallel>
+        </s:Transition>
+    </s:transitions>
+    <s:Form width="100%">
+        <s:FormItem label="Bit Rates:" width="100%">
+            <s:Label includeIn="read" text="{encodingConfig.bitRateArray.join('k, ')}k"/>
+            <s:TextInput id="txtIpt" includeIn="edit" text="{encodingConfig.bitRateStr}"
+                         change="encodingConfig.bitRateStr = txtIpt.text;" width="100%"/>
+        </s:FormItem>
+
+        <s:FormItem label="Profile:" width="100%">
+            <s:Label includeIn="read" text="{encodingConfig.overriddenFormat.profile}" width="100%"/>
+            <s:DropDownList id="profileDownList" includeIn="edit"
+                            change="encodingConfig.overriddenFormat.profile=profileDownList.selectedItem;"
+                            selectedItem="{encodingConfig.overriddenFormat.profile}">
+                <s:dataProvider>
+                    <s:ArrayList>
+                        <fx:String>high</fx:String>
+                        <fx:String>main</fx:String>
+                        <fx:String>baseline</fx:String>
+                    </s:ArrayList>
+                </s:dataProvider>
+            </s:DropDownList>
+        </s:FormItem>
+    </s:Form>
+    <s:HGroup click="encodingConfig.inDetail = !encodingConfig.inDetail ;">
+        <s:Path data="M 7.0 3.5 L 0.0 0.0 L 0.0 7.0 L 7.0 3.5" scaleX="1.6" scaleY="1.5" id="path" rotation.detail="90"
+                rotation.simple="0">
+            <s:fill>
+                <s:SolidColor color="#8E98AC"/>
+            </s:fill>
+        </s:Path>
+        <s:Label text.detail="Less" text.simple="More"/>
+    </s:HGroup>
+    <s:Group id="resizeContainer" width="100%" height.simple="0" height="{uiTranscodeConfigFormat.height}"
+             clipAndEnableScrolling="true">
+        <transcConfig:UITranscodeConfigFormat width="100%" height="100%" id="uiTranscodeConfigFormat"
+                                              model="{encodingConfig}" minWidth="320" minHeight="240"/>
+    </s:Group>
+    <s:HGroup width="100%" horizontalAlign="right">
+        <s:Button includeIn="edit" click="encodingConfig.cancel();" label="Revert"/>
+        <s:Button enabled="{encodingConfig.clientConfig != null &amp;&amp; encodingConfig.tbPanelModel.botle == null}"
+                  label.edit="Submit" click.edit="encodingConfig.onSubmit()"
+                  label.read="Edit" click.read="encodingConfig.isEditing=true;"/>
+    </s:HGroup>
+</s:Group>

@@ -1,0 +1,188 @@
+<?xml version="1.0"?>
+<!--
+  Created by yanggang on 4/4/2016.
+-->
+<data:PropertiesGrid xmlns:fx="http://ns.adobe.com/mxml/2009"
+                     xmlns:data="com.flashflexpro.as3lib.data.*" xmlns:win="com.flashflexpro.as3lib.win.*"
+                     implements="com.flashflexpro.as3lib.IWithContext"
+                     beans="{_beans}" editable="{isEditing}"
+                     propColType="com.customshow.configPerClient.LabyrinthConfigFormatGridColumn"
+                     columnLabelDesc="{DynaTableClientConfigOverride.PROP_DESC_identification}"
+>
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.data.PropertyDesc;
+        import com.flashflexpro.as3lib.win.TBPanel;
+
+        import mx.utils.ObjectUtil;
+        import mx.utils.StringUtil;
+
+        import org.apache.flex.collections.ArrayList;
+
+        [Bindable]
+        public var csSessionId:String;
+
+
+        [Bindable]
+        public var clientConfig:DynaTableClientConfig;
+
+        [Bindable]
+        public var clientId:String = "-1";
+
+        public function query():void{
+            overriddenFormat = null;
+            defaultVideoFormat = null;
+
+            new ConfigPerClientService( context ).loadDynaTableClientConfig( function ( o:Object ):void{
+                clientConfig = DynaTableClientConfig( o );
+                isEditing = false;
+            }, null, clientId ).callRemote();
+
+        }
+
+        private function set rfrFormats( ignoreVar:* ):void{
+            var bitR:Array = [];
+            for( var formatId:String in clientConfig.transcode.formats ){
+                var f:DynaTableClientConfigTranscodeFormat = clientConfig.transcode.formats[formatId];
+                if( f.bitrate != null ){
+                    if( f.baseConfigId == null ){
+                        defaultVideoFormat = f;
+                    }
+                    else{
+                        bitR.push( int( f.bitrate.substr( 0, f.bitrate.length - 1 ) ) );
+                        if( overriddenFormat == null ){
+                            if( f.profile == null ){
+                                f.profile = "baseline";
+                            }
+                            overriddenFormat = DynaTableClientConfigTranscodeFormat( ObjectUtil.copy( f ) );
+                        }
+                    }
+                }
+            }
+            bitR.sort();
+            bitRateArray = bitR;
+            bitRateStr = bitRateArray.join( 'k, ' ) + 'k';
+
+            var tmpExcl:Vector.<PropertyDesc> = excludeProp.concat( TranscodeConfigFormatGrid.excludeProp );
+            if( propDescs == null ){
+                var tmp:ArrayList = new ArrayList();
+                DynaTableClientConfigTranscodeFormat.allProperties.forEach(
+                        function myFunction( item:PropertyDesc, index:int, vector:Vector.<PropertyDesc> ):void{
+                            if( tmpExcl.indexOf( item ) >= 0 ){
+                                return;
+                            }
+                            tmp.addItem( item );
+                        } );
+                propDescs = tmp;
+            }
+
+            _beans = new ArrayList( [defaultVideoFormat, overriddenFormat] );
+        }
+
+        private static const excludeProp:Vector.<PropertyDesc> = new <PropertyDesc>
+        [DynaTableClientConfigOverride.PROP_DESC_enabled, DynaTableClientConfigOverride.PROP_DESC_identification,
+            DynaTableClientConfigOverride.PROP_DESC_enabledChangedBy,
+            DynaTableClientConfigOverride.PROP_DESC_enabledChangedTime,
+            DynaTableClientConfigOverride.PROP_DESC_configGroup, DynaTableClientConfigOverride.PROP_DESC_configName,
+            DynaTableClientConfigOverride.PROP_DESC_overrideByUser,
+            DynaTableClientConfigOverride.PROP_DESC_overrideComment,
+            DynaTableClientConfigOverride.PROP_DESC_lastModifiedTime,
+            DynaTableClientConfigTranscodeFormat.PROP_DESC_baseConfigId,
+            DynaTableClientConfigTranscodeFormat.PROP_DESC_destination,
+            DynaTableClientConfigTranscodeFormat.PROP_DESC_bitrate, DynaTableClientConfigTranscodeFormat.PROP_DESC_size,
+            DynaTableClientConfigTranscodeFormat.PROP_DESC_taskid,
+            DynaTableClientConfigTranscodeFormat.PROP_DESC_status,
+            DynaTableClientConfigTranscodeFormat.PROP_DESC_suggestion,
+            DynaTableClientConfigTranscodeFormat.PROP_DESC_duration,
+            DynaTableClientConfigTranscodeFormat.PROP_DESC_profile];
+
+        [Bindable]
+        public var defaultVideoFormat:DynaTableClientConfigTranscodeFormat;
+
+        [Bindable]
+        public var videoFormatLst:ArrayList;
+
+        [Bindable]
+        public var bitRateArray:Array;
+
+        [Bindable]
+        public var bitRateStr:String;
+
+
+        [Bindable]
+        public var overriddenFormat:DynaTableClientConfigTranscodeFormat;
+
+
+        [Bindable]
+        public var isEditing:Boolean = false;
+
+
+        [Bindable]
+        public var inDetail:Boolean = false;
+
+        [Bindable]
+        private var _beans:ArrayList;
+
+        public function onSubmit():void{
+
+            var toSave:Array = [];
+            var overrideCol:LabyrinthConfigFormatGridColumn = columns.getItemAt( 2 ) as LabyrinthConfigFormatGridColumn;
+            var tmpBRSARR:Array = bitRateStr.split( "," );
+
+            for each( var brStr:String in tmpBRSARR ){
+                var f:DynaTableClientConfigTranscodeFormat = overrideCol.copyBeanWithChanges() as
+                        DynaTableClientConfigTranscodeFormat;
+                f.bitrate = StringUtil.trim( brStr );
+                f.baseConfigId = TranscodeConfigFormatGridColumn.DEFAULT_VIDEO;
+                //                f.identification = TranscodeConfigFormatGridColumn.DEFAULT_VIDEO + "_" + brStr; server decide
+                f.configName = f.identification;
+                toSave.push( f );
+            }
+
+            new ConfigPerClientService( context ).saveLabyrinthFormats( onSaveTranscodeFormatBack, null, clientId,
+                    toSave ).callRemote();
+        }
+
+        private function onSaveTranscodeFormatBack( obj:Object ):void{
+            query();
+            isEditing = false;
+        }
+
+        public function cancel():void{
+            query();
+            isEditing = false;
+        }
+
+
+        private function set rfrBRStrChange( ignoreVar:* ):void{
+            tbPanelModel.context.callInNext.putIn( refreshBRSTtrChange );
+        }
+
+        private function refreshBRSTtrChange():void{
+            var bar:Array = bitRateStr.split( "," );
+
+            if( bar.length < 1 ){
+                tbPanelModel.botle = 'need at least one bitrate';
+                return;
+            }
+
+            for each( var brs:String in bar ){
+                if( brs.length < 2 ){
+                    tbPanelModel.botle = 'bitrate string invalidate format: ' + brs;
+                    return;
+                }
+                var bn:Number = Number( brs.substr( 0, brs.length - 1 ) );
+                if( isNaN( bn ) || brs.substr( brs.length - 1 ) != "k" ){
+                    tbPanelModel.botle = 'bitrate string invalidate format: ' + brs;
+                    return;
+                }
+            }
+
+            tbPanelModel.botle = null;
+        }
+
+        [Bindable]
+        public var tbPanelModel:TBPanel;
+        ]]></fx:Script>
+    <fx:Binding source="bitRateStr" destination="rfrBRStrChange"/>
+    <fx:Binding source="clientConfig.transcode.formats" destination="rfrFormats"/>
+</data:PropertiesGrid>

@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 8/13/2015.
+-->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" currentState="open">
+    <fx:Script><![CDATA[
+        import spark.layouts.supportClasses.LayoutBase;
+
+        [Bindable]
+        public var collapsibleContent:Array;
+
+        [Bindable]
+        public var collapsibleLayout:LayoutBase;
+
+        private function openOrClose():void{
+            currentState = (currentState == "open" ? "close" : "open");
+        }
+        ]]></fx:Script>
+    <s:states>
+        <s:State name="open"/>
+        <s:State name="close"/>
+    </s:states>
+
+    <s:layout>
+        <s:VerticalLayout horizontalAlign="center"/>
+    </s:layout>
+    <s:transitions>
+        <s:Transition fromState="*" toState="*">
+            <s:Parallel>
+                <s:Resize target="{resizeContainer}"/>
+                <s:Rotate target="{path}"/>
+            </s:Parallel>
+        </s:Transition>
+    </s:transitions>
+    <s:HGroup width="100%" verticalAlign="middle">
+        <s:HGroup click="openOrClose();" verticalAlign="middle">
+            <s:Path data="M 7.0 3.5 L 0.0 0.0 L 0.0 7.0 L 7.0 3.5" scaleX="1.6" scaleY="1.5" id="path"
+                    rotation.open="90" rotation.close="0">
+                <s:fill>
+                    <s:SolidColor color="#8E98AC"/>
+                </s:fill>
+            </s:Path>
+            <s:Label text="Overview" fontSize="24" color="#8E98AC"/>
+        </s:HGroup>
+        <s:Spacer width="100%"/>
+    </s:HGroup>
+    <s:Group clipAndEnableScrolling="true" id="resizeContainer"
+             height.close="0" height.open="{contentGroup.contentHeight}">
+        <s:Group id="contentGroup" mxmlContent="{collapsibleContent}" layout="{collapsibleLayout}"/>
+    </s:Group>
+</s:Group>

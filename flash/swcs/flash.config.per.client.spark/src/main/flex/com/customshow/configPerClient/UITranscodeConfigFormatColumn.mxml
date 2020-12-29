@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 4/7/2016.
+-->
+<data:UIPropertiesGridColumn xmlns:fx="http://ns.adobe.com/mxml/2009"
+                             xmlns:data="com.flashflexpro.as3lib.data.*"
+                             headerRenderer="com.customshow.configPerClient.UITranscodeConfigFormatHeader"
+>
+    <fx:Script><![CDATA[
+
+
+
+        [Bindable(event="modelChanged")]
+        public function get transConfigFormatCol():TranscodeConfigFormatGridColumn{
+            return model as TranscodeConfigFormatGridColumn;
+        }
+        ]]></fx:Script>
+</data:UIPropertiesGridColumn>

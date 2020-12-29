@@ -1,0 +1,390 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (C) 2011 flashflexpro@gmail.com  All Rights Reserved.  No
+  ~   use, copying or distribution of this work may be made except in
+  ~   accordance with a valid license agreement from flashflexpro@gmail.com
+  ~   This notice must be included on all copies, modifications and
+  ~   derivatives of this work.
+  ~
+  ~   flashflexpro@gmail.com MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT
+  ~   THE SUITABILITY OF THE SOFTWARE, EITHER EXPRESS OR IMPLIED,
+  ~   INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+  ~   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR
+  ~   NON-INFRINGEMENT. flashflexpro@gmail.com SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED
+  ~   BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS
+  ~   SOFTWARE OR ITS DERIVATIVES.
+  -->
+
+<utils:MxmlEventDispatcher xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:utils="com.flashflexpro.as3lib.utils.*">
+    <mx:Script><![CDATA[
+        import mx.collections.IList;
+        import mx.events.CollectionEvent;
+        import mx.events.CollectionEventKind;
+        import mx.events.PropertyChangeEvent;
+        import mx.utils.UIDUtil;
+
+
+        public var priority:int = 0;
+
+        private var _enabled:Boolean = true;
+
+        [Bindable(event="enabledChanged")]
+        public function get enabled():Boolean{
+            return _enabled;
+        }
+
+        public function set enabled( value:Boolean ):void{
+            if( value != _enabled ){
+                _enabled = value;
+
+                CONFIG::debugging{
+                    if( _source != null && _destination != null && _source.length != _destination.length ){
+                        throw new Error( this + ".enabled error   " );
+                    }//debug
+                }
+                dispatchEvent( new Event( "enabledChanged" ) );
+            }
+        }
+
+        private var _synchronizingChange:Boolean = false;
+        [Bindable(event="synchronizingChangeChanged")]
+        public function get synchronizingChange():Boolean{
+            return _synchronizingChange;
+        }
+
+        private function setSynchronizingChangeChanged( s:Boolean ):void{
+            _synchronizingChange = s;
+            dispatchEvent( new Event( "synchronizingChangeChanged" ) );
+        }
+
+        private var _source:IList;
+
+        [Bindable(event="sourceChanged")]
+        public function get source():IList{
+            return _source;
+        }
+
+        public function set source( value:IList ):void{
+            if( value != _source ){
+                if( _source != null ){
+                    _source.removeEventListener( CollectionEvent.COLLECTION_CHANGE, onSrcLstCollectionChange );
+                }
+                _source = value;
+                initializeSync();
+                dispatchEvent( new Event( "sourceChanged" ) );
+            }
+        }
+
+        private var _destination:CrMap;
+        [Bindable(event="destinationChanged")]
+        public function get destination():CrMap{
+            return _destination;
+        }
+
+        public function set destination( value:CrMap ):void{
+            if( value != _destination ){
+                _destination = value;
+
+                initializeSync();
+
+                dispatchEvent( new Event( "destinationChanged" ) );
+            }
+        }
+
+        private var _getDestPair:Function;
+
+        [Bindable(event="getDestInstChanged")]
+        public function get getDestPair():Function{
+            return _getDestPair;
+        }
+
+        /**
+         * Plz do a parameter verification at the beginning of the function
+         * @param value
+         */
+        public function set getDestPair( value:Function ):void{
+            if( value != _getDestPair ){
+                _getDestPair = value;
+                CONFIG::debugging{
+                    if( _getDestPair == null ){
+                        throw new Error( getUIDs() + ".getDestInst error source to destination function can't be null!!!!" );
+                    }//debug
+                }
+                initializeSync();
+                dispatchEvent( new Event( "getDestInstChanged" ) );
+            }
+        }
+
+        private function exeGetDestInst( src:* ):*{
+            CONFIG::debugging{
+                try{
+                    var tmp:Array = _getDestPair( src );
+                    if( tmp == null || tmp.length != 2 ){
+                        CC.log( getUIDs() + ".exeGetDestInstError getDestInst return illegally!" );
+                    }
+                    return tmp;
+                }
+                catch( e:Error ){
+                    CC.log( getUIDs() + ".exeGetDestInst error :" + e.getStackTrace(), 2, true );
+                }
+            }
+            return _getDestPair( src );
+        }
+
+        private var _destroyInst:Function;
+        /**
+         * Plz do a parameter verification at the beginning of the function
+         */
+        [Bindable(event="destroyInstChanged")]
+        public function get destroyInst():Function{
+            return _destroyInst;
+        }
+
+        public function set destroyInst( value:Function ):void{
+            if( value != _destroyInst ){
+                _destroyInst = value;
+                dispatchEvent( new Event( "destroyInstChanged" ) );
+            }
+        }
+
+        private function exeDestroy( key:*, val:* ):void{
+            CONFIG::debugging{
+                if( key == null ){
+                    CC.log( this + ".exeDestroy error can not destroy null", 2, true );
+                }//debug
+            }
+            if( _destroyInst != null ){
+                try{
+                    _destroyInst.apply( null, [key, val] );
+                }
+                catch( e:Error ){
+                    CONFIG::debugging{
+                        CC.log( getUIDs() + ".exeDestroy error when destroying dest:" + e.getStackTrace(), 2, true )
+                    }//debug
+                }
+            }
+        }
+
+        //array of property names
+        public var propertiesReplaceOnUpdate:Array;
+
+        protected function onSrcLstCollectionChange( event:CollectionEvent ):void{
+            if( source == null || destination == null || _getDestPair == null || ! _enabled ){
+                return;
+            }
+
+            CONFIG::debugging{
+                if( _printLog ){
+                    CC.log( getUIDs() + ".onSrcChange: event:" + event );
+                }
+                if( _syncInitializeStatus != 2 ){
+                    throw new Error( getUIDs() + ".onSrcLstCollectionChange not initialized!!!" );
+                }
+            }//debug
+
+            if( event.kind == CollectionEventKind.REFRESH || event.kind == CollectionEventKind.RESET ){
+                initializeSync();
+                return;
+            }
+
+            if( event.kind == CollectionEventKind.UPDATE && propertiesReplaceOnUpdate == null ){
+                return;
+            }
+
+            setSynchronizingChangeChanged( true );
+
+            var j:int = 0;
+            var removing:Object;
+            var exeRslt:Array;
+            switch( event.kind ){
+                case CollectionEventKind.ADD:
+                {
+                    var addingListLen:int = event.items.length;
+                    for( j = 0; j < addingListLen; j ++ ){
+                        exeRslt = exeGetDestInst( event.items[j] );
+                        _mapLstVal2Key[event.items[j]] = exeRslt[0];
+                        _destination.putValue( exeRslt[0], exeRslt[1] );
+                    }
+                    break;
+                }
+                case CollectionEventKind.REPLACE:
+                {
+                    for( j = 0; j < event.items.length; j ++ ){
+                        var eachReplaceItem:PropertyChangeEvent = event.items[j] as PropertyChangeEvent;
+                        var oldKey:* = _mapLstVal2Key[eachReplaceItem.oldValue];
+                        var oldVal:* = _destination.getValue( oldKey );
+                        _destination.deleteValue( oldKey );
+                        exeDestroy( oldKey, oldVal );
+                        delete _mapLstVal2Key[eachReplaceItem.oldValue];
+
+                        exeRslt = exeGetDestInst( eachReplaceItem.newValue );
+                        _mapLstVal2Key[eachReplaceItem.newValue] = exeRslt[0];
+                        destination.putValue( exeRslt[0], exeRslt[1] );
+                    }
+                    break;
+                }
+
+                case CollectionEventKind.REMOVE:
+                {
+                    for( j = event.items.length - 1; j >= 0; j -- ){
+                        removing = event.items[j];
+                        var key:* = _mapLstVal2Key[removing];
+                        var val:* = _destination.getValue( key );
+                        destination.deleteValue( key );
+                        exeDestroy( key, val );
+                        delete _mapLstVal2Key[removing];
+                    }
+                    break;
+                }
+
+                case CollectionEventKind.MOVE:
+                {
+                    CONFIG::debugging{
+                        if( event.items.length > 1 ){
+                            throw new Error( getUIDs() + ".onSrcChange error CollectionEventKind.MOVE items.length bigger than 1" );
+                        }
+                    }
+                    break;
+                }
+                case CollectionEventKind.UPDATE:
+                {
+                    if( propertiesReplaceOnUpdate != null && propertiesReplaceOnUpdate.length > 0 ){
+                        for( var i:int = 0; i < event.items.length; i ++ ){
+                            var tmpPc:PropertyChangeEvent = event.items[i] as PropertyChangeEvent;
+                            CONFIG::debugging{
+                                if( tmpPc == null ){
+                                    throw new Error( getUIDs() + ".onSrcChange error there's no propertychangedevent" );
+                                }
+                            }
+                            if( propertiesReplaceOnUpdate.indexOf( tmpPc.property ) >= 0 ){
+
+                                var oldK:* = _mapLstVal2Key[tmpPc.source];
+                                var oldV:* = _destination.getValue( oldK );
+                                _destination.deleteValue( oldK );
+                                exeDestroy( oldK, oldV );
+                                delete _mapLstVal2Key[tmpPc.source];
+
+
+                                exeRslt = exeGetDestInst( tmpPc.source );
+                                _mapLstVal2Key[tmpPc.source] = exeRslt[0];
+                                destination.putValue( exeRslt[0], exeRslt[1] );
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+            CONFIG::debugging{
+                if( _source.length != _destination.length ){
+                    CC.log( UIDUtil.getUID( this ) + ".onSrcChange error _source.length != _destination.length", 2, true );
+                }//debug
+
+                const len:int = _source.length;
+                for( var q:int = 0; q < len; q ++ ){
+                    var sEle:Object = _source.getItemAt( q ) as Object;
+                    var tmpSrcEle2Mk:* = _mapLstVal2Key[sEle];
+                    if( tmpSrcEle2Mk == null || _destination.keys.indexOf( tmpSrcEle2Mk ) < 0 ){
+                        for( var tmpLstEle:* in _mapLstVal2Key ){
+                            CC.log( tmpLstEle );
+                        }
+                        CC.log( UIDUtil.getUID( this ) + ".onSrcChange error src and dest MisMatch!", 2, true );
+                    }
+                }
+            }
+            setSynchronizingChangeChanged( false );
+        }
+
+        private var _syncInitializeStatus:uint = 0;
+        public function get syncInitializeStatus():uint{
+            return _syncInitializeStatus;
+        }
+
+        private var _mapLstVal2Key:Dictionary = new Dictionary();
+
+        protected function initializeSync():void{
+            if( _source == null || _destination == null || _getDestPair == null || ! _enabled ){
+                _syncInitializeStatus = 0;
+                return;
+            }
+            CONFIG::debugging{
+                if( _printLog ){
+                    CC.log( getUIDs() + ":::initializeSync()ing" );
+                }
+                if( _synchronizingChange ){
+                    throw new Error( getUIDs() + ".initializeSync _synchronizingChange is true!!!" );
+                }
+            }//debug
+            _source.removeEventListener( CollectionEvent.COLLECTION_CHANGE, onSrcLstCollectionChange );
+            _syncInitializeStatus = 1;
+            _mapLstVal2Key = new Dictionary();
+            while( destination.length > 0 ){
+                var delKey:Object = destination.keys[0];
+                var delVal:* = _destination.values[0];
+                destination.deleteValue( delKey );
+                exeDestroy( delKey, delVal );
+            }
+
+            for( var j:int = 0; j < source.length; j ++ ){
+                var lstVal:Object = source.getItemAt( j );
+                var kv:Array = exeGetDestInst( lstVal );
+                _mapLstVal2Key[lstVal] = kv[0];
+                destination.putValue( kv[0], kv[1] );
+            }
+
+            CONFIG::debugging{
+                if( _source.length != _destination.length ){
+                    throw new Error( getUIDs() + ".initializeSync error src.len != dest.len !!!!" )
+                }
+                if( _printLog ){
+                    CC.log( getUIDs() + ":::initializeSync()ed" );
+                }
+            }//debug
+
+            _source.addEventListener( CollectionEvent.COLLECTION_CHANGE, onSrcLstCollectionChange, false, priority );
+            _syncInitializeStatus = 2;
+        }
+
+        public function getDestKeyBySource( src:Object ):Object{
+            CONFIG::debugging{
+                var num:uint = 0;
+                for( var j:int = source.length - 1; j >= 0; j -- ){
+                    if( source.getItemAt( j ) == src ){
+                        num ++
+                    }
+                    if( num > 1 ){
+                        throw new Error( getUIDs() + ".getDestBySource error source has repeat elements!" );
+                    }
+                }
+            }
+
+            var itemIndex:int = source.getItemIndex( src );
+            if( itemIndex < 0 ){
+                return null;
+            }
+            return _mapLstVal2Key[src];
+        }
+
+        public function destroy( callDestDestroy:Boolean = false ):void{
+            if( callDestDestroy ){
+                for( var j:int = _destination.length - 1; j >= 0; j -- ){
+                    exeDestroy( _destination.keys[j], _destination.values[j] );
+                }
+            }
+
+            _mapLstVal2Key = null;
+            _source = null;
+            _destination = null;
+            _getDestPair = null;
+        }
+
+        CONFIG::debugging{
+            private var _uids:String = null;
+            private var _printLog:Boolean = false;
+
+            public function getUIDs():String{
+                _uids = UIDUtil.getUID( this ) + "::" + UIDUtil.getUID( _source ) + "::" + UIDUtil.getUID( _destination );
+                return _uids;
+            }
+        }//debug
+        ]]></mx:Script>
+</utils:MxmlEventDispatcher>

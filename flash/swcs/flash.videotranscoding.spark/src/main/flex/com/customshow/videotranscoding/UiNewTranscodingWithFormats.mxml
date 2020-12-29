@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 8/24/2016.
+-->
+<data:UIPropertiesGrid xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+         xmlns:data="com.flashflexpro.as3lib.data.*">
+    <fx:Script><![CDATA[
+
+        [Bindable(event="modelChanged")]
+        public function get modelNewTransc():NewTranscodingWithFormats{
+            return model as NewTranscodingWithFormats;
+        }
+        ]]></fx:Script>
+
+</data:UIPropertiesGrid>

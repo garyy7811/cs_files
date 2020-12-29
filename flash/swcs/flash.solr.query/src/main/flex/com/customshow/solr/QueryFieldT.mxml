@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<solr:QueryField xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:solr="com.customshow.solr.*">
+    <fx:Script><![CDATA[
+
+        override public function instanciateResultFacet():ResultFacet{
+            var rt:ResultFacet = searchModel.context.instantiate( ResultFacet ) as ResultFacet;
+            rt.field = this;
+            return rt;
+        }
+
+        override public function instanciateTermClass():QueryTerm{
+            var t:QueryTermT = searchModel.context.instantiate( QueryTermT ) as QueryTermT;
+            t.field = this;
+            return t;
+        }
+
+        [Bindable]
+        public var minimalChar:uint = 1;
+        ]]></fx:Script>
+</solr:QueryField>

@@ -1,0 +1,154 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 2/17/2015.
+-->
+<s:DataGrid xmlns:fx="http://ns.adobe.com/mxml/2009"
+            xmlns:s="library://ns.adobe.com/flex/spark"
+            xmlns:data="com.flashflexpro.as3lib.data.*"
+            xmlns:ap="org.apache.flex.collections.*"
+            resize="rfrCheckLoadMOre = null;" dataProvider="{gridModel.rows}" showDataTips="true"
+            implements="com.flashflexpro.as3lib.IByModel" creationComplete="onCreated();">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.IWithContext;
+
+        override protected function columnHeaderGroup_clickHandler( event:GridEvent ):void{
+            if( event.column.sortable ){
+                var newSortByCol:GridColumn = gridModel.columns.getItemAt( event.column.columnIndex ) as GridColumn;
+                if( gridModel.sortColDataField == newSortByCol ){
+                    gridModel.sortColDesc = ! event.column.sortDescending;
+                }
+                else{
+                    gridModel.sortColDataField = newSortByCol;
+                    gridModel.sortColDesc = true;
+                }
+            }
+        }
+
+        private function set rfrSorting( v:* ):void{
+            var col:UIGridColumn = colMapping.getDestBySource( gridModel.sortColDataField ) as UIGridColumn;
+            col.sortDescending = gridModel.sortColDesc;
+            if( columnHeaderGroup ){
+                columnHeaderGroup.visibleSortIndicatorIndices = Vector.<int>( [col.columnIndex] );
+            }
+        }
+
+        private var _model:IWithContext;
+        public function set model( value:IWithContext ):void{
+            if( value != _model ){
+                _model = value;
+                dispatchEvent( new Event( "modelChanged" ) );
+            }
+        }
+
+        [Bindable(event="modelChanged")]
+        public function get model():IWithContext{
+            return _model;
+        }
+
+        [Bindable(event="modelChanged")]
+        public function get gridModel():Grid{
+            return model as Grid;
+        }
+
+        private function onCreated():void{
+            scroller.verticalScrollBar.addEventListener( Event.CHANGE, checkLoadMoreWhenScroll );
+        }
+        ]]></fx:Script>
+    <fx:Binding source="gridModel.sortColDataField" destination="rfrSorting"/>
+    <fx:Binding source="gridModel.sortColDesc" destination="rfrSorting"/>
+    <fx:Binding source="gridModel.columns.length" destination="rfrSorting"/>
+    <fx:Binding source="gridModel.rows.length" destination="rfrSorting"/>
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.utils.RootContextApp;
+
+        import spark.events.GridEvent;
+
+        protected function checkLoadMoreWhenScroll( v:* = null ):void{
+            rfrCheckLoadMOre = null;
+        }
+
+        private function set rfrCheckLoadMOre( v:* ):void{
+            //grid.getVisibleRowIndices() return empty, it is a Flex bug
+            grid.invalidateDisplayList();
+            RootContextApp.inst.callInNext.putIn( checkToLoadMore1, null, null, 2 );
+        }
+
+        protected function checkToLoadMore1():void{
+            if( grid.dataProvider != null && grid.dataProvider.length > 0 && grid.height > 0 &&
+                    grid.getVisibleRowIndices().length == 0 ){
+                rfrCheckLoadMOre = null;
+                return;
+            }
+            var tmp:Vector.<int> = grid.getVisibleRowIndices();
+            if( gridModel.visibleRowIndices == null || gridModel.visibleRowIndices.length != tmp.length ||
+                    ( tmp.length > 0 && gridModel.visibleRowIndices[0] != tmp[0] ) ){
+                gridModel.visibleRowIndices = tmp;
+            }
+        }
+
+
+        private var _uiColumnType:IFactory = new ClassFactory( UIGridColumn );
+
+
+        public function get uiColumnType():IFactory{
+            return _uiColumnType;
+        }
+
+        public function set uiColumnType( value:IFactory ):void{
+            _uiColumnType = value;
+        }
+
+        protected function getUIColumn( c:GridColumn ):UIGridColumn{
+            var rt:UIGridColumn = _uiColumnType.newInstance();
+            if( c.labelFunction != null ){
+                rt.labelFunction = function ( r:*, col:UIGridColumn ):String{
+                    return col.model.labelFunction.apply( null, [r, col.model] );
+                };
+            }
+            else{
+                rt.dataField = c.dataField;
+            }
+
+            if( c.dataTipFunction != null ){
+                rt.dataTipFunction = function ( r:*, col:UIGridColumn ):String{
+                    return col.model.dataTipFunction.apply( null, [r, col.model] );
+                };
+            }
+            else{
+                rt.dataTipField = c.dataTipField;
+            }
+
+            if( rt.dataTipFunction == null && rt.dataTipField == null ){
+                rt.dataTipFunction = function ( r:*, col:UIGridColumn ):String{
+                    return col.itemToLabel( r );
+                }
+            }
+            rt.showDataTips = showDataTips;
+
+            rt.headerText = c.label;
+            rt.sortable = c.sortable;
+            rt.editable = c.editable;
+            if( rt.editable ){
+                editable = true;
+            }
+            rt.model = c;
+            if( c.width > 0 ){
+                rt.width = c.width;
+            }
+            return rt;
+        }
+
+
+        protected function delUIColumn( c:UIGridColumn ):void{
+            c.model = null;
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+        <data:Map2Lists getDestInst="getUIColumn" destroyInst="delUIColumn"
+                        propertiesReplaceOnUpdate="{[ 'editable' ]}"
+                        source="{gridModel.columns}" destination="{columns}" id="colMapping"/>
+    </fx:Declarations>
+    <s:columns>
+        <ap:ArrayList id="columns"/>
+    </s:columns>
+</s:DataGrid>

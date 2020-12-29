@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<webdesktop:TiBoTlePanel xmlns:fx="http://ns.adobe.com/mxml/2009"
+                         xmlns:s="library://ns.adobe.com/flex/spark"
+                         xmlns:webdesktop="com.flashflexpro.as3lib.win.*"
+                         xmlns:utils="com.flashflexpro.as3lib.utils.*"
+                         xmlns:solr="com.customshow.solr.*" xmlns:spark="com.flashflexpro.as3lib.spark.*">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.utils.CSV;
+
+        [Bindable]
+        public var modelResult:Result;
+
+        private function set rfrTitle( v:* ):void{
+            modelResult.queryResult.searchModel.context.callInNext.putIn( refreshTitle );
+        }
+
+        private function refreshTitle():void{
+            if( modelResult.numFound > 0 ){
+                var vEnd:uint = ( modelResult.numFound < rsltGrid.visibleRowEnd - rsltGrid.visibleRowBegin + 1 ) ?
+                        modelResult.numFound : rsltGrid.visibleRowEnd;
+                tbPanel.title = modelResult.numFound + " hits(" + rsltGrid.visibleRowBegin + " - " + vEnd + ")";
+            }
+            else{
+                tbPanel.title = "No result found";
+            }
+        }
+
+        private function exportCSV():void{
+            var f:FileReference = new FileReference();
+            f.save( CSV.exportDataGrid( rsltGrid, true, true ) );
+        }
+        ]]></fx:Script>
+    <fx:Binding source="modelResult.queryResult.searchModel.context.callInNext" destination="rfrTitle"/>
+    <fx:Binding source="modelResult.numFound" destination="rfrTitle"/>
+    <fx:Binding source="modelResult.resultList.length" destination="rfrTitle"/>
+    <fx:Binding source="rsltGrid.visibleRowBegin" destination="rfrTitle"/>
+    <fx:Binding source="rsltGrid.visibleRowEnd" destination="rfrTitle"/>
+
+    <webdesktop:layout>
+        <s:VerticalLayout paddingRight="1" paddingTop="1" paddingBottom="1" paddingLeft="1"/>
+    </webdesktop:layout>
+    <solr:SearchViewRecordGrid modelResult="{modelResult}" id="rsltGrid" width="100%" height="100%"/>
+
+    <webdesktop:titleGroupContent>
+        <s:HGroup width="100%" verticalAlign="middle">
+            <s:Label text="Search result({tbPanel.title}):" width="100%" fontWeight="bold" toolTip="#t(searchResultLitTitle)p#"
+                     maxDisplayedLines="1"/>
+            <s:Button height="100%" label="export CSV" enabled="{rsltGrid.selectedItems.length>0}" click="exportCSV();"/>
+            <spark:MoreOptionsButton width="18" height="16" toolTip="#t(searchResultLitTitleCloseBtn)p#"
+                                     click="modelResult.showColumnsMenu();"/>
+        </s:HGroup>
+    </webdesktop:titleGroupContent>
+</webdesktop:TiBoTlePanel>

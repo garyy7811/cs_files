@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 7/1/2015.
+-->
+<reports:CsGrid xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:reports="com.customshow.reporting.reports.*">
+
+    <fx:Script><![CDATA[
+        import spark.components.gridClasses.GridColumn;
+
+        [Bindable]
+        public var maxFilterColRight:uint;
+
+        private var _colToMaxRight:Dictionary = new Dictionary();
+
+        public function addMaxFilterColRight( col:CsGridColModel, n:uint ):void{
+            _colToMaxRight[ col.id ] = n;
+            model.context.callInNext.putIn( refreshMaxFilterColRight );
+        }
+
+        private function refreshMaxFilterColRight():void{
+
+            var tmp:uint = 0;
+            for( var s:String in _colToMaxRight ){
+                tmp += _colToMaxRight[ s ];
+                tmp += 1;
+            }
+            maxFilterColRight = tmp;
+        }
+
+        override protected function getGridCol( c:CsGridColModel ):GridColumn{
+            var rt:GridColumn = super.getGridCol( c );
+            rt.headerRenderer = new ClassFactory( CsSlideShowSessionStatsUIGridHeadRenderer );
+            return rt;
+        }
+        ]]></fx:Script>
+</reports:CsGrid>

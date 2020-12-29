@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 3/23/2016.
+-->
+<transcoding:ListTranscoding xmlns:fx="http://ns.adobe.com/mxml/2009" sortColDesc="true"
+                             xmlns:transcoding="com.customshow.videotranscoding.*">
+    <fx:Script><![CDATA[
+        [Bindable]
+        public var bucketKey:String;
+
+        [Bindable]
+        public var tranCreateTime:Date = new Date();
+
+
+        override public function loadMore():Boolean{
+            if( rpcLoadGrid != null ){
+                return false;
+            }
+            if( tranCreateTime == null ){
+                tranCreateTime = new Date();
+            }
+
+            var timeTo:Date;
+            if( lastQueryResult == null ){
+                timeTo = tranCreateTime;
+            }
+            else if( lastQueryResult.length > 0 ){
+                var tmp:* = sortColDesc ? lastResult.getItemAt( lastResult.length - 1 ) : lastResult.getItemAt( 0 );
+                timeTo = new Date( ( tmp as DynaTableVideoTranscoding).createTime );
+            }
+            else{
+                //all loaded
+                return false;
+            }
+
+            var transcodingService:TranscodingService = new TranscodingService( context );
+            rpcLoadGrid = transcodingService.loadByBucketkeyCreateTime( onLoaded, onError, bucketKey, timeTo, 50,
+                    sortColDesc );
+            rpcLoadGrid.callRemote();
+            return true;
+        }
+        ]]></fx:Script>
+    <fx:Binding source="bucketKey" destination="rfrReloadGrid"/>
+    <fx:Binding source="tranCreateTime" destination="rfrReloadGrid"/>
+</transcoding:ListTranscoding>

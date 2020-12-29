@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 2/17/2015.
+-->
+<mxreports:CsSlideShowSessionReportGridItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
+                                                    xmlns:mx="library://ns.adobe.com/flex/mx"
+                                                    xmlns:mxreports="com.customshow.reporting.mxreports.*">
+    <fx:Script><![CDATA[
+        override protected function onInit():void{
+            super.onInit();
+            addElement( bar );
+        }
+
+        protected function formatHMS( milliseconds:Number ):String{
+
+            var hours:uint = milliseconds / (60 * 60 * 1000);
+            var minutes:uint = (milliseconds / (60 * 1000)) % 60;
+            var seconds:uint = (milliseconds / 1000) % 60;
+
+            var hms:String = zeroPad( hours ) + ":" + zeroPad( minutes ) + ":" + zeroPad( seconds );
+
+            return hms;
+        }
+
+        public function zeroPad( number:uint ):String{
+
+            if( number < 10 ){
+                return "0" + number;
+            }
+
+            return number.toString();
+        }
+
+        override protected function set refresh( v:* ):void{
+            super.refresh = v;
+            if( rowData.order == null ){
+                text = "Not viewed";
+                return;
+            }
+            text = formatHMS( rowData.duration );
+            color = 0;
+
+            if( rowData.duration && rowData.durationPercent.length > 0 ){
+                bar.percentWidth = 100 * rowData.durationPercent[0];
+                bar.visible = true;
+            }
+        }
+        ]]></fx:Script>
+    <fx:Binding source="rowData.durationPercent" destination="refresh"/>
+    <fx:Binding source="rowData.duration" destination="refresh"/>
+    <fx:Binding source="bar" destination="refresh"/>
+
+    <fx:Declarations>
+        <mx:HRule id="bar" strokeWidth="12" strokeColor="#4a4bff" shadowColor="#4a4bff" opaqueBackground="#4a4bff"
+                  includeInLayout="{color==0}" visible="{color==0}"/>
+    </fx:Declarations>
+</mxreports:CsSlideShowSessionReportGridItemRenderer>

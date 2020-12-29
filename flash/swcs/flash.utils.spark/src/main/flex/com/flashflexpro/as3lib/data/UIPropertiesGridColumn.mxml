@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!--
+  Created by yanggang on 4/4/2016.
+-->
+<data:UIGridColumn xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:data="com.flashflexpro.as3lib.data.*"
+                   headerRenderer="com.flashflexpro.as3lib.data.UIPropertiesGridHeader"
+                   itemRenderer="com.flashflexpro.as3lib.data.UIPropertiesGridCell"
+                   itemEditor="com.flashflexpro.as3lib.data.UIPropertiesGridCellEditor">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.utils.RootContextApp;
+
+        [Bindable(event="modelChanged")]
+        public function get propColumn():PropertiesGridColumn{
+            return model as PropertiesGridColumn;
+        }
+
+
+        override public function itemToLabel( item:Object ):String{
+            if( propColumn.newValues != null && item is PropertiesGridRow ){
+                var nv:* = propColumn.newValues.getValue( (item as PropertiesGridRow).desc.name );
+                if( nv != null ){
+                    return nv;
+                }
+            }
+            return super.itemToLabel( item );
+        }
+
+        private function set rfrNewVal( v:* ):void{
+            CONFIG::debugging{
+                if( model.grid != null && RootContextApp.inst == null ){
+                    throw new Error( this + ".rfrNewVal RootContextApp.inst can't be null !" );
+                }//debug
+            }
+
+            RootContextApp.inst.callInNext.putIn( grid.invalidateDisplayList );
+        }
+
+        ]]></fx:Script>
+    <fx:Binding source="propColumn.newValues.length" destination="rfrNewVal"/>
+</data:UIGridColumn>

@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<schema:CSReportingHasUserOwnerDurationSchema xmlns:fx="http://ns.adobe.com/mxml/2009"
+                       xmlns:ap="org.apache.flex.collections.*"
+                       xmlns:solr="com.customshow.solr.*"
+                                xmlns:schema="com.customshow.reporting.schema.*"
+                                xmlns:field="com.customshow.solr.*">
+    <fx:Script><![CDATA[
+        private var _allAdded:Boolean = false;
+        override public function getAllFields():ArrayList{
+            if( !_allAdded ){
+                ___allFields.addAll( ___CSReportingSlideDurationSolrSchema );
+                _allAdded = true;
+            }
+            return super.getAllFields();
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+        <ap:ArrayList id="___CSReportingSlideDurationSolrSchema">
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="viewedShowIndex__i_t_t_f"  name="viewedShowIndex"  label="viewedShowIndex"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="slideId__l_t_t_f"  name="slideId"  label="slideId"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="presentationName__si_t_t_f"  name="presentationName"  label="presentationName"  searchModel="{searchModel}" queryField="query_presentationName__sw_t_f_f" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="fromSlidePresIndex__i_t_t_f"  name="fromSlidePresIndex"  label="fromSlidePresIndex"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="fromSlideRefId__l_t_t_f"  name="fromSlideRefId"  label="fromSlideRefId"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="toSlidePresIndex__i_t_t_f"  name="toSlidePresIndex"  label="toSlidePresIndex"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="true"  isStrID="false"  id="pauseEnds__l_t_t_t"  name="pauseEnds"  label="pauseEnds"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="toSlideRefName__si_t_t_f"  name="toSlideRefName"  label="toSlideRefName"  searchModel="{searchModel}" queryField="query_toSlideRefName__sw_t_f_f" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="presentationIndex__i_t_t_f"  name="presentationIndex"  label="presentationIndex"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="slideRefId__l_t_t_f"  name="slideRefId"  label="slideRefId"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="slideIsLib__b_t_t_f"  name="slideIsLib"  label="slideIsLib"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="presentationId__l_t_t_f"  name="presentationId"  label="presentationId"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="true"  isStrID="true"  id="pauseReasons__si_t_t_t"  name="pauseReasons"  label="pauseReasons"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="toSlideRefId__l_t_t_f"  name="toSlideRefId"  label="toSlideRefId"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="slideRefName__si_t_t_f"  name="slideRefName"  label="slideRefName"  searchModel="{searchModel}" queryField="query_slideRefName__sw_t_f_f" />
+            <field:QueryFieldR isArray="true"  isStrID="false"  id="pauseStarts__l_t_t_t"  name="pauseStarts"  label="pauseStarts"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="fromSlideRefName__si_t_t_f"  name="fromSlideRefName"  label="fromSlideRefName"  searchModel="{searchModel}" queryField="query_fromSlideRefName__sw_t_f_f" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="slideShowIndex__i_t_t_f"  name="slideShowIndex"  label="slideShowIndex"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="slideName__si_t_t_f"  name="slideName"  label="slideName"  searchModel="{searchModel}" queryField="query_slideName__sw_t_f_f" />
+       </ap:ArrayList>
+    </fx:Declarations>
+</schema:CSReportingHasUserOwnerDurationSchema>

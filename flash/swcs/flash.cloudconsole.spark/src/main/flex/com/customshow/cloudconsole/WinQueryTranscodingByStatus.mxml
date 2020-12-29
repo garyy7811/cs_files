@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 3/28/2016.
+-->
+<local:WinQueryTranscoding xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+                           xmlns:win="com.flashflexpro.as3lib.win.*"
+                           xmlns:transc="com.customshow.videotranscoding.*" xmlns:local="com.customshow.cloudconsole.*">
+    <fx:Script><![CDATA[
+        import com.customshow.videotranscoding.ListTranscodingByStatus;
+
+        [Bindable(event="modelChanged")]
+        public function get uploadListModel():ListTranscodingByStatus{
+            return model as ListTranscodingByStatus;
+        }
+        ]]></fx:Script>
+    <local:layout>
+        <s:VerticalLayout/>
+    </local:layout>
+    <fx:Binding source="{uploadListModel.tranStatus},{uploadListModel.tranLastUpdateTime}" destination="modelWin.title"/>
+    <transc:UIQueryListTranscodingByStatus model="{model}" width="100%" height="100%"/>
+</local:WinQueryTranscoding>

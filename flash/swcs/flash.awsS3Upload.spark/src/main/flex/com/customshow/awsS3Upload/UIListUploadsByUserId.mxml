@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 2/12/2016.
+-->
+<rpc:UIRpcGrid xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:rpc="com.flashflexpro.as3lib.rpc.*"
+               selectionMode="singleRow"
+               selectedItem="{listUploadsByUserId.selectedUpload}">
+    <fx:Script><![CDATA[
+        [Bindable(event="modelChanged")]
+        public function get listUploadsByUserId():ListUploadsByUserId{
+            return gridModel as ListUploadsByUserId;
+        }
+
+        private function set rfrSelectedItem( v:* ):void{
+            listUploadsByUserId.selectedUpload = selectedItem as DynaTableAwsS3Upload;
+        }
+        ]]></fx:Script>
+    <fx:Binding source="selectedItem" destination="rfrSelectedItem"/>
+</rpc:UIRpcGrid>

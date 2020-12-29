@@ -1,0 +1,11 @@
+dependencies {
+    merged project( ':flash:swcs:flash.utils' )
+}
+
+
+task generateRpcApi( type: com.customshow.codegen.rpcmodel.GenerateFlashRpcApiTask ) {
+    javaSourceProjects = [project( ':java_modules:java.config.per.client' ) ]
+    includeDtoClasses = ['com.customshow.configPerClient.DynaTable*']
+    includeServiceClasses = ['com.customshow.configPerClient.ConfigPerClientService']
+    outputDirectory = project.file( 'src/main/flex' )
+}

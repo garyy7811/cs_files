@@ -1,0 +1,16 @@
+type = 'swc'
+
+dependencies {
+    merged project(':flash:swcs:flash.utils.spark')
+    merged project(':flash:swcs:flash.solr.query')
+    merged project(':flash:swcs:flash.reporting.query')
+}
+
+/*
+
+task generateRpcApi( type: com.customshow.codegen.rpcmodel.GenerateFlashRpcApiTask ) {
+    javaSourceProjects = [ project( ':java_modules:java.reporting.solr.query' )]
+    includeDtoClasses = [ 'com.customshow.reporting.solr.query.aa' ]
+    includeServiceClasses = [ 'com.customshow.reporting.solr.query.*' ]
+    outputDirectory = project.file( 'src/main/flex' )
+}*/

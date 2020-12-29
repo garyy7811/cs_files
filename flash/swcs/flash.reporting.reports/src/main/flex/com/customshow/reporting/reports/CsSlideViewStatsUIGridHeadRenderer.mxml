@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 7/1/2015.
+-->
+<s:GridItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+                    resize="onResize();" creationComplete="onResize();">
+
+    <fx:Binding source="column.grid.dataGrid" destination="rfrModel"/>
+    <fx:Binding source="_dataGrid.colMapping.synchronizingChange" destination="rfrModel"/>
+    <fx:Script><![CDATA[
+        private function set rfrModel( v:* ):void{
+            _dataGrid = column.grid.dataGrid as CsSlideViewStatsUIGrid;
+            _colModel = _dataGrid.colMapping.getSourceByDest( column ) as CsGridColModel;
+            onResize();
+        }
+
+        [Bindable]
+        private var _dataGrid:CsSlideViewStatsUIGrid;
+
+        [Bindable]
+        private var _colModel:CsGridColModel;
+
+        override public function set hovered( value:Boolean ):void{
+            super.hovered = value;
+            if( _colModel != null && _colModel.sortable ){
+                richText.setStyle( "fontWeight", hovered ? 'bold' : 'normal' );
+                richText.setStyle( "color", hovered ? 0x333333 : 0x525252 );
+            }
+        }
+
+        private function onResize():void{
+            var csSlideViewStatsModel:CsSlideViewStatsModel = (_dataGrid.model as CsSlideViewStatsModel);
+            if( _colModel == csSlideViewStatsModel.thumbNail ){
+                csSlideViewStatsModel.thumbNailColWidth = width + 1;
+            }
+            if( _colModel == null || ! _colModel.filterable ){
+                return;
+            }
+            _dataGrid.addMaxFilterColRight( _colModel, width );
+
+        }
+        ]]></fx:Script>
+    <s:Rect width="100%" height="100%">
+        <s:fill>
+            <s:SolidColor color="#f5f9fb"/>
+        </s:fill>
+    </s:Rect>
+    <s:HGroup width="100%" height="100%" paddingTop="5" paddingLeft="5" paddingRight="5" paddingBottom="5" verticalAlign="middle">
+        <s:RichText maxDisplayedLines="3" text="{label}" id="richText"
+                    width="100%" textAlign="center"/>
+        <s:Path id="arrow" data="M 3.5 7.0 L 0.0 0.0 L 7.0 0.0 L 3.5 7.0"
+                scaleY="{column.sortDescending?1:-1}" visible="{_dataGrid.model.sortColDataField == _colModel}">
+            <s:fill>
+                <s:RadialGradient rotation="90" focalPointRatio="1">
+                    <!--- @private -->
+                    <s:GradientEntry id="arrowFill1" color="0" alpha="0.6"/>
+                    <!--- @private -->
+                    <s:GradientEntry id="arrowFill2" color="0" alpha="0.8"/>
+                </s:RadialGradient>
+            </s:fill>
+        </s:Path>
+    </s:HGroup>
+    <s:Rect width="100%" height="3" visible="{_colModel.bottomColor > 0}" bottom="0">
+        <s:fill>
+            <s:SolidColor color="{_colModel.bottomColor}"/>
+        </s:fill>
+    </s:Rect>
+</s:GridItemRenderer>

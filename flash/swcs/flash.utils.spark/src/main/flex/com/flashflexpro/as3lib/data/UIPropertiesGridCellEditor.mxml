@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 4/6/2016.
+-->
+<s:GridItemEditor xmlns:fx="http://ns.adobe.com/mxml/2009"
+                  xmlns:s="library://ns.adobe.com/flex/spark">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.utils.RootContextApp;
+
+        import spark.components.gridClasses.GridColumn;
+
+        override public function setFocus():void{
+            textInput.setFocus();
+        }
+
+        override public function set data( value:Object ):void{
+            if( ( value as PropertiesGridRow ).desc.readOnly ){
+                RootContextApp.inst.callInNext.putIn( propertiesGrid.endItemEditorSession, null, [true] );
+                return;
+            }
+            super.data = value;
+            dispatchEvent( new Event( "dataChanged" ) );
+        }
+
+        override public function set column( value:spark.components.gridClasses.GridColumn ):void{
+            super.column = value;
+            dispatchEvent( new Event( "columnChanged" ) );
+        }
+
+        [Bindable(event="columnChanged")]
+        public function get propColumn():UIPropertiesGridColumn{
+            return column as UIPropertiesGridColumn;
+        }
+
+        [Bindable(event="dataChanged")]
+        public function get propertyDescRow():PropertiesGridRow{
+            return data as PropertiesGridRow;
+        }
+
+        override public function save():Boolean{
+            if( propertyDescRow != null ){
+                propColumn.propColumn.setNewValue( propertyDescRow.desc.name, value );
+                return true;
+            }
+            return false;
+        }
+
+        public function get propertiesGrid():UIPropertiesGrid{
+            return dataGrid as UIPropertiesGrid;
+        }
+
+
+        private function set rfrValue( v:* ):void{
+            if( propColumn.propColumn.bean != null && propertyDescRow ){
+                var nv = propColumn.propColumn.newValues.getValue( propertyDescRow.desc.name );
+                if( nv != null ){
+                    value = nv;
+                }
+                else{
+                    value = propColumn.propColumn.bean[propertyDescRow.desc.name];
+                }
+            }
+        }
+        ]]></fx:Script>
+    <fx:Binding source="propColumn.propColumn.bean" destination="rfrValue"/>
+    <fx:Binding source="propertyDescRow.desc.name" destination="rfrValue"/>
+    <s:TextInput width="100%" height="100%" text="@{value}" id="textInput"/>
+</s:GridItemEditor>

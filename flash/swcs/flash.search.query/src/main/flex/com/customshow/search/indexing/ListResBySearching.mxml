@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 3/23/2016.
+-->
+<rpc:RpcGrid xmlns:fx="http://ns.adobe.com/mxml/2009"
+             xmlns:rpc="com.flashflexpro.as3lib.rpc.*"
+             xmlns:ap="org.apache.flex.collections.*"
+             xmlns:data="com.flashflexpro.as3lib.data.*"
+             sortColDesc="true">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.data.GridColumn;
+        import com.flashflexpro.as3lib.data.PropertyDesc;
+        import com.flashflexpro.as3lib.utils.RootContextModule;
+
+        import mx.collections.IList;
+
+        [Bindable]
+        public var selectedResItem:ResourceLibraryItem;
+
+        [Bindable]
+        public var queryStr:String = "{\n" + "  \n" + "  \"query\": {\n" + "    \"match_all\": {}\n" + "    \n" + "  },\n" +
+                "  \"size\": 20\n" + "}";
+
+        override public function reloadGrid():void{
+            super.reloadGrid();
+            selectedResItem = null;
+        }
+
+        override public function loadMore():Boolean{
+            if( rpcLoadGrid != null ){
+                return false;
+            }
+
+            rpcLoadGrid = new SearchQueryService( context ).queryByString( onLoaded, onError, queryStr );
+            rpcLoadGrid.callRemote();
+            return true;
+        }
+
+        public function get lastResult():IList{
+            return lastQueryResult as IList;
+        }
+
+
+        [Bindable(event="contextChanged")]
+        public function get contextUpload():RootContextSearchRes{
+            return context as RootContextSearchRes;
+        }
+
+        override public function onLoaded( rslt:Object ):Boolean{
+            var rt:Boolean = super.onLoaded( rslt );
+            if( rslt is IList ){
+                rows.addAll( rslt as IList );
+            }
+            return rt;
+        }
+
+        private var _uploadDateFields:Array;
+
+        override public function set context( value:RootContextModule ):void{
+            if( value == context ){
+                return;
+            }
+            super.context = value;
+
+            var colProps:Vector.<PropertyDesc> = ResourceLibraryItem.allProperties;
+            const len:int = colProps.length;
+            for( var j:int = 0; j < len; j ++ ){
+                var desc:PropertyDesc = colProps[j] as PropertyDesc;
+                var column:GridColumn = new GridColumn();
+                column.label = desc.name;
+
+                column.dataField = desc.name;
+                columns.addItem( column );
+            }
+        }
+
+        protected function getCellLabelDate( row:ResourceLibraryItem, col:GridColumn ):String{
+            var rt:Date = new Date();
+            rt.setTime( row[col.dataField] );
+            return rt.toLocaleString()
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+        <ap:ArrayList id="columns"/>
+    </fx:Declarations>
+    <!--<fx:Binding source="uploadTimeTo" destination="rfrReloadGrid"/>-->
+</rpc:RpcGrid>

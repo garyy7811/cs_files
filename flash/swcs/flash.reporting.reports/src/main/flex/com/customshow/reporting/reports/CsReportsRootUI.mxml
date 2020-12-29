@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 5/28/2015.
+-->
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+                   xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:reports="com.customshow.reporting.reports.*"
+                   borderVisible="false" backgroundColor="#3f3f3f" enabled="{reportRoot.groupIdNameLst.length>0}">
+
+    <fx:Script><![CDATA[
+        [Bindable]
+        public var reportRoot:CSNvReportingConsole;
+
+        [Bindable]
+        private var _selectableFrom:Object;
+
+        [Bindable]
+        private var _selectableTo:Object;
+
+        private static const MAX_RANGE:Number = 366 * 24 * 3600 * 1000;
+
+        private function set refreshSelectable( v:* ):void{
+            if( reportRoot.dateTo == null ){
+                reportRoot.dateTo = new Date();
+            }
+            if( reportRoot.dateFrom == null ){
+                reportRoot.dateFrom = new Date( reportRoot.dateTo.getTime() - MAX_RANGE );
+            }
+
+            if( reportRoot.dateFrom != null && reportRoot.dateTo != null ){
+                var dtEnd:Date = null;
+                _selectableTo = {rangeStart: reportRoot.dateFrom, rangeEnd: dtEnd};
+
+                var dtStart:Date = null;
+                _selectableFrom = {rangeStart: dtStart, rangeEnd: reportRoot.dateTo};
+
+            }
+        }
+        ]]></fx:Script>
+    <fx:Binding source="reportRoot.dateFrom" destination="refreshSelectable"/>
+    <fx:Binding source="reportRoot.dateTo" destination="refreshSelectable"/>
+    <s:Group enabled="{!reportRoot.loadingAll}" width="100%" height="100%">
+        <s:layout>
+            <s:VerticalLayout/>
+        </s:layout>
+        <s:HGroup width="100%" verticalAlign="middle">
+            <s:TabBar id="viewMenu" selectedIndex="@{reportRoot.selectedReportIndex}">
+                <s:dataProvider>
+                    <s:ArrayCollection source="[ 'Viewing', 'Content']"/>
+                </s:dataProvider>
+            </s:TabBar>
+            <s:Spacer width="100%"/>
+            <reports:CsReportsRootUIGroupSelector rootApp="{reportRoot}" color="white" cornerRadius="0"
+                                                  contentBackgroundColor="#5d5d5d" chromeColor="#5d5d5d"/>
+            <s:Label text="Date Range" color="white"/>
+            <s:DropDownList selectedIndex="@{reportRoot.dateRangeIndex}" width="130" color="white"
+                            contentBackgroundColor="#5d5d5d" chromeColor="#5d5d5d" cornerRadius="0">
+                <s:dataProvider>
+                    <s:ArrayList>
+                        <fx:String>Last Week</fx:String>
+                        <fx:String>Last Month</fx:String>
+                        <fx:String>Last Year</fx:String>
+                        <fx:String>Last 7 days</fx:String>
+                        <fx:String>Last 30 days</fx:String>
+                        <fx:String>Custom</fx:String>
+                    </s:ArrayList>
+                </s:dataProvider>
+            </s:DropDownList>
+
+            <s:Spacer width="8"/>
+            <s:Group click="reportRoot.dateRangeMove(false);" id="preRange" enabled="{reportRoot.context.rpcOnAir.length==0}">
+                <s:Path data="M 7.0 3.5 L 0.0 0.0 L 0.0 7.0 L 7.0 3.5" scaleX="-1.5" scaleY="1.5">
+                    <s:fill>
+                        <s:SolidColor color="#adadad"/>
+                    </s:fill>
+                </s:Path>
+            </s:Group>
+            <mx:DateField selectedDate="@{reportRoot.dateFrom}" selectableRange="{_selectableFrom}" chromeColor="#5d5d5d"
+                          contentBackgroundColor="#5d5d5d" color="white" change="reportRoot.dateRangeIndex=5;"/>
+            <s:Label text=" to " color="white"/>
+            <mx:DateField selectedDate="@{reportRoot.dateTo}" selectableRange="{_selectableTo}" chromeColor="#5d5d5d"
+                          contentBackgroundColor="#5d5d5d" color="white" change="reportRoot.dateRangeIndex=5;"/>
+
+            <s:Group click="reportRoot.dateRangeMove(true); " id="nextRange" enabled="{reportRoot.context.rpcOnAir.length==0}">
+                <s:Path data="M 7.0 3.5 L 0.0 0.0 L 0.0 7.0 L 7.0 3.5" scaleX="1.5" scaleY="1.5">
+                    <s:fill>
+                        <s:SolidColor color="#adadad"/>
+                    </s:fill>
+                </s:Path>
+            </s:Group>
+        </s:HGroup>
+        <s:Group width="100%" height="100%">
+            <reports:CsSlideShowSessionStatsUI width="100%" height="100%" rootApp="{reportRoot}"
+                                               includeInLayout="{reportRoot.showSessionStatsModel.visible}" visible="{reportRoot.showSessionStatsModel.visible}"/>
+            <reports:CsSlideViewStatsUI width="100%" height="100%" rootApp="{reportRoot}"
+                                        includeInLayout="{reportRoot.slideViewStatsModel.visible}" visible="{reportRoot.slideViewStatsModel.visible}"/>
+            <!--<reports:CsUserActsStatsUI width="100%" height="100%"
+                                       includeInLayout="{rootApp.userActsStatsModel.visible}" visible="{rootApp.userActsStatsModel.visible}"/>-->
+        </s:Group>
+    </s:Group>
+    <s:BorderContainer width="100%" height="100%" visible="{reportRoot.loadingAll}" backgroundColor="#ffffff" alpha="0.5">
+        <s:layout>
+            <s:VerticalLayout verticalAlign="middle" horizontalAlign="center" paddingLeft="120" paddingRight="120"/>
+        </s:layout>
+        <s:BorderContainer minWidth="640">
+            <mx:ProgressBar mode="manual" label="Preparing for export ..." id="progressBar" width="100%" height="100%"
+                            minimum="0" maximum="{reportRoot.showSessionStatsModel.lastQueryResult.rNumFound}"/>
+        </s:BorderContainer>
+    </s:BorderContainer>
+    <fx:Script><![CDATA[
+        private function set rfrProgress( v:* ):void{
+            progressBar.setProgress( reportRoot.showSessionStatsModel.rows.length, reportRoot.showSessionStatsModel.lastQueryResult.rNumFound );
+        }
+        ]]></fx:Script>
+    <fx:Binding source="reportRoot.showSessionStatsModel.rows.length" destination="rfrProgress"/>
+</s:BorderContainer>

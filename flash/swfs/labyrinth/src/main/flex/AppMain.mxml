@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:win="com.flashflexpro.as3lib.win.*" initialize="onInit();" xmlns:local="*"
+               enterFrame="rootApp.callInNext.onEnterFrame();" xmlns:utils="com.flashflexpro.as3lib.utils.*"
+               xmlns:labyrinth="com.customshow.configPerClient.*">
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+
+        s|Application {
+            color: white;
+            backgroundColor: #444444;
+        }
+
+        s|TextInput {
+            color: white;
+            contentBackgroundColor: #444444;
+        }
+
+        s|Label {
+            color: white;
+            /*backgroundColor: black;*/
+        }
+
+        s|Button {
+            color: white;
+            chromeColor: #444444;
+        }
+
+        s|List {
+            color: white;
+            alternatingItemColors: #444444;
+        }
+
+        s|DataGrid {
+            color: white;
+            contentBackgroundColor: #666666;
+            alternatingRowColors: #444444;
+            rollOverColor: undefined;
+            caretColor: undefined;
+            selectionColor: undefined;
+        }
+
+    </fx:Style>
+    <labyrinth:UILabyrinthEncodingConfig id="uiLabyrinthEncodingConfig" width="100%" height="100%"
+                                         model="{labyrinthEncodingConfig}"/>
+    <fx:Declarations>
+        <local:AppCompiledConfig id="compiledConfig"/>
+        <labyrinth:LabyrinthEncodingConfig id="labyrinthEncodingConfig">
+            <labyrinth:context>
+                <utils:RootContextApp id="rootApp" restUrl="{compiledConfig.apiUrl}"
+                                      buildStr="{compiledConfig.buildStr}">
+                    <utils:callInNext>
+                        <utils:CallOnceInNextFrame/>
+                    </utils:callInNext>
+                    <utils:pressedKeys>
+                        <s:ArrayList/>
+                    </utils:pressedKeys>
+                    <utils:rpcOnAir>
+                        <s:ArrayList/>
+                    </utils:rpcOnAir>
+                    <utils:rpcWaitQue>
+                        <s:ArrayList/>
+                    </utils:rpcWaitQue>
+                </utils:RootContextApp>
+            </labyrinth:context>
+            <labyrinth:tbPanelModel>
+                <win:TBPanel context="{rootApp}"/>
+            </labyrinth:tbPanelModel>
+
+        </labyrinth:LabyrinthEncodingConfig>
+    </fx:Declarations>
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.rpc.RpcSpringMvcPost;
+        import com.flashflexpro.as3lib.win.TBPanel;
+
+        protected function onInit():void{
+            rootApp.stage = systemManager.stage;
+            rootApp.appInit();
+        }
+
+        public function initializeClientConfig( csSessionId:String, clientId:String, isLambda:Boolean = true ):TBPanel{
+            rootApp.urlExtra = csSessionId;
+            rootApp.serverHandleType = isLambda ? RpcSpringMvcPost.SERVER_TYPE_AWS_API_GATEWAY_JSON :
+                    RpcSpringMvcPost.SERVER_TYPE_SERVLET_WITH_PATHS;
+            labyrinthEncodingConfig.clientId = clientId;
+            rootApp.callInNext.putIn( labyrinthEncodingConfig.query );
+            return labyrinthEncodingConfig.tbPanelModel;
+        }
+        ]]></fx:Script>
+</s:Application>

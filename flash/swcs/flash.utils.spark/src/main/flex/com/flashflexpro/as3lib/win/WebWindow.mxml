@@ -1,0 +1,136 @@
+<?xml version="1.0"?>
+<win:WebWindowStatus xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+                     xmlns:spark="com.flashflexpro.as3lib.spark.*"
+                     implements="com.flashflexpro.as3lib.IByModel"
+                     mouseDown="onMousedown();" elementRemove="onElementRemove( event );"
+                     dragEnter="moveToTop();" xmlns:win="com.flashflexpro.as3lib.win.*"
+                     mouseEnabled="{model.context.dragging.model!=model}">
+    <fx:Metadata>
+        [Event(name="close", type="mx.events.CloseEvent")]
+    </fx:Metadata>
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.IByModel;
+        import com.flashflexpro.as3lib.IWithContext;
+        import com.flashflexpro.as3lib.utils.CtxDragSource;
+        import com.flashflexpro.as3lib.utils.ExecutableMenuItem;
+        import com.flashflexpro.as3lib.utils.ExecutableMenuListing;
+
+
+        import spark.events.ElementExistenceEvent;
+
+        protected var _model:IWithContext;
+
+        [Bindable(event="modelChanged")]
+        public function get model():IWithContext{
+            return _model;
+        }
+
+        public function set model( value:IWithContext ):void{
+            if( value != _model ){
+                _model = value;
+                dispatchEvent( new Event( "modelChanged" ) );
+            }
+        }
+
+        protected function onMenu():void{
+            var dragOut:ExecutableMenuItem = new ExecutableMenuItem();
+            dragOut.label = "Click or Drag Content Out ...";
+            dragOut.toolTip =
+                    "Click to pop out or Drag the content of this window out and drop into somewhere else ...";
+            dragOut.dragSource = new CtxDragSource();
+            dragOut.dragSource.model = model;
+            if( winContainerDividing != null && winContainerDividing.rootDW.floatWindowHook.floatingWindows!= null ){
+                dragOut.toExe = onPopup;
+            }
+            model.context.rootApp.setMenuOperations( new ExecutableMenuListing( [dragOut] ) );
+        }
+
+        private function onPopup():void{
+            var oldP:Point = localToGlobal( new Point() );
+
+            percentWidth = NaN;
+            percentHeight = NaN;
+
+            winContainerDividing.rootDW.floatWindowHook.floatingWindows.addWin( model );
+
+            var newP:Point = localToGlobal( new Point() );
+            x += ( oldP.x - newP.x );
+            y += ( oldP.y - newP.y );
+
+            modelWin.setStatus( FDWindow.RESIZED );
+        }
+
+        public function onCloseButtonClicked():void{
+            if( winContainerFloating != null ){
+                winContainerFloating.model.removeWin( model );
+            }
+            else if( winContainerDividing != null && winContainerDividing.model != null ){
+                winContainerDividing.model.removeSelf();
+            }
+        }
+
+
+        private function onMousedown():void{
+            if( winContainerFloating != null ){
+                winContainerFloating.model.swapToFront( model )
+            }
+        }
+
+        public function moveToTop():void{
+            if( winContainerFloating != null ){
+                winContainerFloating.model.swapToFront( model );
+            }
+        }
+
+        private function onElementRemove( event:ElementExistenceEvent ):void{
+            var c:IByModel = event.element as IByModel;
+            if( c != null && c.model == model ){
+                onCloseButtonClicked();
+            }
+        }
+        ]]></fx:Script>
+    <win:titleGroupContent>
+        <spark:MoreOptionsButton click="onMenu();"/>
+        <s:Label maxDisplayedLines="1" textAlign="start" fontWeight="bold" width="100%"
+                 id="overrideLabel" text="{modelWin.title}"/>
+        <s:Button width="15" height="15" id="miniButton" click="onMini();"
+                  skinClass="com.flashflexpro.as3lib.win.WebWindowMinimizeButtonSkin" toolTip="minimize this window"
+                  includeInLayout="{winContainerFloating!=null}" visible="{winContainerFloating!=null}"/>
+        <s:ToggleButton width="15" height="15" id="maxButton" click="onMax();"
+                        toolTip="Maximize"
+                        selected="{modelWin.status == FDWindow.MAXED}"
+                        enabled="{modelWin.status == FDWindow.RESIZED}"
+                        includeInLayout="{winContainerFloating!=null}" visible="{winContainerFloating!=null}"/>
+        <s:Spacer width="2" includeInLayout="{winContainerFloating!=null}" visible="{winContainerFloating!=null}"/>
+        <s:Button width="15" height="15" id="closeButton" click="onCloseButtonClicked();"
+                  skinClass="spark.skins.spark.TitleWindowCloseButtonSkin" toolTip="close this window"/>
+    </win:titleGroupContent>
+    <win:titleGroupLayout>
+        <s:HorizontalLayout verticalAlign="middle" paddingLeft="3" paddingRight="3" gap="2"/>
+    </win:titleGroupLayout>
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.utils.RootContextApp;
+
+        private function set rfrShowCloseBtn( ignoreVar:* ):void{
+            RootContextApp.inst.callInNext.putIn( refreshShowCloseBtn );
+        }
+
+        private function refreshShowCloseBtn():void{
+            if( closeButton == null || modelWin == null ){
+                return;
+            }
+            if( winContainerDividing != null && winContainerDividing.model != null ){
+                if( ! ( winContainerDividing.model.parent is Dividable ) ){
+                    closeButton.visible = false;
+                    closeButton.includeInLayout = false;
+                    return;
+                }
+            }
+            closeButton.visible = modelWin.showCloseButton;
+            closeButton.includeInLayout = modelWin.showCloseButton;
+        }
+        ]]></fx:Script>
+    <fx:Binding source="winContainerDividing.model.parent" destination="rfrShowCloseBtn"/>
+    <fx:Binding source="modelWin.showCloseButton" destination="rfrShowCloseBtn"/>
+    <fx:Binding source="closeButton" destination="rfrShowCloseBtn"/>
+</win:WebWindowStatus>

@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 3/28/2016.
+-->
+<win:WebWindow xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:win="com.flashflexpro.as3lib.win.*">
+    <fx:Script><![CDATA[
+        import com.customshow.configPerClient.TranscodeConfigFormatGrid;
+        import com.customshow.videotranscoding.ListTranscoding;
+        import com.flashflexpro.as3lib.utils.RootContextApp;
+        import com.flashflexpro.as3lib.win.TBPanelAlert;
+
+        import mx.events.CloseEvent;
+
+        import spark.components.Alert;
+
+        [Bindable(event="modelChanged")]
+        public function get lstTranscoding():ListTranscoding{
+            return model as ListTranscoding;
+        }
+
+        private function set rfrRunAgain( ignoreVar:* ):void{
+            RootContextApp.inst.callInNext.putIn( refreshRunAgain );
+        }
+
+        private function refreshRunAgain():void{
+            enabled = ( lstTranscoding.runAgainRpc == null );
+            if( lstTranscoding.runAgainRslt != null ){
+
+                if( lstTranscoding.runAgainRpcError != null ){
+                    tbPanel.alert =
+                            new TBPanelAlert( lstTranscoding.runAgainRpcError, "Error", Alert.OK, false, callReloadAfterRpc );
+                }
+                else if( lstTranscoding.runAgainRslt.status == TranscodeConfigFormatGrid.STATUS_error ){
+                    tbPanel.alert =
+                            new TBPanelAlert( lstTranscoding.runAgainRslt.errorMsg, "Error", Alert.OK, false, callReloadAfterRpc );
+                }
+                else{
+                    tbPanel.alert =
+                            new TBPanelAlert( lstTranscoding.runAgainRslt.status, "Submitted", Alert.OK, false, callReloadAfterRpc );
+                }
+            }
+        }
+
+        private function callReloadAfterRpc( ev:CloseEvent ):void{
+            lstTranscoding.reloadGrid();
+        }
+        ]]></fx:Script>
+
+    <fx:Binding source="lstTranscoding.runAgainRpc" destination="rfrRunAgain"/>
+    <fx:Binding source="lstTranscoding.runAgainRslt" destination="rfrRunAgain"/>
+    <win:botleGroupContent>
+        <s:Label
+                text="{lstTranscoding.lastErrorEvent==null?'':( lstTranscoding.lastErrorEvent.errorID +':'+lstTranscoding.lastErrorEvent.text )}"/>
+    </win:botleGroupContent>
+</win:WebWindow>

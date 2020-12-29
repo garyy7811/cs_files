@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<rs:RpcSpringMVC xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:rs="com.flashflexpro.as3lib.rpc.*">
+    <fx:Script><![CDATA[
+        import mx.utils.Base64Encoder;
+
+        public var serverHandleType:uint = 0;
+
+        public static const SERVER_TYPE_SERVLET_WITH_PATHS:uint = 1;
+        public static const SERVER_TYPE_AWS_API_GATEWAY_JSON:uint = 2;
+
+        override protected function getRequestData():Object{
+            var ba:ByteArray = new ByteArray();
+            ba.writeObject( args );
+
+            if( serverHandleType == SERVER_TYPE_AWS_API_GATEWAY_JSON ){
+                var cdr:Base64Encoder = new Base64Encoder();
+                cdr.insertNewLines = false;
+                cdr.encodeBytes( ba );
+                var baStr:String = cdr.toString();
+                return baStr;
+            }
+
+            return ba;
+        }
+
+        override public function callRemote():Boolean{
+            if( model != null && serverHandleType == 0 ){
+                serverHandleType = model.serverHandleType;
+            }
+            if( serverHandleType == SERVER_TYPE_AWS_API_GATEWAY_JSON ){
+                requestContentType = REQUEST_CONTENT_TYPE_TEXT;
+                responseDataFormat = URLLoaderDataFormat.TEXT;
+            }
+            return super.callRemote();
+        }
+
+        ]]></fx:Script>
+</rs:RpcSpringMVC>

@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 3/23/2016.
+-->
+<transcoding:ListTranscoding xmlns:fx="http://ns.adobe.com/mxml/2009" sortColDesc="true"
+                             xmlns:transcoding="com.customshow.videotranscoding.*">
+    <fx:Script><![CDATA[
+        import com.customshow.configPerClient.TranscodeConfigFormatGrid;
+
+        import mx.collections.IList;
+
+        import org.apache.flex.collections.ArrayList;
+
+
+        [Bindable]
+        public var tranStatus:String;
+
+        [Bindable]
+        public var tranLastUpdateTime:Date;
+
+        [Bindable]
+        public var transStatusLst:IList = new ArrayList( TranscodeConfigFormatGrid.STATUS_Array.concat( [] ) );
+
+
+        override public function loadMore():Boolean{
+            if( rpcLoadGrid != null ){
+                return false;
+            }
+            if( tranLastUpdateTime == null ){
+                tranLastUpdateTime = new Date();
+            }
+
+            var timeTo:Date;
+            if( lastQueryResult == null ){
+                var tn:Number = tranLastUpdateTime.getTime();
+                if( sortColDesc ){
+                    tn += 24 * 3600000;
+                }
+                timeTo = new Date( tn );
+            }
+            else if( lastQueryResult.length > 0 ){
+                var tmp:* = sortColDesc ? lastResult.getItemAt( lastResult.length - 1 ) : lastResult.getItemAt( 0 );
+                timeTo = new Date( ( tmp as DynaTableVideoTranscoding).createTime );
+            }
+            else{
+                //all loaded
+                return false;
+            }
+
+            rpcLoadGrid =
+                    new TranscodingService( context ).loadByStatusLastUpdateTime( onLoaded, onError, tranStatus, timeTo,
+                            50, sortColDesc );
+            rpcLoadGrid.callRemote();
+            return true;
+        }
+        ]]></fx:Script>
+    <fx:Binding source="tranStatus" destination="rfrReloadGrid"/>
+    <fx:Binding source="tranLastUpdateTime" destination="rfrReloadGrid"/>
+</transcoding:ListTranscoding>

@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 5/16/2016.
+-->
+<win:WebWindow xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:win="com.flashflexpro.as3lib.win.*"
+               xmlns:encodingconig="com.customshow.configPerClient.*" xmlns:s="library://ns.adobe.com/flex/spark">
+    <fx:Script><![CDATA[
+        import com.customshow.configPerClient.LabyrinthEncodingConfig;
+        import com.flashflexpro.as3lib.IWithContext;
+        import com.flashflexpro.as3lib.win.TBPanelAlert;
+
+        override public function set model( value:IWithContext ):void{
+            super.model = value;
+            if( labyrinthEncodingConfig != null ){
+                labyrinthEncodingConfig.tbPanelModel = tbPanel;
+            }
+        }
+
+        [Bindable(event="modelChanged")]
+        public function get labyrinthEncodingConfig():LabyrinthEncodingConfig{
+            return model as LabyrinthEncodingConfig;
+        }
+
+        ]]></fx:Script>
+    <win:tbPanel>
+        <win:FDWindow title="Client Video Formats in Labyrinth NV Admin Console"/>
+    </win:tbPanel>
+    <win:layout>
+        <s:VerticalLayout/>
+    </win:layout>
+    <s:HGroup>
+        <s:FormItem label="ClientId:">
+            <s:TextInput text="@{labyrinthEncodingConfig.clientId}" enter="labyrinthEncodingConfig.query();"/>
+        </s:FormItem>
+        <s:FormItem label="CsSessionId:">
+            <s:TextInput id="csSessionId" text="@{labyrinthEncodingConfig.csSessionId}" enter="labyrinthEncodingConfig.query();"/>
+        </s:FormItem>
+    </s:HGroup>
+    <s:Line width="100%">
+        <s:stroke>
+            <s:SolidColorStroke color="black" weight="2"/>
+        </s:stroke>
+    </s:Line>
+    <encodingconig:UILabyrinthEncodingConfig model="{model}" width="100%" height="100%"/>
+</win:WebWindow>

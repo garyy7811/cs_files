@@ -1,0 +1,137 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 6/3/2015.
+-->
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+                   xmlns:reports="com.customshow.reporting.reports.*" backgroundColor="#ECECF1">
+    <fx:Script><![CDATA[
+        import mx.binding.utils.ChangeWatcher;
+        import mx.events.CloseEvent;
+
+        import spark.components.Alert;
+
+        [Bindable]
+        public var rootApp:CSNvReportingConsole;
+
+        private function onTxtChange():void{
+            txt.text = rootApp.showSessionStatsModel.trimUserInput( txt.text );
+            rootApp.context.callInNext.putIn( assFilterContains, this, null, 11 );
+        }
+
+        private function assFilterContains():void{
+            rootApp.showSessionStatsModel.userInputStr = txt.text;
+        }
+
+        private var _exportReadyWatcher:ChangeWatcher;
+
+        private function loadAndExport():void{
+            var numFound:Number = rootApp.showSessionStatsModel.lastQueryResult.rNumFound;
+            if( numFound > 2000 ){
+                Alert.show( "exporting limit is 2000 records, please narrow the conditions and try again.",
+                        "Cannot export " + numFound + " records" );
+                return;
+            }
+            _exportReadyWatcher = ChangeWatcher.watch( rootApp, "loadingAll", onAllLoaded );
+            rootApp.showSessionStatsModel.loadAll();
+        }
+
+        private function onAllLoaded( ev:Event ):void{
+            if( ! rootApp.loadingAll ){
+                _exportReadyWatcher.unwatch();
+                _exportReadyWatcher = null;
+                Alert.show( "Save as CSV file?", "SlideShow Session stats report fully loaded.",
+                        Alert.YES | Alert.CANCEL, Sprite( parentApplication ), exportToFile );
+            }
+        }
+
+        private var f:FileReference;
+
+        private function exportToFile( ev:CloseEvent ):void{
+            var colMdl:CsGridColModel;
+            if( ev.detail == Alert.YES ){
+                f = new FileReference();
+                var fileName:String = "SlideShow View Stats" + dateFormatter.format( rootApp.dateFrom ) + "-" +
+                        dateFormatter.format( rootApp.dateTo ) + "-" + rootApp.selectedGroupIdArray.length + " groups";
+                if( rootApp.showSessionStatsModel.userInputStr != null ){
+                    fileName += "-filtered";
+                }
+                f.save( rootApp.showSessionStatsModel.exportCSV(), fileName + ".csv" );
+            }
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+        <s:DateTimeFormatter dateTimePattern="yyyy.MMMM.dd" id="dateFormatter"/>
+    </fx:Declarations>
+    <s:layout>
+        <s:VerticalLayout horizontalAlign="center" paddingTop="8" gap="0" paddingBottom="35" paddingLeft="35"
+                          paddingRight="35"/>
+    </s:layout>
+    <s:Label textAlign="right"
+             text="Displaying SlideShow Views for {rootApp.groupNameAbbr} for {rootApp.timeRangeAbbr} " width="100%"
+             fontSize="14" color="#98989C"/>
+    <reports:CsCollapsibleOverview width="100%">
+        <reports:collapsibleLayout>
+            <s:HorizontalLayout horizontalAlign="center" gap="32" paddingBottom="25"/>
+        </reports:collapsibleLayout>
+        <reports:collapsibleContent>
+            <reports:CsSlideShowSessionStatsUiNumChange footColor="#494B91" titleText="SlideShow Views"
+                                                        value="{rootApp.showSessionStatsModel.totalView}"
+                                                        divPer="{rootApp.showSessionStatsModel.totalViewDivPer}"/>
+            <reports:CsSlideShowSessionStatsUiNumChange footColor="#CC923E" titleText="Unique Viewers"
+                                                        value="{rootApp.showSessionStatsModel.totalUniqView}"
+                                                        divPer="{rootApp.showSessionStatsModel.totalUniqViewDivPer}"/>
+            <reports:CsSlideShowSessionStatsUiNumChange footColor="#8fc2c7" titleText="Average Slides Viewed"
+                                                        value="{rootApp.showSessionStatsModel.totalAvgSlideViewed}"
+                                                        divPer="{rootApp.showSessionStatsModel.totalAvgSlideViewedDivPer}"/>
+            <reports:CsSlideShowSessionStatsUiNumChange footColor="#c06bc0" titleText="Average Time Viewed"
+                                                        value="{rootApp.showSessionStatsModel.totalAvgTimeViewed}"
+                                                        divPer="{rootApp.showSessionStatsModel.totalAvgTimeViewedDivPer}"/>
+        </reports:collapsibleContent>
+    </reports:CsCollapsibleOverview>
+    <s:Line width="100%">
+        <s:stroke>
+            <s:SolidColorStroke color="#adadad" weight="2"/>
+        </s:stroke>
+    </s:Line>
+    <s:Spacer height="8"/>
+    <s:Label textAlign="left" text="Details" fontSize="24" width="100%" color="#8E98AC"/>
+    <s:HGroup width="100%" verticalAlign="middle">
+        <s:Group width="{dg.maxFilterColRight}" clipAndEnableScrolling="true">
+            <s:Rect width="100%" top="{txt.height/2}" bottom="-5">
+                <s:stroke>
+                    <s:SolidColorStroke color="#c8c8c8" weight="2"/>
+                </s:stroke>
+            </s:Rect>
+            <s:HGroup width="100%" horizontalAlign="center" paddingBottom="3" paddingTop="3" verticalAlign="middle">
+                <s:Group>
+                    <s:TextInput change="onTxtChange();" id="txt" minWidth="{Math.max( dg.maxFilterColRight/2.31, 360)}"
+                                 enabled="{rootApp.selectedGroupIdArray.length>0}"
+                                 focusIn="searchIcon.visible = false;"
+                                 focusOut="if(txt.text.length==0)searchIcon.visible=true"
+                                 contentBackgroundColor="#f5f9fb" contentBackgroundAlpha="1" borderVisible="false"
+                                 prompt="     Enter your search here"
+                    />
+                    <s:Image source="@Embed(source='/search.png')" id="searchIcon" x="{searchIcon.y}"
+                             y="{ ( txt.height-searchIcon.height)/2 }"/><!--
+                    <s:HGroup width="100%" height="100%" verticalAlign="middle">
+                        <s:Spacer width="100%"/>
+                        <s:Label text="Help" textDecoration="underline" backgroundColor="white"
+                                 click="flash.net.navigateToURL(new URLRequest('https://help.cs.cc/hc/en-us/articles/115002174406'), '_blank');"/>
+                    </s:HGroup>-->
+                </s:Group>
+            </s:HGroup>
+        </s:Group>
+        <s:Spacer width="100%"/>
+        <s:Label text="Displaying {rootApp.showSessionStatsModel.lastQueryResult.rNumFound} SlideShows" color="#8E98AC"
+                 toolTip="{rootApp.showSessionStatsModel.rows.length} loaded"/>
+    </s:HGroup>
+    <reports:CsSlideShowSessionStatsUIGrid id="dg" width="100%" height="100%" model="{rootApp.showSessionStatsModel}"
+                                           borderColor="#E6E6E6"/>
+    <s:HGroup width="100%" horizontalAlign="right" paddingTop="6">
+        <s:Button label="Download Data (CSV)" click="loadAndExport();" fontWeight="bold" color="#3684a3" fontSize="11"
+                  cornerRadius="0"
+                  icon="@Embed(source='/download.png')" iconPlacement="left"
+                  enabled="{rootApp.showSessionStatsModel.rpcLoadGrid == null
+                  &amp;&amp;rootApp.showSessionStatsModel.lastQueryResult.rNumFound>0}"/>
+    </s:HGroup>
+</s:BorderContainer>

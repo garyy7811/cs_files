@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 7/1/2015.
+-->
+<reports:CsGrid xmlns:fx="http://ns.adobe.com/mxml/2009"
+                xmlns:s="library://ns.adobe.com/flex/spark"
+                xmlns:reports="com.customshow.reporting.reports.*"
+                rowHeight="81">
+
+    <fx:Script><![CDATA[
+        import spark.components.gridClasses.GridColumn;
+
+        [Bindable]
+        public static var thumbNameUrlPath:String;
+
+        [Bindable]
+        public var maxFilterColRight:uint;
+
+        private var _colToMaxRight:Dictionary = new Dictionary();
+
+        public function addMaxFilterColRight( col:CsGridColModel, n:uint ):void{
+            _colToMaxRight[ col.id ] = n;
+            model.context.callInNext.putIn( refreshMaxFilterColRight );
+        }
+
+        private function refreshMaxFilterColRight():void{
+
+            var tmp:uint = 0;
+            for( var s:String in _colToMaxRight ){
+                tmp += _colToMaxRight[ s ];
+                tmp += 1;
+            }
+            maxFilterColRight = tmp;
+        }
+
+        override protected function getGridCol( c:CsGridColModel ):GridColumn{
+            var rt:GridColumn = super.getGridCol( c );
+            rt.headerRenderer = new ClassFactory( CsSlideViewStatsUIGridHeadRenderer );
+            var slideViewStatsModel:CsSlideViewStatsModel = CsSlideViewStatsModel( model );
+            if( c == slideViewStatsModel.thumbNail ){
+                rt.itemRenderer = new ClassFactory( ThumbnailImage );
+            }
+            else if( c == slideViewStatsModel.ownerNameAndEmail ){
+                rt.itemRenderer = new ClassFactory( FirstLastNameAndEmail );
+            }
+            else{
+                rt.itemRenderer = new ClassFactory( SlideViewStatsText );
+            }
+            return rt;
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+        <fx:Component className="ThumbnailImage">
+            <s:GridItemRenderer>
+                <fx:Script><![CDATA[
+                    override public function validateNow():void{
+                        super.validateNow();
+                        if( data != null && data.thumbNail != null ){
+                            image.source = CsSlideViewStatsUIGrid.thumbNameUrlPath + '/' + data.thumbNail;
+                            image.visible = true;
+                        }
+                        else{
+                            image.source = null;
+                            image.visible = false;
+                        }
+                    }
+                    ]]></fx:Script>
+                <s:layout>
+                    <s:HorizontalLayout horizontalAlign="center" verticalAlign="middle"/>
+                </s:layout>
+                <s:Image id="image" width="{image.height*16/9}" height="100%" backgroundColor="#000000"/>
+            </s:GridItemRenderer>
+        </fx:Component>
+        <fx:Component className="FirstLastNameAndEmail">
+            <s:GridItemRenderer>
+                <fx:Script><![CDATA[
+                    override public function validateNow():void{
+                        super.validateNow();
+                        if( data != null ){
+                            upLabel.text = data.ownerFirstName + " " + data.ownerLastName;
+                            downLabel.text = data.ownerEmail;
+                        }
+                    }
+                    ]]></fx:Script>
+                <s:layout>
+                    <s:VerticalLayout horizontalAlign="center" verticalAlign="middle" gap="0"/>
+                </s:layout>
+                <s:Label id="upLabel" width="100%" height="100%" textAlign="center" verticalAlign="middle" maxDisplayedLines="1"/>
+                <s:Label id="downLabel" width="100%" height="100%" textAlign="center" verticalAlign="middle" maxDisplayedLines="1"/>
+            </s:GridItemRenderer>
+        </fx:Component>
+        <fx:Component className="SlideViewStatsText">
+            <s:GridItemRenderer>
+                <s:Label text="{label}" width="100%" height="100%" textAlign="center" verticalAlign="middle"/>
+            </s:GridItemRenderer>
+        </fx:Component>
+    </fx:Declarations>
+</reports:CsGrid>

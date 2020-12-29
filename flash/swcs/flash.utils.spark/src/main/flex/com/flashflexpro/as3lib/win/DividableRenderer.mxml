@@ -1,0 +1,146 @@
+<?xml version="1.0"?>
+<!--
+  Created by yanggang on 5/7/2016.
+-->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+         addedToStage="rfr = null" elementRemove="onUIRemoved( event );"
+         dragOver="onDragOverEnterDropExit( event );"
+         dragEnter="onDragOverEnterDropExit( event );"
+         dragDrop="onDragOverEnterDropExit( event );"
+         dragExit="onDragOverEnterDropExit( event );">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.IByModel;
+        import com.flashflexpro.as3lib.utils.RootContextApp;
+
+        import mx.core.UIComponent;
+
+        import spark.events.ElementExistenceEvent;
+
+        private var _invalidating:Boolean = true;
+
+        private function onUIRemoved( ev:ElementExistenceEvent ):void{
+            if( ev.element != dragOver && stage != null && ! _invalidating && div != null && div.model != null && div.model.child1 == null && div.model.child2 == null ){
+                div.model.removeSelf();
+            }
+        }
+
+
+        private function set rfr( ig:* ):void{
+            RootContextApp.inst.callInNext.putIn( refresh );
+            _invalidating = true;
+        }
+
+
+        private function refresh():void{
+            if( div == null || div.model == null || div.model.sModel == null || stage == null ){
+                return;
+            }
+            var targetUI:IByModel = div.rootDW.floatWindowHook.getUiByModel( div.model.sModel );// = div.model.sgetUiByModel();
+
+            if( numElements > 0 && getElementAt( 0 ) != targetUI ){
+                CONFIG::debugging{
+                    if( numElements > 1 ){
+                        throw new Error( "impossible !" );
+                    }
+                    if( (getElementAt( 0 ) as IByModel ).model == targetUI.model ){
+                        throw new Error( this + ".rfrUI " );
+                    }//debug
+                }
+                removeElementAt( 0 );
+            }
+            var cv:UIComponent = targetUI as UIComponent;
+            cv.percentWidth = 100;
+            cv.percentHeight = 100;
+            cv.x = 0;
+            cv.y = 0;
+            if( numElements == 0 ){
+                addElement( cv );
+            }
+            cv.owner = div;
+            setFocus();
+            _invalidating = false;
+        }
+
+        [Bindable]
+        public var div:DividableWidget;
+        ]]></fx:Script>
+    <fx:Binding source="div.model.sModel" destination="rfr"/>
+    <fx:Declarations>
+        <s:Rect id="dragOver">
+            <fx:Script><![CDATA[
+                import com.flashflexpro.as3lib.IWithContext;
+
+                import mx.events.DragEvent;
+                import mx.managers.DragManager;
+
+                private function onDragOverEnterDropExit( ev:DragEvent ):void{
+                    dragOver.visible = false;
+
+                    if( ! _invalidating ){
+                        var dragging:IWithContext = div.rootDW.floatWindowHook.getDraggingModel( ev );
+                        if( dragging != null && dragging != div.model.sModel ){
+                            DragManager.showFeedback( DragManager.MOVE );
+                            DragManager.acceptDragDrop( ev.target as UIComponent );
+
+                            if( ev.type != DragEvent.DRAG_EXIT ){
+                                var isVer:Boolean;
+                                var newInFront:Boolean;
+                                var a:Number = Math.atan2( mouseY - height / 2, mouseX - width / 2 );
+                                if( Math.abs( a ) < Math.PI / 4 ){
+                                    dragOver.top = 0;
+                                    dragOver.bottom = 0;
+                                    dragOver.right = 0;
+                                    dragOver.left = width / 2;
+                                    isVer = false;
+                                    newInFront = false;
+                                }
+                                else if( Math.abs( a ) > 3 * Math.PI / 4 ){
+                                    dragOver.top = 0;
+                                    dragOver.bottom = 0;
+                                    dragOver.right = width / 2;
+                                    dragOver.left = 0;
+                                    isVer = false;
+                                    newInFront = true;
+                                }
+                                else if( a > Math.PI / 4 && a < 3 * Math.PI / 4 ){
+                                    dragOver.top = height / 2;
+                                    dragOver.bottom = 0;
+                                    dragOver.right = 0;
+                                    dragOver.left = 0;
+                                    isVer = true;
+                                    newInFront = false;
+                                }
+                                else if( a < - Math.PI / 4 && a > - 3 * Math.PI / 4 ){
+                                    dragOver.top = 0;
+                                    dragOver.bottom = height / 2;
+                                    dragOver.right = 0;
+                                    dragOver.left = 0;
+                                    isVer = true;
+                                    newInFront = true;
+                                }
+
+                                if( ev.type == DragEvent.DRAG_DROP ){
+                                    div.model.divide( dragging, isVer, newInFront );
+                                }
+                                else{
+                                    dragOver.visible = true;
+                                }
+                            }
+                        }
+                    }
+
+                    if( dragOver.visible && getElementAt( numElements - 1 ) != dragOver ){
+                        addElement( dragOver );
+                    }
+                    else if( ! dragOver.visible && getElementAt( numElements - 1 ) == dragOver ){
+                        DragManager.showFeedback( DragManager.NONE );
+                        removeElement( dragOver );
+                    }
+                }
+                ]]></fx:Script>
+            <s:fill>
+                <s:SolidColor alpha="0.5" color="0x888888"/>
+            </s:fill>
+        </s:Rect>
+    </fx:Declarations>
+</s:Group>

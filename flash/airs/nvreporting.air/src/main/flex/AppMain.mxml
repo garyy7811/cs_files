@@ -1,0 +1,288 @@
+<?xml version="1.0"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009"
+                       xmlns:s="library://ns.adobe.com/flex/spark"
+                       xmlns:as3lib="com.flashflexpro.as3lib.*"
+                       xmlns:ap="org.apache.flex.collections.*"
+                       xmlns:local="*" xmlns:reports="com.customshow.reporting.reports.*"
+                       xmlns:utils="com.flashflexpro.as3lib.utils.*" xmlns:mx="library://ns.adobe.com/flex/mx"
+                       xmlns:mxreports="com.customshow.reporting.mxreports.*"
+                       preinitialize="onPreInit();" enterFrame="callOnceInNextFrame.onEnterFrame();">
+    <fx:Script><![CDATA[
+        import com.customshow.reporting.mxreports.CsSlideShowSessionModel;
+        import com.customshow.reporting.reports.CsSlideViewStatsUIGrid;
+        import com.flashflexpro.as3lib.rpc.RpcSpringMvcPost;
+
+        import flash.globalization.DateTimeFormatter;
+
+        /**
+         * restUrl="{compiledConfig.apiUrl}"
+         urlExtra="{compiledConfig.csSessionId}"
+         */
+        protected function onPreInit():void{
+            rootApp.stage = systemManager.stage;
+
+            rootApp.restUrl = compiledConfig.apiUrl;
+            rootApp.urlExtra = compiledConfig.csSessionId;
+            rootApp.serverHandleType =
+                    compiledConfig.rpcCallUseApiGateWay ? RpcSpringMvcPost.SERVER_TYPE_AWS_API_GATEWAY_JSON :
+                            RpcSpringMvcPost.SERVER_TYPE_SERVLET_WITH_PATHS;
+            CsSlideViewStatsUIGrid.thumbNameUrlPath = compiledConfig.thumbNameUrlPath;
+            rootApp.appInit();
+            CONFIG::debugging{
+
+
+                //all groups in production
+                var arr:Array = [[1, "root", 0, 1], [2, "CustomShow", 1, 1], [3, "guest", 1, 1],
+                    [1000000, "Sales Graphics", 1, 1], [1000001, "Sales", 1, 1], [1000002, "Design", 1, 1],
+                    [1000003, "Engineering", 1, 1], [1000004, "DIRECTV", 1, 1], [1000006, "Entertainment Weekly", 1, 1],
+                    [1000007, "New York Magazine", 1, 1], [1000008, "HBO", 1, 1], [1000009, "Nat Geo", 1, 1],
+                    [1000010, "Ad Sales", 1, 1], [1000011, "Vanity Fair", 1, 1], [1000012, "ELLE", 1, 1],
+                    [1000013, "Sales Training", 1, 1], [1000014, "FOX Distribution", 1, 1],
+                    [1000015, "Turner Animation", 1, 1], [1000016, "Teen Vogue", 1, 1],
+                    [1000017, "Outdoor Channel", 1, 1], [1000018, "Bravo", 1, 1], [1000019, "FSN", 1, 1],
+                    [1000020, "NBCU", 1, 1], [1000021, "AETN Ad Sales", 1, 1], [1000022, "AETN Distribution", 1, 1],
+                    [1000023, "Oxygen", 1, 1], [1000024, "USA", 1, 1], [1000025, "Starz", 1, 1],
+                    [1000026, "Big 10 Networks", 1, 1], [1000027, "20th Television", 1, 1],
+                    [1000028, "Fox Cable Networks", 1, 1], [1000029, "NBC RSN", 1, 1], [1000030, "CSG Chicago", 1, 1],
+                    [1000031, "CSG West", 1, 1], [1000032, "CSG Northeast", 1, 1], [1000033, "SELF", 1, 1],
+                    [1000034, "Architectural Digest", 1, 1], [1000035, "Allure", 1, 1], [1000036, "Bon Appétit", 1, 1],
+                    [1000037, "The New Yorker", 1, 1], [1000038, "Condé Nast Traveler", 1, 1],
+                    [1000039, "Esquire Magazine", 1, 1], [1000040, "Good Housekeeping", 1, 1],
+                    [1000041, "Harper's Bazaar", 1, 1], [1000042, "MTVNE Digital", 1, 1], [1000043, "The CW", 1, 1],
+                    [1000044, "Us Weekly", 1, 1], [1000045, "Men's Health", 1, 1], [1000046, "Prevention", 1, 1],
+                    [1000047, "Playboy", 1, 1], [1000048, "Dior", 1, 1], [1000049, "DIRECTV Sales Training", 1, 1],
+                    [1000050, "AMC", 1, 1], [1000051, "WWE", 1, 1], [1000052, "FSOL", 1, 1], [1000053, "Proximo", 1, 1],
+                    [1000054, "We tv", 1, 1], [1000055, "MTVN Digital", 1, 1], [1000056, "FX", 1, 1],
+                    [1000057, "Bloomberg", 1, 1], [1000058, "Luxor", 1, 1], [1000059, "QA Production", 1, 1],
+                    [1000060, "American Express", 1, 1], [1000061, "NBCU Hispanic", 1, 1],
+                    [1000062, "Idea Asylum", 1, 1], [1000063, "Swarovski", 1, 1], [1000064, "AT&T", 1, 1],
+                    [1000065, "Western Union", 1, 1], [1000066, "Brides", 1, 1], [1000067, "Test", 1, 1],
+                    [1000068, "Syfy", 1, 1], [1000069, "Canoe", 1, 1], [1000070, "Demo CS", 1, 1],
+                    [1000071, "L2", 1, 1], [1000072, "Hamilton Robotics", 1, 1], [1000073, "Genworth", 1, 1],
+                    [1000074, "DISH Media Sales", 1, 1], [1000075, "Johnson Publishing", 1, 1],
+                    [1000076, "Univision", 1, 1], [1000077, "Travel and Leisure", 1, 1],
+                    [1000078, "NBC Sports Group", 1, 1], [1000079, "CSG Mid-Atlantic", 1, 1],
+                    [1000080, "WEtv Digital", 1, 1], [1000081, "Town & Country", 1, 1],
+                    [1000082, "Style Network", 1, 1], [1000083, "AMEX Business Insights", 1, 1],
+                    [1000084, "HGTV", 1, 1], [1000085, "Refinery29", 1, 1], [1000086, "IFC", 1, 1],
+                    [1000087, "Sundance", 1, 1], [1000088, "Renee Lewin", 1, 1],
+                    [1000089, "Image Media Productions", 1, 1], [1000090, "CBS Connections", 1, 1],
+                    [1000091, "AMC Affiliates", 1, 1], [1000092, "MORE Magazine", 1, 1], [1000093, "BNY Mellon", 1, 1],
+                    [1000094, "Levy Restaurants", 1, 1], [1000095, "Western Union APAC", 1, 1],
+                    [1000096, "Western Union EU", 1, 1], [1000097, "Western Union MEA", 1, 1],
+                    [1000098, "Western Union LACA", 1, 1], [1000099, "statestreet", 1, 1],
+                    [1000100, "Marie Claire", 1, 1], [1000101, "SES Satellite", 1, 1], [1000102, "CSG Houston", 1, 1],
+                    [1000103, "Legg Mason", 1, 1], [1000104, "NYSE EURONEXT", 1, 1], [1000105, "NBC Stations", 1, 1],
+                    [1000106, "repucom", 1, 1], [1000107, "CSG DC", 1, 1], [1000108, "iVillage", 1, 1],
+                    [1000109, "Sundance Global", 1, 1], [1000110, "Meredith", 1, 1], [1000111, "Fox News", 1, 1],
+                    [1000112, "MTVN", 1, 1], [1000113, "CenturyLink", 1, 1], [1000114, "Nike", 1, 1],
+                    [1000115, "WebMD", 1, 1], [1000116, "Food Network", 1, 1], [1000117, "NBA", 1, 1],
+                    [1000118, "NBCU Entertainment", 1, 1], [1000119, "CBRE", 1, 1], [1000120, "PopSugar", 1, 1],
+                    [1000121, "Loeb & Loeb", 1, 1], [1000122, "Warner Bros TV", 1, 1], [1000123, "CNBC", 1, 1],
+                    [1000124, "Weather Channel", 1, 1], [1000125, "Grotech Ventures", 1, 1], [1000126, "Parade", 1, 1],
+                    [1000127, "CS DEMO", 1, 1], [1000128, "AMC Ad Sales", 1, 1], [1000129, "AMC Outer Offices", 1, 1],
+                    [1000130, "Accent Health", 1, 1], [1000131, "MasterCard Send", 1, 1], [1000132, "PGA", 1, 1],
+                    [1000133, "Wall Street Journal", 1, 1], [1000134, "NY Interconnect", 1, 1],
+                    [1000135, "NBC Research", 1, 1], [1000136, "WU Payments", 1, 1], [1000137, "Marsh", 1, 1],
+                    [1000138, "NBC Sports RSN", 1, 1], [1000139, "Charter Media", 1, 1], [1000140, "Time", 1, 1],
+                    [1000141, "WB Cable Sales", 1, 1], [1000142, "WB Station Sales", 1, 1],
+                    [1000143, "W Magazine", 1, 1], [1000144, "Forbes", 1, 1], [1000145, "NBC News", 1, 1],
+                    [1000146, "Parents", 1, 1], [1000147, "Accuweather", 1, 1], [1000148, "DCI AD SALES", 1, 1],
+                    [1000149, "MoneyGram", 1, 1], [1000150, "Rockport", 1, 1], [1000151, "SJI", 1, 1],
+                    [1000152, "Philips", 1, 1], [1000153, "C2 Research", 1, 1], [1000154, "Turner", 1, 1],
+                    [1000155, "Pappas Macdonnell", 1, 1], [1000156, "CustomShow Chris", 1, 1],
+                    [1000157, "LabCorp", 1, 1], [1000158, "Sigma Prime", 1, 1],
+                    [1000159, "DCI Domestic Distribution", 1, 1], [1000160, "Zapcast Creative", 1, 1],
+                    [1000161, "NeuLion", 1, 1], [1000162, "Estee Lauder", 1, 1], [1000163, "SNY", 1, 1],
+                    [1000164, "Vox Media", 1, 1], [1000165, "WB Digital Sales", 1, 1], [1000166, "Lucas Oil", 1, 1],
+                    [1000167, "Six Flags", 1, 1], [1000168, "Canada", 1, 1], [1000169, "CSN Philadelphia", 1, 1],
+                    [1000170, "CSN MidAtlantic", 1, 1], [1000171, "CSN Northwest", 1, 1],
+                    [1000172, "CSN New England", 1, 1], [1000173, "CSN Chicago", 1, 1], [1000174, "CSN Bay Area", 1, 1],
+                    [1000175, "CSN Houston", 1, 1], [1000176, "GSN", 1, 1], [1000177, "Captivate Network", 1, 1],
+                    [1000178, "MSG", 1, 1], [1000179, "The Hub", 1, 1], [1000180, "Glow Digital Agency", 1, 1],
+                    [1000181, "MC Network", 1, 1], [1000182, "Banker", 1, 1], [1000183, "Mercer", 1, 1],
+                    [1000184, "UP Entertainment", 1, 1], [1000185, "Weight Watchers", 1, 1], [1000186, "Gamut", 1, 1],
+                    [1000187, "MaxPoint", 1, 1], [1000188, "Sunflower Systems", 1, 1], [1000189, "Fullscreen", 1, 1],
+                    [1000190, "AMC Networks", 1, 1], [1000191, "AMC", 1, 1], [1000192, "WE tv", 1, 1],
+                    [1000193, "Sundance", 1, 1], [1000194, "IFC", 1, 1], [1000195, "Outer Offices", 1, 1],
+                    [1000196, "UFC Admin", 1, 1], [1000197, "Viacom", 1, 1], [1000198, "NHL", 1, 1],
+                    [1000199, "Puffingston", 1, 1], [1000200, "McCormack Media", 1, 1], [1000201, "BuzzFeed", 1, 1],
+                    [1000202, "Almac", 1, 1], [1000203, "Westfield Labs", 1, 1], [1000204, "Clear Channel", 1, 1],
+                    [1000205, "Rentlytics", 1, 1], [1000206, "Sigma Group", 1, 1], [1000207, "RSTO", 1, 1],
+                    [1000208, "Griffin Technology", 1, 1], [1000209, "Epicurious", 1, 1],
+                    [1000210, "Icon Interiors", 1, 1], [1000211, "TEC Direct", 1, 1],
+                    [1000212, "AMCN International", 1, 1], [1000213, "InVision", 1, 1], [1000214, "Connexions", 1, 1],
+                    [1000215, "Studio Riboud", 1, 1], [1000216, "Equinox Group", 1, 1],
+                    [1000217, "Student Success", 1, 1], [1000218, "Centerline", 1, 1], [1000219, "IMG", 1, 1],
+                    [1000220, "Vivint", 1, 1], [1000221, "CBS TVD", 1, 1], [1000222, "Okta1", 1, 1],
+                    [1000223, "Okta2", 1, 1], [1000224, "Brand Revolutions", 1, 1],
+                    [1000225, "CBS Sports Network", 1, 1], [1000226, "Northeastern", 1, 1], [1000227, "TBWA", 1, 1],
+                    [1000228, "Gruner + Jahr", 1, 1], [1000229, "Earnest", 1, 1],
+                    [1000230, "Brereton Architects", 1, 1], [1000231, "Flixel Photos", 1, 1], [1000232, "Gains", 1, 1],
+                    [1000233, "Net Communities", 1, 1], [1000234, "Wolters Kluwer", 1, 1], [1000235, "Spotify", 1, 1],
+                    [1000236, "Hall & Partners", 1, 1], [1000237, "Avanti", 1, 1], [1000238, "Dobies HealthCare", 1, 1],
+                    [1000239, "Vantiv", 1, 1], [1000240, "Sunwell", 1, 1], [1000241, "BWP Group", 1, 1],
+                    [1000242, "Force 5", 1, 1], [1000243, "Troika", 1, 1], [1000244, "Digital Team", 1, 1],
+                    [1000245, "ESI", 1, 1], [1000246, "Western Union DE", 1, 1], [1000247, "Esquire Network", 1, 1],
+                    [1000248, "SCORE International", 1, 1], [1000249, "NBC Distribution", 1, 1],
+                    [1000250, "Mentor School", 1, 1], [1000251, "Hothouse", 1, 1], [1000252, "British Gas", 1, 1],
+                    [1000253, "Graycon", 1, 1], [1000254, "Hearst Design Group", 1, 1], [1000255, "Local", 1, 1],
+                    [1000256, "Disabled Users", 1, 1], [1000257, "MBLM", 1, 1], [1000258, "First Insight", 1, 1],
+                    [1000259, "World Surf League", 1, 1], [1000260, "Xaxis", 1, 1], [1000261, "ABC", 1, 1],
+                    [1000262, "Stoltz Group", 1, 1], [1000263, "BBC America", 1, 1], [1000264, "WUBS", 1, 1],
+                    [1000265, "MedMutual", 1, 1], [1000266, "Dr. Oz The Good Life", 1, 1],
+                    [1000267, "Cash Management", 1, 1], [1000268, "Financial Institutions", 1, 1],
+                    [1000269, "Education", 1, 1], [1000270, "NGO", 1, 1], [1000271, "Mass Payments", 1, 1],
+                    [1000272, "IdentityPR", 1, 1], [1000273, "DWTC", 1, 1], [1000274, "Peninsula Hotels", 1, 1],
+                    [1000275, "CRI", 1, 1], [1000276, "Industrial Creative", 1, 1], [1000277, "LPGA", 1, 1],
+                    [1000278, "Starwood Hotels", 1, 1], [1000279, "Bounce TV", 1, 1], [1000280, "SafeStrap", 1, 1],
+                    [1000281, "ScreenVision", 1, 1], [1000282, "Westwood One", 1, 1], [1000283, "Private Sector", 1, 1],
+                    [1000284, "Public Sector", 1, 1], [1000285, "Brokers", 1, 1], [1000286, "Imagewerks", 1, 1],
+                    [1000287, "Laika", 1, 1], [1000288, "SME", 1, 1], [1000289, "Van Wagner", 1, 1],
+                    [1000290, "The Daily Beast", 1, 1], [1000291, "Trickfilm", 1, 1], [1000292, "Pubmatic", 1, 1],
+                    [1000293, "CBS Network", 1, 1], [1000294, "Non-UFC", 1, 1], [1000295, "Televisa", 1, 1],
+                    [1000296, "Ethos3", 1, 1], [1000297, "Nielsen", 1, 1], [1000298, "UFC Users", 1, 1],
+                    [1000299, "Polystar", 1, 1], [1000300, "ToddEvents", 1, 1],
+                    [1000301, "Via Oncology Pathways", 1, 1], [1000302, "C&M – BDM’s", 1, 1],
+                    [1000303, "c5studio", 1, 1], [1000304, "Globoforce", 1, 1], [1000305, "MGM Resorts", 1, 1],
+                    [1000306, "Florida Hospital", 1, 1], [1000307, "Genesis10", 1, 1], [1000308, "Corporate", 1, 1],
+                    [1000309, "Paris", 1, 1], [1000310, "Hong Kong", 1, 1], [1000311, "Shanghai", 1, 1],
+                    [1000312, "Beijing", 1, 1], [1000313, "Tokyo", 1, 1], [1000314, "New York", 1, 1],
+                    [1000315, "Chicago", 1, 1], [1000316, "Beverly Hills", 1, 1], [1000317, "Bangkok", 1, 1],
+                    [1000318, "Manila", 1, 1], [1000319, "Disabled Users", 1, 1],
+                    [1000320, "Magnesium Interactive", 1, 1], [1000321, "Sony Pictures Television", 1, 1],
+                    [1000322, "Bandujo", 1, 1], [1000323, "MS Companies", 1, 1], [1000324, "CareFirst", 1, 1],
+                    [1000325, "Viamedia", 1, 1], [1000326, "Media General", 1, 1], [1000327, "Seven Continents", 1, 1],
+                    [1000328, "Tyba", 1, 1], [1000329, "Graphitiks", 1, 1], [1000330, "Cxense", 1, 1],
+                    [1000331, "Blue Daring", 1, 1], [1000332, "Launchpad NYC", 1, 1], [1000333, "Inactive Users", 1, 1],
+                    [1000334, "Chairvolotti Financial", 1, 1], [1000335, "College Demo", 1, 1],
+                    [1000336, "Shazam", 1, 1], [1000337, "Adspace Networks", 1, 1],
+                    [1000338, "Roadtrek Motorhomes", 1, 1], [1000339, "Tonic Studios", 1, 1], [1000340, "Hulu", 1, 1],
+                    [1000341, "NewsAmerica", 1, 1], [1000342, "McClatchy", 1, 1],
+                    [1000343, "MasterCard Global Marketing", 1, 1], [1000344, "Anthologie", 1, 1],
+                    [1000345, "ContextMedia", 1, 1], [1000346, "Blue Software", 1, 1],
+                    [1000347, "BHGRE Gary Greene", 1, 1], [1000348, "Fletcher Building", 1, 1],
+                    [1000349, "Bahrain EDB", 1, 1], [1000350, "Extreme Holdings", 1, 1],
+                    [1000351, "CBS Interactive", 1, 1], [1000352, "VOUS Staff", 1, 1], [1000353, "Lion NZ", 1, 1],
+                    [1000354, "Major League Baseball", 1, 1], [1000355, "Todd Street", 1, 1], [1000356, "PopTV", 1, 1],
+                    [1000357, "Harman", 1, 1], [1000358, "Bioworld Merchandising", 1, 1],
+                    [1000359, "Team Velocity Marketing", 1, 1], [1000360, "Tea Leaves Health", 1, 1],
+                    [1000361, "Broker Backoffice", 1, 1], [1000362, "Edison Research", 1, 1],
+                    [1000363, "Man Made Music", 1, 1], [1000364, "IOC", 1, 1], [1000365, "Verifone", 1, 1],
+                    [1000366, "Everyday Health", 1, 1], [1000367, "Fox Networks", 1, 1], [1000368, "NEARIX", 1, 1],
+                    [1000369, "Lagardere", 1, 1], [1000370, "Dealer Success", 1, 1],
+                    [1000371, "NBCU Portfolio Groups", 1, 1], [1000372, "Fox RSN", 1, 1], [1000373, "Metro Door", 1, 1],
+                    [1000374, "Home Team Sports", 1, 1], [1000375, "Labatt Food Service", 1, 1],
+                    [1000376, "The Trade Group", 1, 1], [1000377, "Brasil Game Show", 1, 1],
+                    [1000378, "Six Payments", 1, 1], [1000379, "AVC Media", 1, 1],
+                    [1000380, "FOX Sports Corporate", 1, 1], [1000381, "XMC", 1, 1], [1000382, "Bastion", 1, 1],
+                    [1000383, "Einhorn Media Group", 1, 1], [1000384, "Delmar Cargo", 1, 1],
+                    [1000385, "Nina Sloan", 1, 1], [1000386, "Russell Herder", 1, 1],
+                    [1000387, "Cyber Switching Solutions", 1, 1], [1000388, "Penn State University", 1, 1],
+                    [1000389, "CaddieMaster", 1, 1], [1000390, "Bio Insight Group", 1, 1],
+                    [1000391, "Savor Events", 1, 1], [1000392, "Brazil Agency", 1, 1], [1000393, "Twogether", 1, 1],
+                    [1000394, "Inferno", 1, 1], [1000395, "BNO", 1, 1],
+                    [1000396, "FOX Sports College Properties", 1, 1], [1000397, "FOX Sports San Diego", 1, 1],
+                    [1000398, "Jansson Capital Services", 1, 1], [1000399, "FOX Sports West", 1, 1],
+                    [1000400, "brand2Xpand", 1, 1], [1000401, "BBC LATAM", 1, 1], [1000402, "Greenlife Water", 1, 1],
+                    [1000403, "FOX Sports Arizona", 1, 1], [1000404, "Barebones Workwear", 1, 1],
+                    [1000405, "Young Son", 1, 1], [1000406, "AwesomenessTV", 1, 1], [1000407, "Mike Albert", 1, 1],
+                    [1000408, "Bridgette O'Neal", 1, 1], [1000409, "Digital Currency Systems", 1, 1],
+                    [1000410, "Thomas Cuisine Management", 1, 1], [1000411, "Monster", 1, 1],
+                    [1000412, "FOX Sports South", 1, 1], [1000413, "Fox Sports Florida", 1, 1],
+                    [1000414, "FOX Sports Detroit", 1, 1], [1000415, "FOX Sports Midwest", 1, 1],
+                    [1000416, "FOX Sports North", 1, 1], [1000417, "FOX Sports Ohio", 1, 1],
+                    [1000418, "FOX Sports Southwest", 1, 1], [1000419, "YES Network", 1, 1],
+                    [1000420, "Boingo Wireless", 1, 1], [1000421, "ILN", 1, 1], [1000422, "Metrocast", 1, 1],
+                    [1000423, "Honolulu", 1, 1], [1000424, "ATTN:", 1, 1], [1000425, "ATTN", 1, 1],
+                    [1000426, "Waste Plan", 1, 1], [1000427, "Sports Marketing", 1, 1],
+                    [1000428, "Disabled Users", 1, 1], [1000429, "Edit Admins", 1, 1], [1000430, "SocialCode", 1, 1],
+                    [1000431, "Portland", 1, 1], [1000432, "Jackson", 1, 1], [1000433, "Roanoke", 1, 1],
+                    [1000434, "New Haven", 1, 1], [1000435, "Mobile", 1, 1], [1000436, "Nashville", 1, 1],
+                    [1000437, "Topeka", 1, 1], [1000438, "Tampa", 1, 1], [1000439, "Savannah", 1, 1],
+                    [1000440, "Mason City", 1, 1], [1000441, "Grand Rapids", 1, 1], [1000442, "Indianapolis", 1, 1],
+                    [1000443, "Columbus GA", 1, 1], [1000444, "Lafayette LA", 1, 1], [1000445, "Raleigh", 1, 1],
+                    [1000446, "Albuquerque", 1, 1], [1000447, "Harrisburg", 1, 1], [1000448, "Richmond", 1, 1],
+                    [1000449, "Charleston", 1, 1], [1000450, "Myrtle Beach", 1, 1], [1000451, "Providence", 1, 1],
+                    [1000452, "Lafayette IN", 1, 1], [1000453, "Greenville", 1, 1], [1000454, "Albany", 1, 1],
+                    [1000455, "Fort Wayne", 1, 1], [1000456, "Austin", 1, 1], [1000457, "Sioux Falls", 1, 1],
+                    [1000458, "Endeavor Insurance Services", 1, 1], [1000459, "Dayton", 1, 1],
+                    [1000460, "Springfield", 1, 1], [1000461, "Norfolk", 1, 1], [1000462, "Columbus OH", 1, 1],
+                    [1000463, "Davenport", 1, 1], [1000464, "Birmingham", 1, 1], [1000465, "Hattiesburg", 1, 1],
+                    [1000466, "Target Activation", 1, 1], [1000467, "Lansing", 1, 1], [1000468, "Augusta", 1, 1],
+                    [1000469, "CA Technologies", 1, 1], [1000470, "Structural Modeling", 1, 1],
+                    [1000471, "Documentation", 1, 1], [1000472, "CustomShow Documentation", 1, 1],
+                    [1000473, "Wound Care Advantage", 1, 1], [1000474, "FOX Sports Creative Services", 1, 1],
+                    [1000475, "JAXUSA", 1, 1], [1000476, "Quality Track", 1, 1], [1000477, "Paradigm Group", 1, 1],
+                    [1000478, "Brown & Brown", 1, 1], [1000479, "Youngstown", 1, 1], [1000480, "Knoxville", 1, 1],
+                    [1000481, "CreditMiner", 1, 1], [1000482, "The Prime Group LLC", 1, 1],
+                    [1000483, "Big Ten Network", 1, 1], [1000484, "Ensequence", 1, 1],
+                    [1000485, "Synchrony Financial", 1, 1], [1000486, "Redwood Living", 1, 1],
+                    [1000487, "Castrol", 1, 1], [1000488, "RSO", 1, 1], [1000489, "NBCOT", 1, 1],
+                    [1000490, "Sales", 1, 1], [1000491, "Marketing", 1, 1], [1000492, "General Motors", 1, 1],
+                    [1000493, "Armstrong White", 1, 1], [1000494, "Newsday", 1, 1],
+                    [1000495, "Rave Restaurant Group", 1, 1], [1000496, "TV4", 1, 1], [1000497, "John Hancock", 1, 1]
+
+                ];
+
+                const len:int = arr.length;
+                if( len > 0 ){
+                    reportRoot.groupIdNameLst.removeAll();
+                    for( var j:int = 0; j < len; j ++ ){
+                        var a:Array = arr[j];
+                        reportRoot.addGroup( a[0], a[0] + "-" + a[1], a[2], a[3] ).selected = true;
+                    }
+                }
+            }
+        }
+
+        public function initializeReportArgs( queryServerUrl:String, slideThumbUrlPath:String, csSessionId:String,
+                                              reportAwsGatewayApiKey:String = null,
+                                              reportMsgFormatJsonTxt:Boolean = false ):void{
+            rootApp.urlExtra = csSessionId;
+
+            rootApp.restUrl = queryServerUrl;
+            CsSlideViewStatsUIGrid.thumbNameUrlPath = slideThumbUrlPath;
+        }
+
+        public function addGroup( id:Number, name:String, parentId:Number = 0, depth:uint = 0 ):void{
+            reportRoot.addGroup( id, name, parentId, depth );
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+        <local:AppCompiledConfig id="compiledConfig"/>
+        <ap:ArrayList id="pressedKeys"/>
+        <reports:CSNvReportingConsole id="reportRoot" sqlUrl="{compiledConfig.nvMySqlUrl}">
+            <reports:context>
+                <utils:RootContextApp id="rootApp">
+                    <utils:callInNext>
+                        <utils:CallOnceInNextFrame id="callOnceInNextFrame"/>
+                    </utils:callInNext>
+                    <utils:pressedKeys>
+                        <ap:ArrayList/>
+                    </utils:pressedKeys>
+                    <utils:rpcOnAir>
+                        <ap:ArrayList/>
+                    </utils:rpcOnAir>
+                    <utils:rpcWaitQue>
+                        <ap:ArrayList/>
+                    </utils:rpcWaitQue>
+                </utils:RootContextApp>
+            </reports:context>
+        </reports:CSNvReportingConsole>
+
+    </fx:Declarations>
+    <mx:TabNavigator width="100%" height="100%">
+        <mx:VBox width="100%" height="100%" label="NV Report Console">
+            <reports:CsReportingGroupInputter width="100%" rootApp="{reportRoot}"/>
+            <reports:CsReportsRootUI reportRoot="{reportRoot}" width="100%" height="100%"/>
+        </mx:VBox>
+        <mx:HDividedBox label="SlideShow Session Report">
+            <mxreports:CsSlideShowSessionHistoryReport width="100%" height="100%" queryUrl="{rootApp.restUrl}"
+                                                       slideShowId="147" id="historyReport"
+            />
+            <mxreports:CsSlideShowSessionReport width="100%" height="100%"
+                                                showSessionModel="{CsSlideShowSessionModel(historyReport.historyReportGrid.selectedItem)}"/>
+        </mx:HDividedBox>
+    </mx:TabNavigator>
+</s:WindowedApplication>

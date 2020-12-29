@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009"
+                       xmlns:s="library://ns.adobe.com/flex/spark"
+                       xmlns:cloudconsole="com.customshow.cloudconsole.*"
+                       xmlns:local="*" preloader="com.flashflexpro.as3lib.spark.PreLoadConfig"
+                       applicationComplete="onAppComplete();">
+    <s:layout>
+        <s:VerticalLayout/>
+    </s:layout>
+    <cloudconsole:UIRootCloudDesktop width="100%" height="100%" context="{rootApp}"/>
+    <fx:Declarations>
+        <local:AppCompiledConfig id="compiledConfig"/>
+        <cloudconsole:RootCloudConsole id="rootApp"
+                                       nvMySqlUrl="{compiledConfig.nvMySqlUrl}"
+                                       restUrl="{compiledConfig.apiUrl}"
+                                       reporingApiUrl="{compiledConfig.reporingApiUrl}"
+                                       resIndexSearchUrl="{compiledConfig.resIndexSearchUrl}"
+                                       buildStr="{compiledConfig.buildStr}"
+                                       downloadRootUrl="{compiledConfig.awsS3DownloadUrl}"
+                                       awsS3RTMPUrl="{compiledConfig.awsS3RTMPUrl}"/>
+    </fx:Declarations>
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.rpc.RpcSpringMvcPost;
+
+        private function onAppComplete():void{
+            rootApp.urlExtra = compiledConfig.csSessionId;
+            rootApp.serverHandleType =
+                    compiledConfig.rpcCallUseApiGateWay ? RpcSpringMvcPost.SERVER_TYPE_AWS_API_GATEWAY_JSON :
+                            RpcSpringMvcPost.SERVER_TYPE_SERVLET_WITH_PATHS;
+
+            CONFIG::debugging{
+                CC.logName = compiledConfig.logName;
+                CC.envConfig = compiledConfig.envConfig;
+                CC.csVersion = compiledConfig.csVersion;
+                CC.buildStr = compiledConfig.buildStr;
+                CC.traceToo = true;
+                CC.serverType = compiledConfig.rpcCallUseApiGateWay ? CC.SERVER_TYPE_AWS_API_GATEWAY_JSON :
+                        CC.SERVER_TYPE_SERVLET_WITH_PATHS;
+                rfrLoggingUrl = null;
+
+            }//debug
+        }
+
+
+        private function set rfrLoggingUrl( ignoreVar:* ):void{
+            CONFIG::debugging{
+                //todo:sessionId not implemented yet parameters.csSessionId
+                //uncomment to send logs to server
+                //                CC.logServiceUrl = compiledConfig.apiUrl + "/logging/log/" + rootApp.urlExtra;
+            }//debug
+        }
+        ]]></fx:Script>
+    <fx:Binding source="rootApp.urlExtra" destination="rfrLoggingUrl"/>
+</s:WindowedApplication>

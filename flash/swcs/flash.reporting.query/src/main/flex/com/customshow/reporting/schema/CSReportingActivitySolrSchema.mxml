@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<schema:CSReportingSolrAbstractSchema xmlns:fx="http://ns.adobe.com/mxml/2009"
+                       xmlns:ap="org.apache.flex.collections.*"
+                       xmlns:solr="com.customshow.solr.*"
+                                xmlns:schema="com.customshow.reporting.schema.*"
+                                xmlns:field="com.customshow.solr.*">
+    <fx:Script><![CDATA[
+        private var _allAdded:Boolean = false;
+        override public function getAllFields():ArrayList{
+            if( !_allAdded ){
+                ___allFields.addAll( ___CSReportingActivitySolrSchema );
+                _allAdded = true;
+            }
+            return super.getAllFields();
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+        <ap:ArrayList id="___CSReportingActivitySolrSchema">
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="recTimeStamp__l_t_t_f"  name="recTimeStamp"  label="recTimeStamp"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="fromSlideRefId__l_t_t_f"  name="fromSlideRefId"  label="fromSlideRefId"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="pauseReason__si_t_t_f"  name="pauseReason"  label="pauseReason"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="toSlideRefId__l_t_t_f"  name="toSlideRefId"  label="toSlideRefId"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="fromSlideName__si_t_t_f"  name="fromSlideName"  label="fromSlideName"  searchModel="{searchModel}" queryField="query_fromSlideName__sw_t_f_f" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="toSlideIndexOfPres__i_t_t_f"  name="toSlideIndexOfPres"  label="toSlideIndexOfPres"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="clientTime__l_t_t_f"  name="clientTime"  label="clientTime"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="pauseBeginOrEnd__i_t_t_f"  name="pauseBeginOrEnd"  label="pauseBeginOrEnd"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="toSlideName__si_t_t_f"  name="toSlideName"  label="toSlideName"  searchModel="{searchModel}" queryField="query_toSlideName__sw_t_f_f" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="fromSlideIndexOfPres__i_t_t_f"  name="fromSlideIndexOfPres"  label="fromSlideIndexOfPres"  searchModel="{searchModel}" />
+       </ap:ArrayList>
+    </fx:Declarations>
+</schema:CSReportingSolrAbstractSchema>

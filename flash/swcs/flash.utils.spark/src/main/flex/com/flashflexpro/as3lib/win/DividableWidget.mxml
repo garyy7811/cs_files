@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+         xmlns:s="library://ns.adobe.com/flex/spark"
+         xmlns:mx="library://ns.adobe.com/flex/mx"
+         xmlns:win="com.flashflexpro.as3lib.win.*"
+         creationComplete="rfrState = null;">
+    <fx:Script><![CDATA[
+
+        [Bindable]
+        public var rootDW:DividableWidgetRoot;
+
+
+        private var _model:Dividable;
+        [Bindable(event="modelChanged")]
+        public function get model():Dividable{
+            return _model;
+        }
+
+        private var _preModel:Dividable;
+
+        public function set model( value:Dividable ):void{
+            if( value != _model ){
+                _preModel = _model;
+                _model = value;
+                dispatchEvent( new Event( "modelChanged" ) );
+            }
+        }
+        ]]></fx:Script>
+    <fx:Script><![CDATA[
+
+        private var _prevState:String;
+
+        private function set rfrState( v:* ):void{
+            if( _model == null ){
+                return;
+            }
+            _prevState = currentState;
+            if( _model.child1 != null && _model.child2 != null ){
+                currentState = _model.isVer ? "vd" : "hd";
+            }
+            else if( _model.sModel != null ){
+                currentState = "s";
+            }
+        }
+
+        private function onDividerRelease( event:Event ):void{
+            CONFIG::debugging{
+                CC.log( "DividableWidget.onDividerRelease->arguments:" + arguments.join( "," ) );
+            }//debug
+        }
+        ]]></fx:Script>
+    <fx:Binding source="model.child1" destination="rfrState"/>
+    <fx:Binding source="model.child2" destination="rfrState"/>
+    <fx:Binding source="model.isVer" destination="rfrState"/>
+    <fx:Binding source="model.sModel" destination="rfrState"/>
+    <s:states>
+        <s:State name="s"/>
+        <s:State name="hd" stateGroups="d"/>
+        <s:State name="vd" stateGroups="d"/>
+    </s:states>
+    <win:DividableRenderer includeIn="s" width="100%" height="100%" id="uiRenderer" div="{this}"
+                           addedToStage="rfrState=null;"/>
+    <mx:DividedBox includeIn="d" width="100%" height="100%" id="divBoxx"
+                   dividerSkin="com.flashflexpro.as3lib.spark.DividerSkin"
+                   direction.hd="horizontal" direction.vd="vertical" dividerRelease="onDividerRelease( event );">
+        <win:DividableWidget width="100%" height="100%" id="dwChild1" addedToStage="rfrState=null;"
+                             model="{model.child1}" rootDW="{rootDW}"/>
+        <win:DividableWidget width="100%" height="100%" id="dwChild2" addedToStage="rfrState=null;"
+                             model="{model.child2}" rootDW="{rootDW}"/>
+    </mx:DividedBox>
+
+</s:Group>

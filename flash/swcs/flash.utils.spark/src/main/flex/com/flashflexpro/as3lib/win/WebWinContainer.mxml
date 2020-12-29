@@ -1,0 +1,151 @@
+<?xml version="1.0"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+                      xmlns:s="library://ns.adobe.com/flex/spark"
+                      xmlns:ap="org.apache.flex.collections.*"
+                      xmlns:data="com.flashflexpro.as3lib.data.*"
+                      resize="onResize( event );"
+                      elementRemove="onWinTaken(event)"
+                      skinClass="com.flashflexpro.as3lib.win.WebWinContainerSkin"
+>
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.IWithContext;
+
+        import mx.events.ResizeEvent;
+
+        import spark.events.ElementExistenceEvent;
+
+
+        private var _model:WinFloatingContainer;
+
+
+        [Bindable(event="modelChanged")]
+        public function get model():WinFloatingContainer{
+            return _model;
+        }
+
+        public function set model( value:WinFloatingContainer ):void{
+            if( value != _model ){
+                _model = value;
+                dispatchEvent( new Event( "modelChanged" ) );
+            }
+        }
+
+
+        [Bindable]
+        public var hook:IFloatWindowHook;
+
+
+        [Bindable]
+        public var windowsBar:WebWinBar;
+
+
+        private function onResize( event:ResizeEvent ):void{
+            for( var j:int = numElements - 1; j >= 0; j -- ){
+                var win:WebWindow = getElementAt( j ) as WebWindow;
+                if( win.width > width ){
+                    win.width = width;
+                }
+                win.maxWidth = width;
+                if( win.height > height ){
+                    win.height = height;
+                }
+                win.maxHeight = height;
+
+                if( win.modelWin.status == FDWindow.MINIMIZED ){
+                    if( win.modelWin.restorePosition.x + 2 * win.width / 3 > width ){
+                        win.modelWin.restorePosition.x = width - 2 * win.width / 3;
+                    }
+
+                    if( win.modelWin.restorePosition.y + win.titleGroup.height > height ){
+                        win.modelWin.restorePosition.y = height - win.titleGroup.height;
+                    }
+                }
+                else{
+                    if( win.x + 2 * win.width / 3 > width ){
+                        win.x = width - 2 * win.width / 3;
+                    }
+
+                    if( win.y + win.titleGroup.height > height ){
+                        win.y = height - win.titleGroup.height;
+                    }
+                }
+            }
+        }
+
+        /**
+         * this is a convenient call but it is not driver by model, make sure you understand this
+         * @param win
+         */
+        public function onWinCloseButtonClick( win:WebWindow ):void{
+            model.winModelLst.removeItemAt( model.winModelLst.getItemIndex( win.model ) );
+        }
+
+        private function addWinInst( wm:IWithContext ){
+            var window:WebWindow = hook.getUiByModel( wm ) as WebWindow;
+            if( window.tbPanel == null ){
+                window.tbPanel = new FDWindow();
+            }
+            window.tbPanel.context = model.context;
+            addElement( window );
+            return window;
+        }
+
+        private function destroyWin( w:WebWindow ):void{
+            if( w != _tokenWin ){
+                w.playEffectAndRemove();
+            }
+            else{
+                CONFIG::debugging{
+                    if( w.owner == this ){
+                        throw new Error( this + ".destroyWin " );
+                    }//debug
+                }
+            }
+        }
+
+        private function set rfrSwapping( ignoreVar:* ):void{
+            if( model.swappingToFront != null ){
+                var window:WebWindow = hook.getUiByModel( model.swappingToFront ) as WebWindow;
+                addElement( window );
+                winUiLst.removeItem( window );
+                winUiLst.addItem( window );
+            }
+            else{
+                CONFIG::debugging{
+                    const len:int = numElements;
+                    if( len != model.winModelLst.length ){
+                        throw new Error( "inconsistent length!!!" + len + "<>" + model.winModelLst.length );
+                    }
+                    for( var j:int = 0; j < len; j ++ ){
+                        var tmp:WebWindow = getElementAt( j ) as WebWindow;
+                        if( model.winModelLst.getItemIndex( tmp.model ) != j ){
+                            throw new Error( "inconsistent index !!!" );
+                        }
+                    }
+                }
+            }
+        }
+
+        private var _tokenWin:WebWindow;
+        private function onWinTaken( event:ElementExistenceEvent ):void{
+            if( model.swappingToFront != null ){
+                return;
+            }
+            _tokenWin = ( event.element as WebWindow  );
+            var itemIndex:int = model.winModelLst.getItemIndex( _tokenWin.model );
+            if( itemIndex >= 0 ){
+                model.winModelLst.removeItemAt( itemIndex );
+            }
+            _tokenWin = null;
+        }
+        ]]></fx:Script>
+    <fx:Binding source="model.swappingToFront" destination="rfrSwapping"/>
+    <fx:Declarations>
+        <data:Map2Lists id="modelToUI" source="{model.winModelLst}" getDestInst="addWinInst" destroyInst="destroyWin"
+                        enabled="{model.swappingToFront==null}">
+            <data:destination>
+                <ap:ArrayList id="winUiLst"/>
+            </data:destination>
+        </data:Map2Lists>
+    </fx:Declarations>
+</s:SkinnableContainer>

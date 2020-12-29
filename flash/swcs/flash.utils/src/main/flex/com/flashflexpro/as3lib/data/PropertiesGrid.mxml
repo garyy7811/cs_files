@@ -1,0 +1,172 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 5/29/2015.
+-->
+<data:Grid xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:data="com.flashflexpro.as3lib.data.*"
+           xmlns:ap="org.apache.flex.collections.*">
+    <fx:Script><![CDATA[
+        import mx.collections.IList;
+
+        import org.apache.flex.collections.VectorList;
+
+        [Bindable]
+        public var columnLabelDesc:PropertyDesc;
+
+        [Bindable]
+        public var editable:Boolean = true;
+
+        private var _beans:IList;
+        [Bindable(event="beansChanged")]
+        public function get beans():IList{
+            return _beans;
+        }
+
+        public function set beans( value:IList ):void{
+            if( value == null ){
+                value = new ArrayList();
+            }
+            if( value != _beans ){
+                _beans = value;
+                dispatchEvent( new Event( "beansChanged" ) );
+            }
+        }
+
+        private var _propColType:IFactory = new ClassFactory( PropertiesGridColumn );
+        public function get propColType():IFactory{
+            return _propColType;
+        }
+
+        public function set propColType( value:IFactory ):void{
+            _propColType = value;
+        }
+
+        protected function beanToColumn( bean:Object ):PropertiesGridColumn{
+
+            CONFIG::debugging{
+                if( bean == null ){
+                    CC.log( "PropertiesGrid.beanToColumn-> bean is null:" + new Error().getStackTrace() );
+                }
+            }//debug
+
+            var gridColumn:PropertiesGridColumn = _propColType.newInstance();
+            gridColumn.bean = bean;
+            gridColumn.labelFunction = getCellLabel;
+            gridColumn.columnLabelDesc = columnLabelDesc;
+            gridColumn.grid = this;
+            gridColumn.editable = editable;
+            columns.addItemAt( gridColumn, beans.getItemIndex( bean ) + 1 );
+            return gridColumn;
+        }
+
+        protected function removeBeanFromColumn( col:PropertiesGridColumn ):void{
+            columns.removeItem( col );
+        }
+
+
+        public function revert():void{
+            for( var j:int = beanColumns.length - 1; j >= 0; j -- ){
+                var propCol:PropertiesGridColumn = beanColumns.getItemAt( j ) as PropertiesGridColumn;
+                propCol.revert();
+            }
+        }
+
+        protected function getCellLabel( row:PropertiesGridRow, col:PropertiesGridColumn ):String{
+            return row.getCellLabel( col );
+        }
+
+        protected function getPropName( row:PropertiesGridRow, col:PropertiesGridColumn ):String{
+            return row.desc.name + ": ";
+        }
+
+        public function invalidateBean( col:PropertiesGridColumn ):void{
+            var idx:int = invalidateBeans.getItemIndex( col );
+            if( col.invalidateProps.length > 0 && idx < 0 ){
+                invalidateBeans.addItem( col );
+            }
+            else if( col.invalidateProps.length == 0 && idx >= 0 ){
+                invalidateBeans.removeItemAt( idx );
+            }
+
+        }
+        ]]></fx:Script>
+
+    <fx:Declarations>
+        <ap:ArrayList id="invalidateBeans"/>
+        <ap:ArrayList id="columns">
+            <data:PropertiesGridColumn id="propDescColumn" editable="false" labelFunction="getPropName"/>
+        </ap:ArrayList>
+        <data:Map2Lists id="beans2Cols" source="{beans}" getDestInst="beanToColumn" destroyInst="removeBeanFromColumn">
+            <data:destination>
+                <ap:ArrayList id="beanColumns"/>
+            </data:destination>
+        </data:Map2Lists>
+    </fx:Declarations>
+    <fx:Script><![CDATA[
+        private var _propDescs:IList;
+        [Bindable(event="propDescsChanged")]
+        public function get propDescs():IList{
+            return _propDescs;
+        }
+
+        public function set propDescs( value:IList ):void{
+            if( value != _propDescs ){
+                _propDescs = value;
+                dispatchEvent( new Event( "propDescsChanged" ) );
+            }
+        }
+
+        private var _propRowType:IFactory = new ClassFactory( PropertiesGridRow );
+        public function get propRowType():IFactory{
+            return _propRowType;
+        }
+
+        public function set propRowType( value:IFactory ):void{
+            _propRowType = value;
+        }
+
+
+        private var _propDesc2RowType:CrMap;
+        [Bindable(event="propDescsChanged")]
+        public function get propDesc2RowType():CrMap{
+            return _propDesc2RowType;
+        }
+
+        public function set propDesc2RowType( value:CrMap ):void{
+            if( value != _propDesc2RowType ){
+                _propDesc2RowType = value;
+                dispatchEvent( new Event( "propDescsChanged" ) );
+            }
+        }
+
+        protected function descToRow( d:PropertyDesc ):PropertiesGridRow{
+            var rt:PropertiesGridRow;
+            if( _propDesc2RowType != null ){
+                var rowFac:IFactory = _propDesc2RowType.getValue( d );
+                if( rowFac != null ){
+                    rt = rowFac.newInstance();
+                }
+            }
+
+            if( rt == null ){
+                rt = _propRowType.newInstance();
+            }
+            rt.desc = d;
+            _nameToRow[d.name] = rt;
+            return rt;
+        }
+
+        private var _nameToRow:Dictionary = new Dictionary( true );
+
+        public function getRowByName( name:String ):PropertiesGridRow{
+            return _nameToRow[name];
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+        <data:Map2Lists source="{ propDesc2RowType==null?propDescs:new VectorList( propDesc2RowType.keys )}"
+                        getDestInst="descToRow">
+            <data:destination>
+                <ap:ArrayList id="rows"/>
+            </data:destination>
+        </data:Map2Lists>
+    </fx:Declarations>
+</data:Grid>

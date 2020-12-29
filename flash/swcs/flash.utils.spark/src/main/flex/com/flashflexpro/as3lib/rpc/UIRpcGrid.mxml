@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 2/17/2015.
+-->
+<data:UIGrid xmlns:fx="http://ns.adobe.com/mxml/2009"
+             xmlns:s="library://ns.adobe.com/flex/spark"
+             xmlns:data="com.flashflexpro.as3lib.data.*"
+
+             skinClass="com.flashflexpro.as3lib.rpc.UIRpcGridSkin"
+             enabled="{rpcModel.rpcLoadGrid==null &amp;&amp; rpcModel.lastErrorEvent == null }"
+             sortableColumns="true" multiColumnSortingEnabled="true">
+    <fx:Script><![CDATA[
+        [Bindable(event="modelChanged")]
+        public function get rpcModel():RpcGrid{
+            return gridModel as RpcGrid;
+        }
+
+        override protected function checkToLoadMore1():void{
+            super.checkToLoadMore1();
+            //&& model.lastQueryResult.rNumFound > 0 && model.lastQueryResult.rQueryRecords.length > 0
+            if( rpcModel.lastQueryResult != null && scroller.verticalScrollBar.maximum > 0 &&
+                    scroller.verticalScrollBar.value >= scroller.verticalScrollBar.maximum ){
+                rpcModel.loadMore();
+            }
+        }
+
+
+        private function set rfrReloadScrollTop( v:* ):void{
+            if( rpcModel.lastQueryResult != null ){
+                gridModel.context.callInNext.putIn( scrollToTop, null, null, 3 );
+            }
+        }
+
+        private function scrollToTop():void{
+            checkLoadMoreWhenScroll();
+        }
+        ]]></fx:Script>
+    <fx:Binding source="rpcModel.lastQueryResult" destination="rfrReloadScrollTop"/>
+    <fx:Script><![CDATA[
+        private function set rfrInitialLoadMore( v:* ):void{
+            gridModel.context.callInNext.putIn( refreshInitialLoadMore );
+        }
+
+        //model.lastQueryResult.rNumFound > model.rows.length &&
+        private function refreshInitialLoadMore():void{
+            if( gridModel != null && gridModel.rows != null && gridModel.visibleRowIndices != null &&
+                    gridModel.visibleRowIndices.length > gridModel.rows.length ){
+                rpcModel.loadMore();
+            }
+        }
+        ]]></fx:Script>
+    <!--<fx:Binding source="model.lastQueryResult.rNumFound" destination="rfrInitialLoadMore"/>-->
+    <fx:Binding source="gridModel.visibleRowIndices" destination="rfrInitialLoadMore"/>
+    <fx:Binding source="gridModel.rows" destination="rfrInitialLoadMore"/>
+</data:UIGrid>

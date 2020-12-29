@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<!--
+  Created by yanggang on 4/4/2016.
+-->
+<data:PropertiesGrid xmlns:fx="http://ns.adobe.com/mxml/2009"
+                     xmlns:data="com.flashflexpro.as3lib.data.*" xmlns:ap="org.apache.flex.collections.*">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.data.PropertyDesc;
+
+        import mx.collections.IList;
+
+        import org.apache.flex.collections.ArrayList;
+
+        public static const OUTPUT_MP4:String = "mp4";
+        public static const OUTPUT_THUMBNAIL:String = "thumbnail";
+
+        public static const STATUS_readToProcess:String = "Ready to process";
+        public static const STATUS_processing:String = "Processing";
+        public static const STATUS_error:String = "Error";
+        public static const STATUS_wrong_input:String = "wrong_input";
+        public static const STATUS_retry_421:String = "RETRY_421";
+        public static const STATUS_saved:String = "Saved";
+        public static const STATUS_finished:String = "Finished";
+
+        public static const STATUS_Array:Array = [STATUS_readToProcess, STATUS_processing, STATUS_error,
+            STATUS_wrong_input, STATUS_retry_421, STATUS_saved, STATUS_finished];
+
+        public static const excludeProp:Vector.<PropertyDesc> = new <PropertyDesc>
+                [DynaTableClientConfigTranscodeFormat.PROP_DESC_add_meta,
+                    DynaTableClientConfigTranscodeFormat.PROP_DESC_audio_sync,
+                    DynaTableClientConfigTranscodeFormat.PROP_DESC_taskid,
+                    DynaTableClientConfigTranscodeFormat.PROP_DESC_cbr,
+                    DynaTableClientConfigTranscodeFormat.PROP_DESC_crop_bottom,
+                    DynaTableClientConfigTranscodeFormat.PROP_DESC_crop_left,
+                    DynaTableClientConfigTranscodeFormat.PROP_DESC_crop_top,
+                    DynaTableClientConfigTranscodeFormat.PROP_DESC_crop_right,
+                    DynaTableClientConfigTranscodeFormat.PROP_DESC_force_interlaced,
+                    DynaTableClientConfigTranscodeFormat.PROP_DESC_gop,
+                    DynaTableClientConfigTranscodeFormat.PROP_DESC_hint,
+                    DynaTableClientConfigTranscodeFormat.PROP_DESC_height,
+                    DynaTableClientConfigTranscodeFormat.PROP_DESC_rc_init_occupancy,
+                    DynaTableClientConfigTranscodeFormat.PROP_DESC_rotate,
+                    DynaTableClientConfigTranscodeFormat.PROP_DESC_set_aspect_ratio,
+                    DynaTableClientConfigTranscodeFormat.PROP_DESC_set_rotate,
+                    DynaTableClientConfigTranscodeFormat.PROP_DESC_start,
+                    DynaTableClientConfigTranscodeFormat.PROP_DESC_strip_chapters,
+                    DynaTableClientConfigTranscodeFormat.PROP_DESC_turbo,
+                    DynaTableClientConfigTranscodeFormat.PROP_DESC_two_pass,
+                    DynaTableClientConfigTranscodeFormat.PROP_DESC_width];
+
+        override public function set beans( value:IList ):void{
+            if( propDescs == null ){
+                propDescs = initializeDescRows();
+            }
+            super.beans = value;
+        }
+
+        protected function initializeDescRows():ArrayList{
+            var tmpEx:Vector.<PropertyDesc> = excludeProp.concat( new Vector.<PropertyDesc>() );
+            if( editable ){
+                tmpEx.push( DynaTableClientConfigTranscodeFormat.PROP_DESC_destination );
+                tmpEx.push( DynaTableClientConfigTranscodeFormat.PROP_DESC_description );
+                tmpEx.push( DynaTableClientConfigTranscodeFormat.PROP_DESC_duration );
+                tmpEx.push( DynaTableClientConfigTranscodeFormat.PROP_DESC_suggestion );
+                tmpEx.push( DynaTableClientConfigTranscodeFormat.PROP_DESC_status );
+                tmpEx.push( DynaTableClientConfigTranscodeFormat.PROP_DESC_time );
+            }
+
+            var tmp:ArrayList = new ArrayList();
+            DynaTableClientConfigTranscodeFormat.allProperties.forEach(
+                    function myFunction( item:PropertyDesc, index:int, vector:Vector.<PropertyDesc> ):void{
+                        if( tmpEx.indexOf( item ) >= 0 ){
+                            return;
+                        }
+                        tmp.addItem( item );
+                    } );
+            return tmp;
+        }
+        ]]></fx:Script>
+    <data:beans>
+        <ap:ArrayList/>
+    </data:beans>
+</data:PropertiesGrid>

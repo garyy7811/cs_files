@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<s:GridColumn xmlns:fx="http://ns.adobe.com/mxml/2009"
+              xmlns:s="library://ns.adobe.com/flex/spark"
+              minWidth="25"
+              headerRenderer="com.flashflexpro.as3lib.data.UIGridHeader"
+              itemRenderer="com.flashflexpro.as3lib.data.UIGridCell">
+    <fx:Script><![CDATA[
+        private var _model:com.flashflexpro.as3lib.data.GridColumn;
+
+        [Bindable(event="modelChanged")]
+        public function get model():com.flashflexpro.as3lib.data.GridColumn{
+            return _model;
+        }
+
+        public function set model( value:com.flashflexpro.as3lib.data.GridColumn ):void{
+            if( value != _model ){
+                _model = value;
+                dispatchEvent( new Event( "modelChanged" ) );
+            }
+        }
+
+        ]]></fx:Script>
+
+    <fx:Script><![CDATA[
+        private function set rfrUIGrid( ignoreVar:* ):void{
+            if( _uiGrid != grid.dataGrid ){
+                _uiGrid = grid.dataGrid as UIGrid;
+                dispatchEvent( new Event( "uiGridChanged" ) );
+            }
+        }
+
+        [Bindable]
+        protected var _uiGrid:UIGrid;
+
+        [Bindable(event="uiGridChanged")]
+        public function get uiGrid():UIGrid{
+            return _uiGrid;
+        }
+
+        ]]></fx:Script>
+    <fx:Binding source="grid.dataGrid" destination="rfrUIGrid"/>
+</s:GridColumn>

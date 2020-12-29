@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<reporting:CsSearchModelAbstract xmlns:fx="http://ns.adobe.com/mxml/2009"
+                                 xmlns:solr="com.customshow.solr.*"
+                                 xmlns:schema="com.customshow.reporting.schema.*"
+                                 xmlns:reporting="com.customshow.reporting.*"
+                                 overridingServiceName="showduration">
+    <fx:Script><![CDATA[
+        public function set onSchemaReady( value:* ):void{
+            if( schema != showDurationSolrSchema ){
+                schema = showDurationSolrSchema;
+
+                ___allFields.addAll( showDurationSolrSchema.getAllFields() );
+                queryFields.addAll( showDurationSolrSchema.getAllFields() );
+                resultRecordFields.addAll( showDurationSolrSchema.getAllFields() );
+
+                initResultRecordFields.addItem( showDurationSolrSchema.ownerEmail__si_t_t_f );
+                initResultRecordFields.addItem( showDurationSolrSchema.prestNames__si_t_t_t );
+
+                initResultRecordFields.addItem( showDurationSolrSchema.startTime__l_t_t_f );
+                initResultRecordFields.addItem( showDurationSolrSchema.duration__l_t_t_f );
+                initResultRecordFields.addItem( showDurationSolrSchema.durationNet__l_t_t_f );
+                initResultRecordFields.addItem( showDurationSolrSchema.endTime__l_t_t_f );
+
+                resultFacetFields.addAll( showDurationSolrSchema.getAllFields() );
+
+                initResultFacetFields.addItem( showDurationSolrSchema.prestNames__si_t_t_t );
+                initResultFacetFields.addItem( showDurationSolrSchema.ownerEmail__si_t_t_f );
+
+
+            }
+        }
+        ]]></fx:Script>
+    <fx:Binding source="showDurationSolrSchema" destination="onSchemaReady"/>
+    <fx:Declarations>
+        <schema:CSReportingShowDurationSolrSchema id="showDurationSolrSchema" searchModel="{this}"/>
+    </fx:Declarations>
+    <reporting:queryResult>
+        <solr:QueryResult searchModel="{this}" id="staticQueryResultShowDuration">
+            <solr:queryModel>
+                <solr:Query queryResult="{queryResult}" >
+                    <solr:rootTerm>
+                        <solr:QueryRelate2Terms query="{staticQueryResultShowDuration.queryModel}" isVertical="true">
+                            <solr:term>
+                                <solr:QueryTermT
+                                        field="{showDurationSolrSchema.slideShowName__si_t_t_f}"/>
+                            </solr:term>
+                        </solr:QueryRelate2Terms>
+                    </solr:rootTerm>
+                </solr:Query>
+            </solr:queryModel>
+        </solr:QueryResult>
+    </reporting:queryResult>
+</reporting:CsSearchModelAbstract>

@@ -1,0 +1,110 @@
+<?xml version="1.0"?>
+<utils:RootContextModule xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:utils="com.flashflexpro.as3lib.utils.*">
+    <fx:Script><![CDATA[
+        import mx.core.FlexGlobals;
+
+        CONFIG::debugging{
+            private static var _lastMouseOverTarget:Object;
+            private static var _lastMouseOverCurrentTarget:Object;
+        }
+
+        [Bindable]
+        public var buildStr:String;
+
+        [Bindable]
+        public var maxConcurrentRpcNum:uint = 20;
+
+        public function appInit():void{
+            _inst = this;
+            CONFIG::debugging{
+                if( parent != null || stage == null || restUrl == null || pressedKeys == null || rpcOnAir == null ||
+                        rpcWaitQue == null ){
+                    var tmp:* = FlexGlobals.topLevelApplication;
+                    throw new Error( this + ".appInit" + tmp);
+                }
+            }
+
+            stage.addEventListener( KeyboardEvent.KEY_DOWN, onKeyDown );
+            stage.addEventListener( KeyboardEvent.KEY_UP, onKeyUp );
+            CONFIG::debugging{
+                stage.addEventListener( MouseEvent.MOUSE_OVER, function ( ev:MouseEvent ):void{
+                    _lastMouseOverTarget = ev.target;
+                    _lastMouseOverCurrentTarget = ev.currentTarget;
+                } )
+            }
+        }
+
+        private static var _inst:RootContextApp;
+        public static function get inst():RootContextApp{
+            return _inst;
+        }
+
+
+        [Bindable(event="rootAppChanged")]
+        override public function get rootApp():RootContextApp{
+            return this;
+        }
+
+        protected function onKeyDown( event:KeyboardEvent ):void{
+            CONFIG::debugging{
+                if( event.altKey && event.ctrlKey && event.keyCode == Keyboard.SHIFT ){
+                    CC.log( "ctrl&&alt&&D" );
+                }
+            }
+            if( pressedKeys.getItemIndex( event.keyCode ) < 0 ){
+                pressedKeys.addItem( event.keyCode );
+            }
+        }
+
+        protected function onKeyUp( event:KeyboardEvent ):void{
+            var idx:int = pressedKeys.getItemIndex( event.keyCode );
+            if( idx < 0 ){
+                CONFIG::debugging{
+                    CC.log( this + ".UnKnown onKeyUp: event.keyCode: " + event.keyCode + "; location: " +
+                            event.keyLocation );
+                }
+                return;
+            }
+            pressedKeys.removeItemAt( idx );
+        }
+
+        [Bindable]
+        public var topMouse:Point;
+        ]]></fx:Script>
+    <fx:Script><![CDATA[
+
+        public static const menuOperations_CHANGED:String = "menuOperationsChanged";
+
+        [ArrayElementType("com.flashflexpro.as3lib.utils.ExecutableMenuItem")]
+        private var _menuOperations:ExecutableMenuListing;
+        private var _menuOriginEvent:Event;
+
+        [Bindable(event="menuOperationsChanged")]
+        public function get menuOperations():ExecutableMenuListing{
+            return _menuOperations;
+        }
+
+        override public function setMenuOperations( value:ExecutableMenuListing ):void{
+            if( value != _menuOperations ){
+                _menuOperations = value;
+                dispatchEvent( new Event( menuOperations_CHANGED ) );
+            }
+        }
+
+        private function set rfrClearDragging( v:* ):void{
+            callInNext.putIn( clearDragging );
+        }
+
+        private function clearDragging():void{
+            if( dragging != null && dragging.mouseDragging != null &&
+                    dragging.mouseDragging.type == MouseEvent.MOUSE_UP ){
+                dragging.model.context.drag( null );
+            }
+        }
+
+
+
+        ]]></fx:Script>
+    <fx:Binding source="dragging.mouseDragging" destination="rfrClearDragging"/>
+
+</utils:RootContextModule>

@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<rs:RpcSpringMvcPost xmlns:fx="http://ns.adobe.com/mxml/2009"
+                     remoteMethodName="facetQuery" xmlns:rs="com.flashflexpro.as3lib.rpc.*">
+    <fx:Script><![CDATA[
+        import com.customshow.solr.query.web.common.DtoFacetResult;
+
+        public var field2offsetLimitPrefixSort:Object;
+
+        public var rowNum:int = 100;
+
+        public var startRow:uint = 0;
+
+        public var caller:ResultBase;
+
+        public var sortField:QueryField;
+
+        public var desc:Boolean;
+
+        override protected function onObjResult( r:* = null ):void{
+            caller.onResult( r as DtoFacetResult );
+        }
+
+        override protected function onFault( event:ErrorEvent ):void{
+            super.onFault( event );
+            caller.onFault( event );
+        }
+
+        override public function callRemote():Boolean{
+            var sfid:String = ( sortField == null ? null : sortField.id );
+            args = [caller.queryResult.resultModel.query.rootQueryStr, startRow, rowNum, field2offsetLimitPrefixSort,
+                sfid, desc];
+            CONFIG::debugging{
+                trace( this + ".callRemote: :" + caller.queryResult.resultModel.query.rootQueryStr );
+            }//debug
+
+            var sm:SearchModel = caller.queryResult.searchModel;
+            if( sm.overridingMethodname != null ){
+                remoteMethodName = sm.overridingMethodname;
+            }
+            if( sm.overridingServiceName != null ){
+                serviceName = sm.overridingServiceName
+            }
+
+            CONFIG::debugging{
+                CC.log( "path + ->" + remoteMethodName + "->" + args[0] + "|" + startRow + "|" + rowNum );
+            }//debug
+            return super.callRemote();
+        }
+        ]]></fx:Script>
+</rs:RpcSpringMvcPost>

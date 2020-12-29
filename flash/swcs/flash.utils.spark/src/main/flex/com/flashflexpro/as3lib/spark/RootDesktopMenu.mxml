@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<mx:Menu xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:mx="library://ns.adobe.com/flex/mx"
+         addedToStage="onAddedToStage( event )" removedFromStage="onRemoveFromStage();"
+         itemClick="onClick( event );" visible="false"
+         itemRenderer="com.flashflexpro.as3lib.spark.RootDesktopMenuItem">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.utils.*;
+        import com.flashflexpro.as3lib.utils.RootContextApp;
+
+        import mx.core.FlexGlobals;
+        import mx.events.MenuEvent;
+
+        import spark.components.Application;
+
+        [Bindable]
+        public var rootApp:RootContextApp;
+
+        private function onRemoveFromStage():void{
+            rootApp.setMenuOperations( null );
+
+            for( var j:int = dataProvider.length - 1; j >= 0; j -- ){
+                var omi:ExecutableMenuItem = dataProvider.getItemAt( j ) as ExecutableMenuItem;
+                omi.destroy();
+            }
+        }
+
+        private function onAddedToStage( event:Event ):void{
+            RootContextApp.inst.callInNext.putIn( refreshPosition );
+            var tmp:RootDesktopMenu = this;
+            stage.addEventListener( MouseEvent.MOUSE_UP, function ( ev:MouseEvent ):void{
+                tmp.hide();
+            } )
+        }
+
+        private function refreshPosition():void{
+            CONFIG::debugging{
+                if( rootApp == null || rootApp.parent != null ){
+                    throw new Error( this + ".onAddedtoStage " );
+                }
+            }
+            if( x + width > topApp.width ){
+                x = topApp.width - width - 12;
+            }
+            if( y + height > topApp.height ){
+                y = topApp.height - height - 12;
+            }
+            visible = true;
+        }
+
+        private function set rfrTopMouse( v:* ):void{
+            if( parent != null ){
+                move( rootApp.topMouse.x, rootApp.topMouse.y );
+            }
+        }
+
+        private function onClick( event:MenuEvent ):void{
+            var rt:ExecutableMenuItem = ( event.item as ExecutableMenuItem );
+            if( rt.moduleContext == null ){
+                rt.moduleContext = rootApp;
+            }
+            rt.execute();
+        }
+
+        private function set rfrMenu( ignoreVar:* ):void{
+            rootApp.callInNext.putIn( showMenu );
+        }
+
+        private function showMenu():void{
+            rootApp.topMouse = new Point( rootApp.stage.mouseX, rootApp.stage.mouseY );
+            if( rootApp.menuOperations != null ){
+                owner = rootApp.stage;
+                Menu.popUpMenu( this, topApp, rootApp.menuOperations.children );
+                rootApp.callInNext.putIn( show, this, [rootApp.stage.mouseX, rootApp.stage.mouseY] );
+            }
+        }
+
+        override protected function mouseUpHandler( event:MouseEvent ):void{
+            if( RootContextApp.inst.dragging == null ){
+                super.mouseUpHandler( event );
+            }
+        }
+
+        private function get topApp():Application{
+            return FlexGlobals.topLevelApplication as Application;
+        }
+        ]]></fx:Script>
+    <fx:Binding source="rootApp.menuOperations" destination="rfrMenu"/>
+    <fx:Binding source="rootApp.topMouse" destination="rfrTopMouse"/>
+</mx:Menu>

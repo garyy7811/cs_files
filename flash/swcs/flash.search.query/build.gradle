@@ -1,0 +1,12 @@
+dependencies {
+    merged project( ':flash:swcs:flash.utils' )
+}
+
+
+
+task generateRpcApi( type: com.customshow.codegen.rpcmodel.GenerateFlashRpcApiTask ) {
+    javaSourceProjects = [project( ':java_modules:java.search.query' )]
+    includeDtoClasses = ['com.customshow.search.indexing.Resource*']
+    includeServiceClasses = ['com.customshow.search.indexing.SearchQuery*']
+    outputDirectory = project.file( 'src/main/flex' )
+}

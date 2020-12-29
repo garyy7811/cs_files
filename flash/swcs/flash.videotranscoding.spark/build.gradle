@@ -1,0 +1,7 @@
+dependencies {
+    merged project( ':flash:swcs:flash.utils.spark' )
+    merged project( ':flash:swcs:flash.config.per.client.spark' )
+
+    internal project( ':flash:swcs:flash.videotranscoding' )
+}
+

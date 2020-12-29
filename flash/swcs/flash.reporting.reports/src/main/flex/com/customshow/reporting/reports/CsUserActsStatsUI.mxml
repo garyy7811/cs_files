@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 6/3/2015.
+-->
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" backgroundColor="#ECECF1">
+    <s:layout>
+        <s:VerticalLayout verticalAlign="middle" horizontalAlign="center"/>
+    </s:layout>
+
+    <s:Label text="coming soon ..." fontSize="32"/>
+</s:BorderContainer>

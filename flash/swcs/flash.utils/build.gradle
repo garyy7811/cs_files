@@ -1,0 +1,8 @@
+localeDir = 'src/main/locales'
+locales = ['en_US']
+
+
+
+artifacts {
+    archives file(buildDir.absolutePath + "/" + output + ".swc")
+}

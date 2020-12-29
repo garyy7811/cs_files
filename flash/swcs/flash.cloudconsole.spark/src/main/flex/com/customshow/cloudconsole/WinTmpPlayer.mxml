@@ -1,0 +1,123 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 3/28/2016.
+-->
+<win:WebWindow xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:win="com.flashflexpro.as3lib.win.*">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.utils.RootContextApp;
+
+        import mx.core.UIComponent;
+
+        private var _video:Video;
+        private var _videoContainer:UIComponent;
+        private var _nc:NetConnection;
+        private var _ns:NetStream;
+
+        [Bindable(event="modelChanged")]
+        public function get modelPlayer():WinTmpPlayerModel{
+            return model as WinTmpPlayerModel;
+        }
+
+
+        private function set rfrSource( ignoreVar:* ):void{
+            RootContextApp.inst.callInNext.putIn( refreshSource );
+        }
+
+        private function refreshSource():void{
+            if( modelPlayer.streamingVideoSource != null ){
+                _video = new Video();
+                _videoContainer = new UIComponent();
+                group.addElement( _videoContainer );
+                _videoContainer.addChild( _video );
+                if( _nc == null ){
+                    _nc = new NetConnection();
+                    _nc.client = this;
+                    _nc.addEventListener( NetStatusEvent.NET_STATUS, onNetConnectionStatus );
+                    _nc.connect( modelPlayer.streamingVideoSource.host as String );
+                }
+            }
+        }
+
+
+        private function onNetConnectionStatus( event:NetStatusEvent ):void{
+            trace( "onNetConnectionStatus:" + event.toString() + ", code:" + event.info.code );
+
+            if( event.info.code == "NetConnection.Connect.Success" ){
+                _ns = new NetStream( _nc );
+                _ns.addEventListener( NetStatusEvent.NET_STATUS, onNetStreamStatus );
+                _ns.client = this;
+                _video.attachNetStream( _ns );
+                playNs();
+                replayButton.enabled = true;
+            }
+            else{
+                trace( "-_-" );
+            }
+
+        }
+        private function playNs():void{
+            var rest:String = modelPlayer.streamingVideoSource.streamItems[0].streamName;
+            trace( "_ns.play:" + rest );
+            _ns.play( rest );
+        }
+
+
+        private function onNetStreamStatus( event:NetStatusEvent ):void{
+            trace( "onNetStreamStatus:" + event.info.code );
+        }
+
+
+        public function onBWDone( arg:* = null ):void{
+            trace( "onBWDone:" + arg )
+        }
+
+        public function onCuePoint( arg:* = null ):void{
+            trace( "onCuePoint:" + arg )
+        }
+
+        public function onDRMContentData( arg:* = null ):void{
+            trace( "onDRMContentData:" + arg )
+        }
+
+        public function onImageData( arg:* = null ):void{
+            trace( "onImageData:" + arg )
+        }
+
+        public function onMetaData( arg:* = null ):void{
+            trace( "onMetaData" + arg )
+        }
+
+        public function onPlayStatus( arg:* = null ):void{
+            trace( "onPlayStatus:" + arg )
+        }
+
+        public function onSeekPoint( arg:* = null ):void{
+            trace( "onSeekPoint:" + arg )
+        }
+
+        public function onTextData( arg:* = null ):void{
+            trace( "onTextData:" + arg )
+        }
+
+        public function onXMPData( arg:* = null ):void{
+            trace( "onXMPData:" + arg )
+        }
+
+        override public function onCloseButtonClicked():void{
+            if( _nc != null ){
+                _nc.close();
+            }
+            super.onCloseButtonClicked();
+        }
+
+        ]]></fx:Script>
+    <fx:Binding source="modelPlayer.streamingVideoSource" destination="rfrSource"/>
+    <win:layout>
+        <s:VerticalLayout/>
+    </win:layout>
+    <s:TextArea width="100%"
+                text="{modelPlayer.streamingVideoSource.host + '\n\n' +modelPlayer.streamingVideoSource.streamItems[0].streamName}"/>
+    <s:Button click="playNs()" id="replayButton" label="Replay" enabled="false"/>
+    <s:Group minHeight="320" minWidth="480" id="group"/>
+</win:WebWindow>

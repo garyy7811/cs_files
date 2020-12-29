@@ -1,0 +1,121 @@
+<html>
+<head>
+    <title>${title}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <style type="text/css" media="screen">
+        html, body {
+            width: 50%;
+            height: 50%;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            text-align: center;
+            /*background-color: #000000;*/
+        }
+
+        object:focus {
+            outline: none;
+        }
+
+        #plzInstallFlash {
+            display: none;
+        }
+    </style>
+    <script type="text/javascript" src="swfobject.js"></script>
+    <script type="text/javascript">
+        var swfVersionStr = "${version_major}.${version_minor}.${version_revision}";
+        var xiSwfUrlStr = "expressInstall.swf";
+
+        var flashvars = {};
+
+        var params = {};
+        params.quality = "high";
+        //        params.bgcolor = "#000000";
+        params.allowscriptaccess = "sameDomain";
+        params.allowFullScreenInteractive = "true";
+        params.renderMode = "gpu";
+        params.wmode = "direct";
+        var attributes = {};
+        attributes.id = "${swf}";
+        attributes.name = "${swf}";
+        attributes.align = "middle";
+        swfobject.embedSWF( "${swf}.swf", "plzInstallFlash", "50%", "50%", swfVersionStr, xiSwfUrlStr, flashvars,
+                params, attributes );
+        swfobject.createCSS( "#plzInstallFlash", "display:block;text-align:left;" );
+
+        var exitUrl = "${exit.url}";
+
+        //f**k all the bullies!
+        var unloaded = false;
+        function onunloading(){
+            if( ! unloaded && exitUrl != null ){
+                var ajaxRequest = new XMLHttpRequest();
+                ajaxRequest.open( "GET", exitUrl, false );
+                ajaxRequest.send( "dummy" );
+                unloaded = true;
+            }
+        }
+
+        function appendHtmlMsgToBody( htmlStr ){
+
+            document.getElementById('appendDiv').innerHTML += htmlStr;
+
+        }
+
+
+    </script>
+</head>
+<body onload="document.getElementById( '${swf}' ).focus();" onunload="onunloading();" onbeforeunload="onunloading();"
+      beforeunload="onunloading();">
+<div id="plzInstallFlash" style="color:#ffffff">
+    <p>
+        ${title} requires Adobe Flash Player version
+        ${version_major}.${version_minor}.${version_revision} or greater, click on the icon below to install:
+    </p>
+    <script type="text/javascript">
+        var pageHost = ((document.location.protocol == "https:") ? "https://" : "http://");
+        document.write( "<a href='http://www.adobe.com/go/getflashplayer'><img src='" + pageHost +
+                "www.adobe.com/images/shared/download_buttons/get_flash_player.gif' alt='Get Adobe Flash player' /></a>" );
+    </script>
+</div>
+
+<noscript>
+    <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="50%" height="50%" id="${swf}">
+        <param name="movie" value="${swf}.swf"/>
+        <param name="quality" value="high"/>
+        <param name="bgcolor" value="${bgcolor}"/>
+        <param name="allowScriptAccess" value="sameDomain"/>
+        <param name="allowFullScreenInteractive" value="true"/>
+        <param name="renderMode" value="gpu"/>
+        <param name="wmode" value="direct"/>
+        <!--[if !IE]>-->
+        <object type="application/x-shockwave-flash" data="${swf}.swf" width="50%" height="50%">
+            <param name="quality" value="high"/>
+            <param name="bgcolor" value="${bgcolor}"/>
+            <param name="allowScriptAccess" value="sameDomain"/>
+            <param name="allowFullScreenInteractive" value="true"/>
+            <param name="renderMode" value="gpu"/>
+            <param name="wmode" value="direct"/>
+            <!--<![endif]-->
+            <!--[if gte IE 6]>-->
+            <p>
+                Either scripts and active content are not permitted to run or Adobe Flash Player
+                ${title} requires Adobe Flash Player version
+                ${version_major}.${version_minor}.${version_revision} or greater, click on the icon below to install:
+            </p>
+            <!--<![endif]-->
+            <a href="http://www.adobe.com/go/getflashplayer">
+                <img src="http://www.adobe.com/images/shared/download_buttons/get_flash_player.gif"
+                     alt="Get Adobe Flash Player"/>
+            </a>
+            <!--[if !IE]>-->
+        </object>
+        <!--<![endif]-->
+    </object>
+</noscript>
+<div id="appendDiv"></div>
+</body>
+</html>

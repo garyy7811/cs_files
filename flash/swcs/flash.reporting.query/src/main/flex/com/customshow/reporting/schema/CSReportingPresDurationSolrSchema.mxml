@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<schema:CSReportingSlideCollectionSchema xmlns:fx="http://ns.adobe.com/mxml/2009"
+                       xmlns:ap="org.apache.flex.collections.*"
+                       xmlns:solr="com.customshow.solr.*"
+                                xmlns:schema="com.customshow.reporting.schema.*"
+                                xmlns:field="com.customshow.solr.*">
+    <fx:Script><![CDATA[
+        private var _allAdded:Boolean = false;
+        override public function getAllFields():ArrayList{
+            if( !_allAdded ){
+                ___allFields.addAll( ___CSReportingPresDurationSolrSchema );
+                _allAdded = true;
+            }
+            return super.getAllFields();
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+        <ap:ArrayList id="___CSReportingPresDurationSolrSchema">
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="presentationId__l_t_t_f"  name="presentationId"  label="presentationId"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="presentationName__si_t_t_f"  name="presentationName"  label="presentationName"  searchModel="{searchModel}" queryField="query_presentationName__sw_t_f_f" />
+       </ap:ArrayList>
+    </fx:Declarations>
+</schema:CSReportingSlideCollectionSchema>

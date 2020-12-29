@@ -1,0 +1,110 @@
+<?xml version="1.0"?>
+<utils:MxmlEventDispatcher xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:utils="com.flashflexpro.as3lib.utils.*">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.utils.CallOnceInNextFrame;
+
+        import mx.collections.IList;
+
+        [Bindable]
+        public var visibleRowIndices:Vector.<int>;
+
+        [Bindable]
+        public var callInNext:CallOnceInNextFrame;
+
+        private var _item2rpc:Dictionary = new Dictionary();
+
+        [Bindable]
+        public var itemList:IList;
+
+        private function set rfrRow( ignoreVar:* ):void{
+            if( visibleRowIndices == null ){
+                return;
+            }
+            if( callInNext == null ){
+                refresh();
+            }
+            else{
+                callInNext.putIn( refresh );
+            }
+        }
+
+        public function refresh():void{
+            try{
+                CONFIG::debugging{
+                    CC.log( this + ".refresh: visibleRowIndices.length:" + visibleRowIndices.length );
+                }//debug
+                var indiceLen:uint = visibleRowIndices.length;
+                if( indiceLen > 0 && itemList != null && itemList.length > 0 ){
+                    var items:Array = [];
+                    var rpc:Object;
+                    for( var i:int = 0; i < indiceLen; i ++ ){
+                        var index:int = visibleRowIndices[i] as int;
+                        if( index >= itemList.length ){
+                            if( items.length > 0 ){
+                                break;
+                            }
+                            return;
+                        }
+                        var ci:Object = itemList.getItemAt( index );
+                        if( ! isItemLoaded( ci ) ){
+                            rpc = _item2rpc[ci];
+                            if( rpc != null ){
+                                //loading
+                                continue;
+                            }
+
+                            CONFIG::debugging{
+                                if( items.indexOf( ci ) >= 0 ){
+                                    throw new Error( this + ".refreshGene " );
+                                }
+                            }
+                            items.push( ci );
+                        }
+                    }
+                    if( items.length > 0 ){
+                        rpc = fireRpc( items );
+
+                        CONFIG::debugging{
+                            if( rpc == null ){
+                                throw new Error( this + ".rfrRow " );
+                            }
+                        }
+
+                        for each( var itm:Object in items ){
+                            _item2rpc[itm] = rpc;
+                        }
+                    }
+                }
+            }
+            catch( bindingError:Error ){
+                CONFIG::debugging{
+                    CC.log( this + ":" + bindingError.getStackTrace() );
+                }
+            }
+        }
+
+        public var fireRpc:Function;
+
+        public var isItemLoaded:Function;
+
+        public function onEachItemLoad( item:Object ):void{
+            CONFIG::debugging{
+                if( _item2rpc[item] == null ){
+                    throw new Error( this + ".onEachItemLoad " );
+                }
+            }
+            delete _item2rpc[item];
+
+            var tmp:uint = 0;
+            for( var k:* in _item2rpc ){
+                tmp ++;
+            }
+            numLoading = tmp;
+        }
+
+        [Bindable]
+        public var numLoading:uint = 0;
+        ]]></fx:Script>
+    <fx:Binding source="visibleRowIndices" destination="rfrRow"/>
+    <fx:Binding source="itemList.length" destination="rfrRow"/>
+</utils:MxmlEventDispatcher>

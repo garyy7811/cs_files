@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="Flex" version="4">
+  <component name="Flex.Build.Configuration">
+    <option name="TARGET_PLAYER_VERSION" value="10.0" />
+    <option name="VERSION" value="3" />
+  </component>
+  <component name="FlexBuildConfigurationManager" active="cloud.console">
+    <configurations>
+      <configuration name="cloud.console" main-class="AppMain" output-file="cloud.console-0.0.0-SNAPSHOT.swf" output-folder="$MODULE_DIR$/cloud.console">
+        <dependencies target-player="20.0" framework-linkage="Merged">
+          <entries>
+            <entry module-name="flash.utils.spark" build-configuration-name="flash.utils.spark">
+              <dependency linkage="Merged" />
+            </entry>
+            <entry module-name="flash.cloudconsole.spark" build-configuration-name="flash.cloudconsole.spark">
+              <dependency linkage="Merged" />
+            </entry>
+            <entry module-name="flash.labyrinth.cloud.spark" build-configuration-name="flash.labyrinth.cloud.spark">
+              <dependency linkage="Merged" />
+            </entry>
+          </entries>
+          <sdk name="default_flex_sdk" />
+        </dependencies>
+        <compiler-options>
+          <option name="additionalOptions" value="-debug=true -define+=CONFIG::debugging,true -define+=CONFIG::release,false" />
+        </compiler-options>
+        <packaging-air-desktop />
+        <packaging-android />
+        <packaging-ios />
+      </configuration>
+    </configurations>
+    <compiler-options />
+  </component>
+  <component name="NewModuleRootManager" inherit-compiler-output="false">
+    <output url="file://$MODULE_DIR$/cloud.console" />
+    <output-test url="file://$MODULE_DIR$/cloud.console" />
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src/main/flex" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/resources" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/actionscript" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/resources" isTestSource="true" />
+    </content>
+    <orderEntry type="jdk" jdkName="default_flex_sdk" jdkType="Flex SDK Type (new)" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="flash.utils.spark" exported="" />
+    <orderEntry type="module" module-name="flash.cloudconsole.spark" exported="" />
+    <orderEntry type="module" module-name="flash.labyrinth.cloud.spark" exported="" />
+  </component>
+</module>

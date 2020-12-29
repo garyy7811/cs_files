@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 3/18/2016.
+-->
+<data:UIPropertiesGrid xmlns:fx="http://ns.adobe.com/mxml/2009"
+                       xmlns:data="com.flashflexpro.as3lib.data.*"
+                       uiColumnType="com.customshow.configPerClient.UITranscodeConfigFormatColumn">
+    <fx:Script><![CDATA[
+
+        ]]></fx:Script>
+</data:UIPropertiesGrid>

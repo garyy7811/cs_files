@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 4/8/2016.
+-->
+<data:PropertiesGrid xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:data="com.flashflexpro.as3lib.data.*"
+                     xmlns:ap="org.apache.flex.collections.*"
+                     beans="{perClientConfigLoadById.config==null?null:new ArrayList( [ perClientConfigLoadById.config.transcode ] )}">
+    <fx:Script>
+        import com.flashflexpro.as3lib.data.PropertyDesc;
+        import com.flashflexpro.as3lib.utils.RootContextModule;
+
+        import org.apache.flex.collections.ArrayList;
+
+        [Bindable]
+        public var perClientConfigLoadById:PerClientConfigLoadById;
+
+
+        override public function set context( value:RootContextModule ):void{
+            super.context = value;
+            for( var j:int = DynaTableClientConfigTranscode.allProperties.length - 1; j >= 0; j -- ){
+                var desc:PropertyDesc = DynaTableClientConfigTranscode.allProperties[j] as PropertyDesc;
+                if( desc == DynaTableClientConfigTranscode.PROP_DESC_formats ){
+                    continue;
+                }
+                propDescs.addItem( desc );
+            }
+        }</fx:Script>
+    <data:propDescs>
+        <ap:VectorList/>
+    </data:propDescs>
+</data:PropertiesGrid>

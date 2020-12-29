@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 2/12/2016.
+-->
+<rpc:UIRpcGrid xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:rpc="com.flashflexpro.as3lib.rpc.*"
+               xmlns:data="com.flashflexpro.as3lib.data.*"
+               selectionMode="singleRow"
+               selectedItem="{listTranscodingByBucketkey.selectedTransc}">
+    <fx:Script><![CDATA[
+        import com.customshow.configPerClient.DynaTableClientConfigTranscode;
+
+        [Bindable(event="modelChanged")]
+        public function get listTranscodingByBucketkey():ListTranscodingByBucketkey{
+            return gridModel as ListTranscodingByBucketkey;
+        }
+
+        private function set rfrSelectionChanged( v:* ):void{
+            listTranscodingByBucketkey.selectedTransc = selectedItem as DynaTableVideoTranscoding;
+        }
+        ]]></fx:Script>
+    <fx:Binding source="selectedItem" destination="rfrSelectionChanged"/>
+</rpc:UIRpcGrid>

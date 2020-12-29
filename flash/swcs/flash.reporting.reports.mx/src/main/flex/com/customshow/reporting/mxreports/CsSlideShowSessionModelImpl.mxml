@@ -1,0 +1,187 @@
+<?xml version="1.0"?>
+<!--
+  Created by Gary on 1/14/2015.
+-->
+<as3lib:MxmlEventDispatcher xmlns:fx="http://ns.adobe.com/mxml/2009"
+                            xmlns:as3lib="com.flashflexpro.as3lib.utils.*">
+    <fx:Script><![CDATA[
+
+        import mx.collections.ArrayCollection;
+
+        [Bindable]
+        public var totalSlideNum:uint;
+
+        [Bindable]
+        public var viewedSlideNum:uint;
+
+        [Bindable]
+        public var presentationNames:Array;
+
+        [Bindable]
+        public var slideRows:ArrayCollection;
+
+        [Bindable]
+        public var combineMultiSlideViews:Boolean;
+
+        [Bindable]
+        public var sortBy:String;
+
+        [Bindable]
+        public var sortDesc:Boolean;
+        ]]></fx:Script>
+    <fx:Script><![CDATA[
+        import com.customshow.solr.query.web.common.DtoFacetResult;
+        import com.customshow.solr.query.web.common.DtoFacetResultRecord;
+
+        [Bindable]
+        public var dtoShowDuration:DtoFacetResultRecord;
+
+        [Bindable]
+        protected var _dtoSlidesDurations:Array;
+
+
+        public function onSlideDuration( rslt:DtoFacetResult ):Boolean{
+            _dtoSlidesDurations = rslt.rQueryRecords;
+            return true;
+        }
+        ]]></fx:Script>
+    <fx:Binding source="dtoShowDuration.p( MxCsQuickRpc.schemaShowduration.slideRefIds__l_t_t_t ).length"
+                destination="totalSlideNum"/>
+    <fx:Script><![CDATA[
+
+        private function set refreshViewedNumAndRecords( a:* ):void{
+
+            var maxDuration:uint = 0;
+
+            for each( var tmpSlideDu:DtoFacetResultRecord in _dtoSlidesDurations ){
+                var tmpDu:Number = tmpSlideDu.p( MxCsQuickRpc.schemaSlideduration.duration__l_t_t_f );
+                if( tmpDu > maxDuration ){
+                    maxDuration = tmpDu;
+                }
+            }
+
+            var records:Array = [];
+
+            var refIds:Array = dtoShowDuration.p( MxCsQuickRpc.schemaShowduration.slideRefIds__l_t_t_t );
+            var left:Array = refIds.concat( [] );
+
+            var slideDurLen:uint = _dtoSlidesDurations.length;
+            for( var v:int = 0; v < slideDurLen; v ++ ){
+                var slideDuDto:DtoFacetResultRecord = _dtoSlidesDurations[v];
+
+                var row:CsSlideShowSessionModelRow = null;
+
+                if( combineMultiSlideViews ){
+                    for each( var eachRow:CsSlideShowSessionModelRow in records ){
+                        if( eachRow.slideId == slideDuDto.p( MxCsQuickRpc.schemaSlideduration.slideRefId__l_t_t_f ) ){
+                            row = eachRow;
+                            break;
+                        }
+                    }
+                }
+                var tSlideDu:Number = slideDuDto.p( MxCsQuickRpc.schemaSlideduration.duration__l_t_t_f );
+                if( row == null ){
+                    row = initializeRowFromDurDto( slideDuDto );
+                    row.durationPercent = new <Number>[tSlideDu / maxDuration];
+                    records.push( row );
+                }
+                else{
+                    var tmpViewedIndx:* = slideDuDto.p( MxCsQuickRpc.schemaSlideduration.viewedShowIndex__i_t_t_f );
+                    row.order.push( [tmpViewedIndx + 1] );
+                    row.durationPercent.push( new <Number>[tSlideDu / maxDuration] );
+                    row.durationStr += "|" + epicTimeToHHMMSS( row.duration ).join( ":" );
+                }
+
+                var tmpIdx:int = left.indexOf( row.slideId );
+                if( tmpIdx >= 0 ){
+                    left.splice( tmpIdx, 1 );
+                }
+            }
+            viewedSlideNum = totalSlideNum - left.length;
+            if( left.length > 0 ){
+                for each( var leftSlideId:Number in left ){
+                    var tmpSlideRefIds:Array = dtoShowDuration.p(
+                            MxCsQuickRpc.schemaShowduration.slideRefIds__l_t_t_t );
+                    var tmpSlideIdxOfPrs:* = dtoShowDuration.p(
+                            MxCsQuickRpc.schemaShowduration.slideIndexOfPres__i_t_t_t );
+
+                    var unusedRow:CsSlideShowSessionModelRow = new CsSlideShowSessionModelRow();
+                    unusedRow.slideId = leftSlideId;
+
+                    tmpIdx = tmpSlideRefIds.indexOf( leftSlideId );
+                    unusedRow.presentationName =
+                            dtoShowDuration.p( MxCsQuickRpc.schemaShowduration.slidePresNames__si_t_t_t )[tmpIdx];
+                    unusedRow.presentationId =
+                            dtoShowDuration.p( MxCsQuickRpc.schemaShowduration.slidePresIds__l_t_t_t ) [tmpIdx];
+                    unusedRow.slidIndexInPr = tmpSlideIdxOfPrs[tmpIdx];
+
+                    var tmpSlideName:* = dtoShowDuration.p(
+                            MxCsQuickRpc.schemaShowduration.slideRefNames__si_t_t_t )[tmpIdx];
+                    if( tmpSlideName == null ){
+                        tmpSlideName = "\"\"";
+                    }
+                    var slideIndexOfPre:uint = tmpSlideIdxOfPrs[tmpIdx] + 1;
+                    unusedRow.rowSlideName = slideIndexOfPre + ". " + tmpSlideName;
+
+                    unusedRow.slidIndexInSS = tmpSlideRefIds.indexOf( unusedRow.slideId );
+
+                    unusedRow.presIndexInSS =
+                            dtoShowDuration.p( MxCsQuickRpc.schemaShowduration.prestIds__l_t_t_t ).indexOf(
+                                    unusedRow.presentationId );
+
+                    records.push( unusedRow );
+                }
+            }
+
+            slideRows = new ArrayCollection( records );
+        }
+
+        private function initializeRowFromDurDto( slideDuDto:DtoFacetResultRecord ):CsSlideShowSessionModelRow{
+            var row:CsSlideShowSessionModelRow = new CsSlideShowSessionModelRow();
+            row.slideId = slideDuDto.p( MxCsQuickRpc.schemaSlideduration.slideRefId__l_t_t_f );
+            var tmpSlideDu:Number = slideDuDto.p( MxCsQuickRpc.schemaSlideduration.duration__l_t_t_f );
+            if( tmpSlideDu > 0 ){
+                row.duration += tmpSlideDu;
+            }
+            row.durationStr = epicTimeToHHMMSS( row.duration ).join( ":" );
+            row.presentationName = slideDuDto.p( MxCsQuickRpc.schemaSlideduration.presentationName__si_t_t_f );
+            row.presentationId = slideDuDto.p( MxCsQuickRpc.schemaSlideduration.presentationId__l_t_t_f );
+
+
+            var tmpRefIds:Array = dtoShowDuration.p( MxCsQuickRpc.schemaShowduration.slideRefIds__l_t_t_t );
+            row.slidIndexInSS = tmpRefIds.indexOf( row.slideId );
+
+            var tmpPrsIds:Array = dtoShowDuration.p( MxCsQuickRpc.schemaShowduration.prestIds__l_t_t_t );
+
+            row.presIndexInSS =
+                    tmpPrsIds.indexOf( slideDuDto.p( MxCsQuickRpc.schemaSlideduration.presentationId__l_t_t_f ) );
+            row.slidIndexInPr = slideDuDto.p( MxCsQuickRpc.schemaSlideduration.presentationIndex__i_t_t_f );
+
+
+            var tmpSlideName:String = slideDuDto.p( MxCsQuickRpc.schemaSlideduration.slideRefName__si_t_t_f );
+            if( tmpSlideName == null ){
+                tmpSlideName = "\"\"";
+            }
+            var csSlidePresIndex:int = row.slidIndexInPr + 1;
+            row.rowSlideName = csSlidePresIndex + ". " + tmpSlideName;
+            row.order = new <uint>[slideDuDto.p( MxCsQuickRpc.schemaSlideduration.viewedShowIndex__i_t_t_f ) + 1];
+            return row;
+        }
+
+        private function epicTimeToHHMMSS( epTime:Number ):Array{
+            var hh:uint = Math.floor( epTime / 3600000 );
+            var mm:uint = Math.floor( ( epTime % 3600000) / 60000 );
+            var ss:uint = Math.ceil( ( ( epTime % 3600000) % 60000 ) / 1000 );
+            return [hh, mm, ss];
+        }
+        ]]></fx:Script>
+    <fx:Binding source="_dtoSlidesDurations" destination="refreshViewedNumAndRecords"/>
+    <fx:Binding source="combineMultiSlideViews" destination="refreshViewedNumAndRecords"/>
+
+    <fx:Binding source="sortBy" destination="refreshViewedNumAndRecords"/>
+    <fx:Binding source="sortDesc" destination="refreshViewedNumAndRecords"/>
+
+    <fx:Binding source="dtoShowDuration.p( MxCsQuickRpc.schemaShowduration.prestNames__si_t_t_t )"
+                destination="presentationNames"/>
+
+</as3lib:MxmlEventDispatcher>

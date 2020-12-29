@@ -1,0 +1,15 @@
+type = 'swc'
+dependencies {
+    merged project(':flash:swcs:flash.utils')
+}
+
+artifacts {
+    archives file(buildDir.absolutePath + "/" + output + ".swc")
+}
+
+
+task generateFlexPoao(type:com.customshow.codegen.rpcmodel.GenerateFlashRpcApiTask) {
+    javaSourceProjects = [project(':java_modules:java.reporting.dto')]
+    includeDtoClasses = ['com.customshow.reporting.dto.*']
+    outputDirectory = project.file('tmp/main/flex')
+}

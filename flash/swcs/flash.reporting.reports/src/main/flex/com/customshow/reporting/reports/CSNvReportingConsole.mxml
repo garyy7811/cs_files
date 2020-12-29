@@ -1,0 +1,217 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.yang.customshow on 5/28/2015.
+-->
+<utils:MxmlEventDispatcher xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:utils="com.flashflexpro.as3lib.utils.*"
+                           xmlns:reports="com.customshow.reporting.reports.*"
+                           xmlns:s="library://ns.adobe.com/flex/spark"
+                           implements="com.flashflexpro.as3lib.IWithContext">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.utils.RootContextModule;
+
+        import org.apache.flex.collections.ArrayList;
+
+
+        private var _context:RootContextModule;
+
+
+        [Bindable(event="contextChanged")]
+        public function get context():RootContextModule{
+            return _context;
+        }
+
+        public function set context( value:RootContextModule ):void{
+            if( value != _context ){
+                _context = value;
+                dispatchEvent( new Event( "contextChanged" ) );
+            }
+        }
+
+        [Bindable]
+        public var sqlUrl:String;
+
+        [Bindable]
+        public var dateFrom:Date;
+
+        [Bindable]
+        public var dateTo:Date;
+
+        [Bindable]
+        public var dateRangeIndex:uint = 4;
+
+
+        [Bindable]
+        public var groupIdNameLst:ArrayList = new ArrayList();
+        //        public var groupLst:ArrayList = new ArrayList();
+
+        [Bindable]
+        public var selectedGroupIdArray:Array;
+
+        [Bindable]
+        public var selectedGroupNameArray:Array = [];
+
+        [Bindable]
+        public var timeRangeAbbr:String;
+        [Bindable]
+        public var groupNameAbbr:String;
+
+        public function addGroup( id:Number, name:String, parentId:Number, depth:uint ):CsReportsRootUIGroupModel{
+            if( context.urlExtra == null ){
+                throw new Error( "set CsSessionID Client ID 1st!" );
+            }
+            const len:int = groupIdNameLst.length;
+            for( var j:int = 0; j < len; j ++ ){
+                var groupIdName:CsReportsRootUIGroupModel = groupIdNameLst.getItemAt( j ) as CsReportsRootUIGroupModel;
+                if( groupIdName.id == id ){
+                    CONFIG::debugging{
+                        throw new Error( "group id already exist:" + id );
+                    }
+                    continue;
+                }
+            }
+            var groupModel:CsReportsRootUIGroupModel = new CsReportsRootUIGroupModel();
+            groupModel.id = id;
+            groupModel.name = name;
+            groupModel.parentId = parentId;
+            groupModel.selected = true;
+            groupModel.depth = depth;
+            groupIdNameLst.addItem( groupModel );
+            context.callInNext.putIn( refreshGroupSelection );
+            return groupModel;
+        }
+
+        public function refreshGroupSelection():void{
+            const len:int = groupIdNameLst.length;
+            var ids:Array = [];
+            var names:Array = [];
+            for( var j:int = 0; j < len; j ++ ){
+                var group:CsReportsRootUIGroupModel = groupIdNameLst.getItemAt( j ) as CsReportsRootUIGroupModel;
+
+                for( var t:int = 0; t < len; t ++ ){
+                    var tg:CsReportsRootUIGroupModel = groupIdNameLst.getItemAt( t ) as CsReportsRootUIGroupModel;
+                    if( tg.id == group.parentId ){
+                        group.parent = tg;
+                        break;
+                    }
+
+                }
+                if( group.selected ){
+                    ids.push( group.id );
+                    names.push( group.name );
+                }
+            }
+            selectedGroupIdArray = ids;
+            selectedGroupNameArray = names;
+
+            var tmpLen:uint = selectedGroupNameArray.length;
+            var tmp:Array = selectedGroupNameArray.slice( 0, tmpLen > 3 ? 3 : tmpLen );
+
+            groupNameAbbr = tmp.join( ", " );
+            if( tmpLen > 3 ){
+                groupNameAbbr += " and " + ( tmpLen - 3 ) + " other groups";
+            }
+
+            if( len > 1 ){
+                groupIdNameLst = new ArrayList( groupIdNameLst.toArray().sort( CsReportsRootUIGroupModel.compare ) );
+            }
+        }
+
+        private var _loadingAll:Boolean = false;
+
+        [Bindable(event="loadingAllChanged")]
+        public function get loadingAll():Boolean{
+            return _loadingAll;
+        }
+
+
+        public var lastLoadAllModel:CsGridModel;
+
+        public function setLoadingAllStatus( value:Boolean, who:CsGridModel ):void{
+            if( value != _loadingAll ){
+                lastLoadAllModel = who;
+                _loadingAll = value;
+                dispatchEvent( new Event( "loadingAllChanged" ) );
+            }
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+        <reports:CsSlideShowSessionStatsModel nvReportConsole="{this}" id="showSessionStatsModel"
+                                              visible="{selectedReportIndex==0}"/>
+        <reports:CsSlideViewStatsModel nvReportConsole="{this}" id="slideViewStatsModel"
+                                       visible="{selectedReportIndex==1}"/>
+        <!--<reports:CsUserActsStatsModel model="{this}" id="userActsStatsModel" visible="{selectedReportIndex==0}"/>-->
+        <s:DateTimeFormatter dateTimePattern="MMM dd, yyyy" id="dateTimeFormatter"/>
+    </fx:Declarations>
+
+    <fx:Script><![CDATA[
+        public function selectLastNumDays( num:uint ):void{
+            num --;
+            dateTo = new Date();
+            dateFrom = new Date( dateTo.fullYear, dateTo.month, dateTo.date - num );
+        }
+
+        public function selectLastUnit( n:uint ):void{
+            var today:Date = new Date();
+            if( n == 1 ){
+                dateTo = new Date( today.fullYear, today.month, today.date - today.day - 1 );
+                dateFrom = new Date( dateTo.fullYear, dateTo.month, dateTo.date - 6 );
+            }
+            else if( n == 2 ){
+                dateTo = new Date( today.fullYear, today.month, 0 );
+                dateFrom = new Date( today.fullYear, today.month - 1, 1 );
+            }
+            else if( n == 3 ){
+                dateTo = new Date( today.fullYear, 0, 0 );
+                dateFrom = new Date( today.fullYear - 1, 0, 1 );
+            }
+
+        }
+
+        public function dateRangeMove( forward:Boolean ):void{
+            var dif:Number = dateTo.getTime() - dateFrom.getTime();
+            if( forward ){
+                var tmp:Date = dateTo;
+                dateFrom = dateTo;
+                dateTo = new Date( tmp.getTime() + dif );
+            }
+            else{
+                tmp = dateFrom;
+                dateTo = dateFrom;
+                dateFrom = new Date( tmp.getTime() - dif )
+            }
+            dateRangeIndex = 5;
+        }
+
+
+        private function set dateRangeChanged( v:* ):void{
+            if( dateRangeIndex == 0 ){
+                selectLastUnit( 1 );
+            }
+            else if( dateRangeIndex == 1 ){
+                selectLastUnit( 2 );
+            }
+            else if( dateRangeIndex == 2 ){
+                selectLastUnit( 3 );
+            }
+            else if( dateRangeIndex == 3 ){
+                selectLastNumDays( 7 );
+            }
+            else if( dateRangeIndex == 4 ){
+                selectLastNumDays( 30 );
+            }
+        }
+
+        private function set rfrDateRangeStr( v:* ):void{
+            timeRangeAbbr =
+                    Math.floor( ( dateTo.getTime() - dateFrom.getTime() ) / (24 * 3600 * 1000) ) + " days ending " +
+                    dateTimeFormatter.format( dateTo );
+        }
+        ]]></fx:Script>
+    <fx:Binding source="dateRangeIndex" destination="dateRangeChanged"/>
+    <fx:Binding source="dateFrom" destination="rfrDateRangeStr"/>
+    <fx:Binding source="dateTo" destination="rfrDateRangeStr"/>
+    <fx:Script><![CDATA[
+        [Bindable]
+        public var selectedReportIndex:int = 0;
+        ]]></fx:Script>
+</utils:MxmlEventDispatcher>

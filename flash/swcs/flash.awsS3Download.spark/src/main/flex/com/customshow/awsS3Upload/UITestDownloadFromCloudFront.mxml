@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 8/19/2016.
+-->
+<win:WebWindow xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:win="com.flashflexpro.as3lib.win.*"
+               xmlns:s="library://ns.adobe.com/flex/spark">
+    <fx:Script><![CDATA[
+        import com.customshow.awsS3Download.AwsS3DownloadService;
+        import com.customshow.awsS3Download.TestDownloadFromCloudFront;
+        import com.flashflexpro.as3lib.rpc.RpcSpringMvcPost;
+        import com.flashflexpro.as3lib.win.FDWindow;
+
+        [Bindable(event="modelChanged")]
+        public function get testDownloadFromCloudFront():TestDownloadFromCloudFront{
+            return model as TestDownloadFromCloudFront;
+        }
+
+
+        override protected function onCreated( event:Event ):void{
+            super.onCreated( event );
+
+            _rpcSpringMvcPost =
+                    new AwsS3DownloadService( model.context ).signAll( onSigh3CookiesResult, onSigh3CookiesError );
+            _rpcSpringMvcPost.callRemote();
+        }
+
+
+        private var _rpcSpringMvcPost:RpcSpringMvcPost;
+
+
+        private function onSigh3CookiesError( e:IOErrorEvent ):void{
+            CONFIG::debugging{
+                CC.log( "UITestDownloadFromCloudFront.onSigh3CookiesError->arguments:" + arguments.join( "," ) );
+            }//debug
+        }
+
+        private var _load:URLLoader;
+
+        private function onSigh3CookiesResult( arr:Array ):void{
+            CONFIG::debugging{
+                CC.log( "UITestDownloadFromCloudFront.onSigh3CookiesResult->arguments:" + arguments.join( "," ) );
+            }//debug
+
+            var cloudFront = "https://d1iw0lve9can3t.cloudfront.net";
+            var resPath = "video/-1/3/54A70117-6B0F-24E6-4A56-7F86DA6EC3B5/1466013067199/320x240_0_02.jpeg";
+
+
+            _imgUrl = cloudFront + "/" + resPath + "?Key-Pair-Id=" + arr[2] + "&Signature=" + arr[1] + "&Policy=" +
+                    arr[0];
+            trace( _imgUrl );
+        }
+
+        [Bindable]
+        private var _imgUrl:String = null;
+
+
+        [Bindable(event="tbPanelChanged")]
+        override public function get modelWin():FDWindow{
+            return super.modelWin;
+        }
+        ]]></fx:Script>
+    <s:Image source="{_imgUrl}"/>
+</win:WebWindow>

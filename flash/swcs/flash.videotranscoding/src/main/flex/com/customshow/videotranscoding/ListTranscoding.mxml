@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 3/23/2016.
+-->
+<rpc:RpcGrid xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:rpc="com.flashflexpro.as3lib.rpc.*"
+             xmlns:ap="org.apache.flex.collections.*" sortColDesc="true">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.data.GridColumn;
+        import com.flashflexpro.as3lib.data.PropertyDesc;
+        import com.flashflexpro.as3lib.utils.RootContextModule;
+
+        import mx.collections.IList;
+
+        [Bindable]
+        public var selectedTransc:DynaTableVideoTranscoding;
+
+
+        override public function reloadGrid():void{
+            super.reloadGrid();
+            selectedTransc = null;
+        }
+
+        public function get lastResult():IList{
+            return lastQueryResult as IList;
+        }
+
+        override public function onLoaded( rslt:Object ):Boolean{
+            var rt:Boolean = super.onLoaded( rslt );
+            if( rslt is IList ){
+                rows.addAll( rslt as IList );
+            }
+            return rt;
+        }
+
+        private var _transcDateFields:Array;
+
+        protected function getDateFields():Array{
+            if( _transcDateFields == null ){
+                _transcDateFields = [DynaTableVideoTranscoding.PROP_DESC_lastUpdateTime,
+                    DynaTableVideoTranscoding.PROP_DESC_createTime];
+            }
+            return _transcDateFields;
+        }
+
+        override public function set context( value:RootContextModule ):void{
+            if( value == context ){
+                return;
+            }
+            super.context = value;
+
+            var colProps:Vector.<PropertyDesc> = DynaTableVideoTranscoding.allProperties;
+            const len:int = colProps.length;
+            for( var j:int = 0; j < len; j ++ ){
+                var desc:PropertyDesc = colProps[j] as PropertyDesc;
+                if( desc == DynaTableVideoTranscoding.PROP_DESC_formats ||
+                        desc == DynaTableVideoTranscoding.PROP_DESC_mediaInfo ||
+                        desc == DynaTableVideoTranscoding.PROP_DESC_uploadBucketKey ||
+                        desc == DynaTableVideoTranscoding.PROP_DESC_version ){
+                    continue;
+                }
+                var column:GridColumn = new GridColumn();
+                column.label = "T:" + desc.name;
+                column.dataField = desc.name;
+
+                if( getDateFields().indexOf( desc ) >= 0 ){
+                    column.labelFunction = getCellLabelDate;
+                }
+
+                column.sortable = true;
+                columns.addItem( column );
+
+                if( desc == DynaTableVideoTranscoding.PROP_DESC_lastUpdateTime ){
+                    sortColDataField = column;
+                }
+            }
+        }
+
+        protected function getCellLabelDate( row:DynaTableVideoTranscoding, col:GridColumn ):String{
+            var rt:Date = new Date();
+            rt.setTime(row[col.dataField] );
+            return rt.toLocaleString()
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+        <ap:ArrayList id="columns"/>
+    </fx:Declarations>
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.rpc.RpcSpringMvcPost;
+
+        [Bindable]
+        public var runAgainRpc:RpcSpringMvcPost;
+
+        [Bindable]
+        public var runAgainRslt:DynaTableVideoTranscoding;
+
+        public function runAgain():void{
+            runAgainRpc = new TranscodingService( context ).reEncodingJob( reEncodeResult, reEncodeError,
+                    selectedTransc.mediaId );
+
+            runAgainRpc.callRemote();
+        }
+
+        private function reEncodeResult( r:DynaTableVideoTranscoding ):void{
+            runAgainRslt = r;
+            runAgainRpc = null;
+            //            reloadGrid();
+        }
+
+        [Bindable]
+        public var runAgainRpcError:String;
+
+        private function reEncodeError( e:ErrorEvent ):void{
+            runAgainRpcError = e.text;
+            runAgainRpc = null;
+        }
+        ]]></fx:Script>
+</rpc:RpcGrid>

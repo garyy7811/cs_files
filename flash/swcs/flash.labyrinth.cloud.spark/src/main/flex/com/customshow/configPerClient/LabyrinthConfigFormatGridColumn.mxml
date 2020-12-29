@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 4/7/2016.
+-->
+<data:PropertiesGridColumn xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:data="com.flashflexpro.as3lib.data.*">
+    <fx:Script><![CDATA[
+
+        [Bindable(event="beanChanged")]
+        public function get format():DynaTableClientConfigTranscodeFormat{
+            return bean as DynaTableClientConfigTranscodeFormat;
+        }
+
+
+        [Bindable(event="gridChanged")]
+        public function get transcConfigFormatGrid():TranscodeConfigFormatGrid{
+            return grid as TranscodeConfigFormatGrid;
+        }
+
+        override protected function refreshLabel():void{
+            if( bean.identification == TranscodeConfigFormatGridColumn.DEFAULT_VIDEO ){
+                label = 'default';
+                editable = false;
+            }
+            else{
+                label = 'override';
+                editable = propGrid.editable;
+            }
+        }
+
+        ]]></fx:Script>
+    <fx:Binding source="label" destination="rfrLabel"/>
+    <fx:Binding source="propGrid.editable" destination="rfrLabel"/>
+</data:PropertiesGridColumn>

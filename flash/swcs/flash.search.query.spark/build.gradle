@@ -1,0 +1,5 @@
+dependencies {
+    merged project( ':flash:swcs:flash.utils.spark' )
+    merged project( ':flash:swcs:flash.search.query' )
+}
+

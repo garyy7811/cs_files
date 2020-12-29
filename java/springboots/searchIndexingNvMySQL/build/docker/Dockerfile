@@ -1,0 +1,7 @@
+#DEFAULT default dockerfile
+FROM openjdk:11.0.6-jdk-buster
+VOLUME /tmp
+ADD searchIndexingNvMySQL-0.0.0-SNAPSHOT.jar app.jar
+RUN sh -c 'touch /app.jar'
+ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app.jar" ]
+MAINTAINER CustomShow Engineering "engineering@customshow.com"

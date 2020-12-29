@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 4/7/2016.
+-->
+<data:PropertiesGridColumn xmlns:fx="http://ns.adobe.com/mxml/2009"
+                           xmlns:data="com.flashflexpro.as3lib.data.*"
+                           editable="{format.configName!=DEFAULT_THUMB
+                           &amp;&amp; format.configName!=DEFAULT_VIDEO}">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.utils.ExecutableMenuListing;
+        import com.flashflexpro.as3lib.utils.ExecutableMenuItem;
+
+        import mx.utils.ObjectUtil;
+
+        public static const DEFAULT_VIDEO:String = "default_video";
+        public static const DEFAULT_THUMB:String = "default_thumbnail";
+        public static const DEFAULT_POSTER_FRAME:String = "default_posterframe";
+        public static const DEFAULT_FIRST_FRAME:String = "default_first_frame_posterframe";
+
+        [Bindable(event="beanChanged")]
+        public function get format():DynaTableClientConfigTranscodeFormat{
+            return bean as DynaTableClientConfigTranscodeFormat;
+        }
+
+
+        [Bindable(event="gridChanged")]
+        public function get transcConfigFormatGrid():TranscodeConfigFormatGridPerClient{
+            return grid as TranscodeConfigFormatGridPerClient;
+        }
+
+        private var _savingFormat:DynaTableClientConfigTranscodeFormat;
+
+        public function save():void{
+            _savingFormat = copyBeanWithChanges() as DynaTableClientConfigTranscodeFormat;
+            new ConfigPerClientService( transcConfigFormatGrid.context ).saveTranscodeFormat( onSaveFormatBack, null,
+                    transcConfigFormatGrid.perClientConfigLoadById.clientId, _savingFormat ).callRemote();
+        }
+
+        private function onSaveFormatBack( fid:String ):Boolean{
+            if( _savingFormat.identification == null ){
+                _savingFormat.identification = fid;
+            }
+            else{
+                transcConfigFormatGrid.beans.setItemAt( _savingFormat,
+                        transcConfigFormatGrid.beans.getItemIndex( bean ) );
+            }
+            _savingFormat = null;
+            return true;
+        }
+
+        private function duplicate():void{
+            transcConfigFormatGrid.duplicate( this );
+        }
+
+        private function deleteMe():void{
+            transcConfigFormatGrid.deleteCol( this );
+        }
+
+
+        public function onMenu():void{
+            var menu:Array = [];
+            var menuItem:ExecutableMenuItem;
+            if( format.identification == null ){
+                menuItem = new ExecutableMenuItem();
+                menuItem.enabled = true;
+                menuItem.label = "Save";
+                menuItem.toExe = save;
+                menu.push( menuItem );
+
+                menuItem = new ExecutableMenuItem();
+                menuItem.label = "Delete";
+                menuItem.toExe = deleteMe;
+                menu.push( menuItem );
+            }
+            else{
+                menuItem = new ExecutableMenuItem();
+                menuItem.label = "Duplicate";
+                menuItem.enabled = (newValues.length == 0 );
+                menuItem.toExe = duplicate;
+                menu.push( menuItem );
+            }
+
+            if( format.baseConfigId != null && format.identification != null ){
+                menuItem = new ExecutableMenuItem();
+                menuItem.enabled = (newValues.length > 0 );
+                menuItem.label = "REVERT ALL";
+                menuItem.toExe = revert;
+                menu.push( menuItem );
+
+                menuItem = new ExecutableMenuItem();
+                menuItem.enabled = (newValues.length > 0 );
+                menuItem.label = "Save";
+                menuItem.toExe = save;
+                menu.push( menuItem );
+
+                menuItem = new ExecutableMenuItem();
+                menuItem.label = "Delete";
+                menuItem.toExe = deleteMe;
+                menu.push( menuItem );
+            }
+
+            transcConfigFormatGrid.context.rootApp.setMenuOperations( new ExecutableMenuListing( menu ) );
+        }
+        ]]></fx:Script>
+</data:PropertiesGridColumn>

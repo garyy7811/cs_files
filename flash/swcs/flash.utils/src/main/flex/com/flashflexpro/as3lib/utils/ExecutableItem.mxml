@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<utils:MxmlEventDispatcher xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:utils="com.flashflexpro.as3lib.utils.*">
+    <fx:Script><![CDATA[
+        private var _target:Object;
+
+        [Bindable(event="targetChanged")]
+        public function get target():Object{
+            return _target;
+        }
+
+        public function set target( value:Object ):void{
+            if( value != _target ){
+                _target = value;
+                dispatchEvent( new Event( "targetChanged" ) );
+            }
+        }
+
+        [Bindable]
+        public var available:Boolean;
+
+        public function execute():void{
+            if( _moduleContext != null && _moduleContext.rootApp.executingItems != null ){
+                _moduleContext.rootApp.executingItems.addItem( this );
+            }
+            try{
+                onExecute();
+            }
+            catch( e:Error ){
+                CONFIG::debugging{
+                    CC.log( e.getStackTrace() );
+                }
+            }
+            if( _moduleContext != null && _moduleContext.rootApp.executingItems != null ){
+                var idx:int = _moduleContext.rootApp.executingItems.getItemIndex( this );
+                _moduleContext.rootApp.executingItems.removeItemAt( idx )
+            }
+        }
+
+        public var toExe:Function;
+
+        protected function onExecute():void{
+            if( toExe == null ){
+                throw  new Error();
+            }
+            toExe.apply( target == null ? this : target );
+        }
+
+
+        private var _moduleContext:RootContextModule;
+        [Bindable(event="moduleContextChanged")]
+        public function get moduleContext():RootContextModule{
+            return _moduleContext;
+        }
+
+        public function set moduleContext( value:RootContextModule ):void{
+            if( value != _moduleContext ){
+                _moduleContext = value;
+                dispatchEvent( new Event( "moduleContextChanged" ) );
+            }
+        }
+
+        public function destroy():void{
+            moduleContext = null;
+        }
+        ]]></fx:Script>
+</utils:MxmlEventDispatcher>

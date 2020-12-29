@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<utils:ExecutableItem xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:utils="com.flashflexpro.as3lib.utils.*">
+    <fx:Script><![CDATA[
+        public static const TYPE_CHECK:String = "check";
+        public static const TYPE_RADIO:String = "radio";
+        public static const TYPE_SEPARATOR:String = "separator";
+
+        private var _type:String = null;
+        public function get type():String{
+            if( _type == null ){
+                return label == null ? TYPE_SEPARATOR : null;
+            }
+            return _type;
+        }
+
+        public function set type( value:String ):void{
+            _type = value;
+        }
+
+        internal var _parent:ExecutableMenuListing;
+        public function get parent():ExecutableMenuListing{
+            return _parent;
+        }
+
+
+        public function getRoot():ExecutableMenuListing{
+            var rt:ExecutableMenuListing = _parent;
+            while( rt.parent != null ){
+                rt = rt.parent;
+            }
+            return rt;
+        }
+
+
+        override public function destroy():void{
+            super.destroy();
+            _parent = null;
+        }
+
+        [Bindable]
+        public var labelColor:uint = 0x000000;
+
+        [Bindable]
+        public var enabled:Boolean = true;
+
+        [Bindable]
+        public var label:String;
+
+        [Bindable]
+        public var toolTip:String;
+
+        [Bindable]
+        public var toggled:Boolean;
+
+        [Bindable]
+        public var dragSource:CtxDragSource;
+        ]]></fx:Script>
+</utils:ExecutableItem>

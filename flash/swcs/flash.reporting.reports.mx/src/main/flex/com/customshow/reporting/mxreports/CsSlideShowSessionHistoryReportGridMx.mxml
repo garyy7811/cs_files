@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!--
+  Only to be back compatible to NV's halo style
+-->
+<mx:DataGrid xmlns:fx="http://ns.adobe.com/mxml/2009"
+             dataProvider="{_report.sessionList}" allowMultipleSelection="false"
+             sortableColumns="true" creationComplete="initSort=null;"
+             xmlns:mx="library://ns.adobe.com/flex/mx"
+>
+    <fx:Script><![CDATA[
+        import mx.events.DataGridEvent;
+
+        use namespace mx_internal;
+
+        public static function sortByViewer( row1:CsSlideShowSessionModel, row2:CsSlideShowSessionModel ):int{
+            return row1.viewer > row2.viewer ? 1 : - 1;
+        }
+
+        public static function sortByViewedTime( row1:CsSlideShowSessionModel, row2:CsSlideShowSessionModel ):int{
+            return row1.dtoShowDuration.p( MxCsQuickRpc.schemaShowduration.startTime__l_t_t_f ) >
+            row2.dtoShowDuration.p( MxCsQuickRpc.schemaShowduration.startTime__l_t_t_f ) ? 1 : - 1;
+        }
+
+        public static function sortByViewedTimeLen( row1:CsSlideShowSessionModel, row2:CsSlideShowSessionModel ):int{
+            return row1.dtoShowDuration.p( MxCsQuickRpc.schemaShowduration.duration__l_t_t_f ) >
+            row2.dtoShowDuration.p( MxCsQuickRpc.schemaShowduration.duration__l_t_t_f ) ? 1 : - 1;
+        }
+
+        public static function sortByViewCounts( row1:CsSlideShowSessionModel, row2:CsSlideShowSessionModel ):int{
+            return row1.counts > row2.counts ? 1 : - 1;
+        }
+
+        [Bindable]
+        private var _report:CsSlideShowSessionHistoryModel;
+
+        [Bindable]
+        public var slideShowId:String;
+        [Bindable]
+        public var queryUrl:String;
+        [Bindable]
+        public var csSessionId:String;
+
+        public var includePreview:Boolean;
+
+
+        private function set loadShowHistory( ignoreVar:* ):void{
+            if( slideShowId != null && queryUrl != null && csSessionId != null ){
+                _report = new CsSlideShowSessionHistoryModel( csSessionId, queryUrl, Number( slideShowId ) );
+            }
+        }
+
+        public function refreshShowHistory():void{
+            loadShowHistory = null;
+        }
+
+        private function set initSort( v:* ):void{
+            if( _report != null && _report.sessionList != null && _report.sessionList.length > 0 ){
+                var dataGridEvent:DataGridEvent = new DataGridEvent( DataGridEvent.HEADER_RELEASE, false, true );
+                dataGridEvent.columnIndex = 1;
+                dispatchEvent( dataGridEvent );
+                if( sortDirection == "ASC"){
+                    dispatchEvent( dataGridEvent );
+                }
+            }
+        }
+        ]]></fx:Script>
+    <fx:Binding source="_report.sessionList" destination="initSort"/>
+    <fx:Binding source="slideShowId" destination="loadShowHistory"/>
+    <fx:Binding source="queryUrl" destination="loadShowHistory"/>
+    <fx:Binding source="csSessionId" destination="loadShowHistory"/>
+    <mx:columns>
+
+        <mx:DataGridColumn id="colViewer" headerText="Viewer" dataField="viewer"
+                           sortCompareFunction="sortByViewer" sortable="true"/>
+        <mx:DataGridColumn id="colViewedTime" headerText="Viewed" dataField="viewedTime"
+                           sortCompareFunction="sortByViewedTime" sortable="true"/>
+        <mx:DataGridColumn id="colTimeLen" headerText="Time" dataField="duration"
+                           sortCompareFunction="sortByViewedTimeLen" sortable="true"/>
+        <mx:DataGridColumn id="colViewCounts" headerText="Slides" dataField="counts"
+                           sortCompareFunction="sortByViewCounts" sortable="true"/>
+    </mx:columns>
+</mx:DataGrid>

@@ -1,0 +1,19 @@
+type = 'swc'
+
+
+dependencies {
+    merged project(':flash:swcs:flash.utils.spark')
+}
+
+/*
+task generateRpcApi( type: com.customshow.codegen.rpcmodel.GenerateFlashRpcApiTask ) {
+    javaSourceProjects = [ project( ':java_modules:java.solr.query.web.common' ) ]
+    includeDtoClasses = [ 'com.customshow.solr.query.web.common.Dto*' ]
+    includeServiceClasses = [ 'com.customshow.solr.query.web.common.FacetQueryProperties' ]
+    outputDirectory = project.file( 'src/main/flex' )
+}*/
+
+
+artifacts {
+    archives file(buildDir.absolutePath + "/" + output + ".swc")
+}

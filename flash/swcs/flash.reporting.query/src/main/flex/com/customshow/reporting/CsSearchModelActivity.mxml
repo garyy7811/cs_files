@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<reporting:CsSearchModelAbstract xmlns:fx="http://ns.adobe.com/mxml/2009"
+                                 xmlns:solr="com.customshow.solr.*"
+                                 xmlns:schema="com.customshow.reporting.schema.*"
+                                 xmlns:reporting="com.customshow.reporting.*"
+                                 overridingServiceName="activity">
+    <fx:Script><![CDATA[
+        protected function set onSchemaReady( v:* ):void{
+            if( schema != activitySolrSchema ){
+                schema = activitySolrSchema;
+
+
+                queryFields.addAll( activitySolrSchema.getAllFields() );
+                resultRecordFields.addAll( activitySolrSchema.getAllFields() );
+
+                initResultRecordFields.addItem( activitySolrSchema.recTimeStamp__l_t_t_f );
+                initResultRecordFields.addItem( activitySolrSchema.fromSlideIndexOfPres__i_t_t_f );
+                initResultRecordFields.addItem( activitySolrSchema.fromSlideName__si_t_t_f );
+                initResultRecordFields.addItem( activitySolrSchema.pauseReason__si_t_t_f );
+                initResultRecordFields.addItem( activitySolrSchema.toSlideIndexOfPres__i_t_t_f );
+                initResultRecordFields.addItem( activitySolrSchema.toSlideName__si_t_t_f );
+
+                resultFacetFields.addAll( activitySolrSchema.getAllFields() );
+
+                initResultFacetFields.addItem( activitySolrSchema.pauseReason__si_t_t_f );
+                initResultFacetFields.addItem( activitySolrSchema.fromSlideName__si_t_t_f );
+                initResultFacetFields.addItem( activitySolrSchema.toSlideName__si_t_t_f );
+            }
+        }
+        ]]></fx:Script>
+    <reporting:queryResult>
+        <solr:QueryResult searchModel="{this}" id="staticQueryResultActivity">
+            <solr:queryModel>
+                <solr:Query queryResult="{this.queryResult}">
+                    <solr:rootTerm>
+                        <solr:QueryRelate2Terms query="{staticQueryResultActivity.queryModel}" isVertical="true">
+                            <solr:term>
+                                <solr:QueryTermT
+                                        field="{this.activitySolrSchema.showSessionId__si_t_t_f}"/>
+                            </solr:term>
+                        </solr:QueryRelate2Terms>
+                    </solr:rootTerm>
+                </solr:Query>
+            </solr:queryModel>
+        </solr:QueryResult>
+    </reporting:queryResult>
+    <fx:Binding source="activitySolrSchema" destination="onSchemaReady"/>
+    <fx:Declarations>
+        <schema:CSReportingActivitySolrSchema id="activitySolrSchema" searchModel="{this}"/>
+    </fx:Declarations>
+</reporting:CsSearchModelAbstract>

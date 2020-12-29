@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<schema:CSReportingSolrAbstractSchema xmlns:fx="http://ns.adobe.com/mxml/2009"
+                       xmlns:ap="org.apache.flex.collections.*"
+                       xmlns:solr="com.customshow.solr.*"
+                                xmlns:schema="com.customshow.reporting.schema.*"
+                                xmlns:field="com.customshow.solr.*">
+    <fx:Script><![CDATA[
+        private var _allAdded:Boolean = false;
+        override public function getAllFields():ArrayList{
+            if( !_allAdded ){
+                ___allFields.addAll( ___CSReportingHasUserOwnerDurationSchema );
+                _allAdded = true;
+            }
+            return super.getAllFields();
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+        <ap:ArrayList id="___CSReportingHasUserOwnerDurationSchema">
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="ownerClientId__l_t_t_f"  name="ownerClientId"  label="ownerClientId"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="slideShowName__si_t_t_f"  name="slideShowName"  label="slideShowName"  searchModel="{searchModel}" queryField="query_slideShowName__sw_t_f_f" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="userClientName__si_t_t_f"  name="userClientName"  label="userClientName"  searchModel="{searchModel}" queryField="query_userClientName__sw_t_f_f" />
+            <field:QueryFieldT isArray="true"  isStrID="true"  id="userGroupNamePath__si_t_t_t"  name="userGroupNamePath"  label="userGroupNamePath"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="ownerId__l_t_t_f"  name="ownerId"  label="ownerId"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="ownerGroupIdPath__si_t_t_f"  name="ownerGroupIdPath"  label="ownerGroupIdPath"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="ownerEmailDomain__si_t_t_f"  name="ownerEmailDomain"  label="ownerEmailDomain"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="userGroupId__l_t_t_f"  name="userGroupId"  label="userGroupId"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="duration__l_t_t_f"  name="duration"  label="duration"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="userGroupIdPath__si_t_t_f"  name="userGroupIdPath"  label="userGroupIdPath"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="ownerGroupName__si_t_t_f"  name="ownerGroupName"  label="ownerGroupName"  searchModel="{searchModel}" queryField="query_ownerGroupName__sw_t_f_f" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="userEmailDomain__si_t_t_f"  name="userEmailDomain"  label="userEmailDomain"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="userEmail__si_t_t_f"  name="userEmail"  label="userEmail"  searchModel="{searchModel}" queryField="query_userEmail__sw_t_f_f" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="lastUpdatedTime__l_t_t_f"  name="lastUpdatedTime"  label="lastUpdatedTime"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="startTime__l_t_t_f"  name="startTime"  label="startTime"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="ownerFirstName__si_t_t_f"  name="ownerFirstName"  label="ownerFirstName"  searchModel="{searchModel}" queryField="query_ownerFirstName__sw_t_f_f" />
+            <field:QueryFieldT isArray="true"  isStrID="true"  id="ownerGroupNamePath__si_t_t_t"  name="ownerGroupNamePath"  label="ownerGroupNamePath"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="ownerLastName__si_t_t_f"  name="ownerLastName"  label="ownerLastName"  searchModel="{searchModel}" queryField="query_ownerLastName__sw_t_f_f" />
+            <field:QueryFieldT isArray="true"  isStrID="true"  id="coordinate__si_t_t_t"  name="coordinate"  label="coordinate"  searchModel="{searchModel}" queryField="query_coordinate__sw_t_f_t" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="ownerGroupId__l_t_t_f"  name="ownerGroupId"  label="ownerGroupId"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="durationNet__l_t_t_f"  name="durationNet"  label="durationNet"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="ipAddress__si_t_t_f"  name="ipAddress"  label="ipAddress"  searchModel="{searchModel}" queryField="query_ipAddress__sw_t_f_f" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="slideShowId__l_t_t_f"  name="slideShowId"  label="slideShowId"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="userId__l_t_t_f"  name="userId"  label="userId"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="userClientId__l_t_t_f"  name="userClientId"  label="userClientId"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="ownerEmail__si_t_t_f"  name="ownerEmail"  label="ownerEmail"  searchModel="{searchModel}" queryField="query_ownerEmail__sw_t_f_f" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="ownerClientName__si_t_t_f"  name="ownerClientName"  label="ownerClientName"  searchModel="{searchModel}" queryField="query_ownerClientName__sw_t_f_f" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="createTime__l_t_t_f"  name="createTime"  label="createTime"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="userGroupName__si_t_t_f"  name="userGroupName"  label="userGroupName"  searchModel="{searchModel}" queryField="query_userGroupName__sw_t_f_f" />
+            <field:QueryFieldT isArray="false"  isStrID="true"  id="location__si_t_t_f"  name="location"  label="location"  searchModel="{searchModel}" queryField="query_location__sw_t_f_f" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="endTime__l_t_t_f"  name="endTime"  label="endTime"  searchModel="{searchModel}" />
+       </ap:ArrayList>
+    </fx:Declarations>
+</schema:CSReportingSolrAbstractSchema>

@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!--
+  Created by yanggang on 3/26/2016.
+-->
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:win="com.flashflexpro.as3lib.win.*"
+          xmlns:s="library://ns.adobe.com/flex/spark" xmlns:mx="library://ns.adobe.com/flex/mx"
+          xmlns:upload="com.customshow.awsS3Upload.*" implements="com.flashflexpro.as3lib.IByModel">
+    <fx:Script><![CDATA[
+        import com.flashflexpro.as3lib.IWithContext;
+
+
+        private var _model:IWithContext;
+        [Bindable(event="modelChanged")]
+        public function get model():IWithContext{
+            return _model;
+        }
+
+        public function set model( value:IWithContext ):void{
+            if( value != _model ){
+                _model = value;
+                dispatchEvent( new Event( "modelChanged" ) );
+            }
+        }
+
+        [Bindable(event="modelChanged")]
+        public function get listUploadsByUser():ListUploadsByUserId{
+            return _model as ListUploadsByUserId;
+        }
+        ]]></fx:Script>
+    <s:HGroup id="controlsGroup">
+        <s:Button click="listUploadsByUser.reloadGrid()"
+                  label="Refreshed {Math.round(listUploadsByUser.afterLastRefresh/1000)} secs ago"/>
+        <s:FormItem label="UserId:">
+            <s:TextInput id="queryUsername" text="@{listUploadsByUser.userId}" width="100%"/>
+        </s:FormItem>
+        <s:FormItem label="Before:">
+            <mx:DateField selectedDate="@{listUploadsByUser.uploadTimeTo}"/>
+        </s:FormItem>
+    </s:HGroup>
+
+    <upload:UIListUploadsByUserId model="{model}" width="100%" height="100%"/>
+</s:VGroup>

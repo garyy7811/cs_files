@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<schema:CSReportingHasUserOwnerDurationSchema xmlns:fx="http://ns.adobe.com/mxml/2009"
+                       xmlns:ap="org.apache.flex.collections.*"
+                       xmlns:solr="com.customshow.solr.*"
+                                xmlns:schema="com.customshow.reporting.schema.*"
+                                xmlns:field="com.customshow.solr.*">
+    <fx:Script><![CDATA[
+        private var _allAdded:Boolean = false;
+        override public function getAllFields():ArrayList{
+            if( !_allAdded ){
+                ___allFields.addAll( ___CSReportingSlideCollectionSchema );
+                _allAdded = true;
+            }
+            return super.getAllFields();
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+        <ap:ArrayList id="___CSReportingSlideCollectionSchema">
+            <field:QueryFieldT isArray="true"  isStrID="true"  id="slideRefNames__si_t_t_t"  name="slideRefNames"  label="slideRefNames"  searchModel="{searchModel}" queryField="query_slideRefNames__sw_t_f_t" />
+            <field:QueryFieldT isArray="true"  isStrID="true"  id="slideOwnerEmails__si_t_t_t"  name="slideOwnerEmails"  label="slideOwnerEmails"  searchModel="{searchModel}" queryField="query_slideOwnerEmails__sw_t_f_t" />
+            <field:QueryFieldR isArray="true"  isStrID="false"  id="slideIds__l_t_t_t"  name="slideIds"  label="slideIds"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="true"  isStrID="false"  id="slideOwnerGroupIds__l_t_t_t"  name="slideOwnerGroupIds"  label="slideOwnerGroupIds"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="true"  isStrID="true"  id="slideOwnerFirstNames__si_t_t_t"  name="slideOwnerFirstNames"  label="slideOwnerFirstNames"  searchModel="{searchModel}" queryField="query_slideOwnerFirstNames__sw_t_f_t" />
+            <field:QueryFieldT isArray="true"  isStrID="true"  id="slideOwnerClientNames__si_t_t_t"  name="slideOwnerClientNames"  label="slideOwnerClientNames"  searchModel="{searchModel}" queryField="query_slideOwnerClientNames__sw_t_f_t" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="viewedSlideNum__i_t_t_f"  name="viewedSlideNum"  label="viewedSlideNum"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="true"  isStrID="true"  id="slideOwnerGroupNames__si_t_t_t"  name="slideOwnerGroupNames"  label="slideOwnerGroupNames"  searchModel="{searchModel}" queryField="query_slideOwnerGroupNames__sw_t_f_t" />
+            <field:QueryFieldT isArray="true"  isStrID="true"  id="slideNames__si_t_t_t"  name="slideNames"  label="slideNames"  searchModel="{searchModel}" queryField="query_slideNames__sw_t_f_t" />
+            <field:QueryFieldR isArray="false"  isStrID="false"  id="slideNum__i_t_t_f"  name="slideNum"  label="slideNum"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="true"  isStrID="false"  id="slideOwnerIds__l_t_t_t"  name="slideOwnerIds"  label="slideOwnerIds"  searchModel="{searchModel}" />
+            <field:QueryFieldT isArray="true"  isStrID="true"  id="slideOwnerLastNames__si_t_t_t"  name="slideOwnerLastNames"  label="slideOwnerLastNames"  searchModel="{searchModel}" queryField="query_slideOwnerLastNames__sw_t_f_t" />
+            <field:QueryFieldR isArray="true"  isStrID="false"  id="slideOwnerClientIds__l_t_t_t"  name="slideOwnerClientIds"  label="slideOwnerClientIds"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="true"  isStrID="false"  id="slideRefIds__l_t_t_t"  name="slideRefIds"  label="slideRefIds"  searchModel="{searchModel}" />
+            <field:QueryFieldR isArray="true"  isStrID="false"  id="slideIsLibs__b_t_t_t"  name="slideIsLibs"  label="slideIsLibs"  searchModel="{searchModel}" />
+       </ap:ArrayList>
+    </fx:Declarations>
+</schema:CSReportingHasUserOwnerDurationSchema>

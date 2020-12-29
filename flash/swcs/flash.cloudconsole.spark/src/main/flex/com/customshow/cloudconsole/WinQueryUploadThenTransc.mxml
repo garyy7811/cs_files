@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 3/28/2016.
+-->
+<win:WebWindow xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:awss3upload="com.customshow.awsS3Upload.*" xmlns:win="com.flashflexpro.as3lib.win.*"
+               creationComplete="onCreatedComplete();">
+    <fx:Script><![CDATA[
+        import com.customshow.awsS3Upload.AwsS3UploadService;
+        import com.customshow.awsS3Upload.ListUploadsByUserId;
+        import com.customshow.awsS3Upload.S3Post;
+
+        private function popUpTranscoding():void{
+            ( uploadListModel.context.rootApp as RootCloudConsole ).addNewWinQueryTranscodingByUpload(
+                    uploadListModel.selectedUpload );
+        }
+
+        private var _fileRef:FileReference;
+
+        [Bindable]
+        private var _uploadByPost:Boolean = true;
+
+        private function popSwfSnapshot():void{
+            if( _fileRef == null ){
+                _fileRef = new FileReference();
+                _fileRef.addEventListener( Event.COMPLETE, onPngLoaded );
+                _fileRef.addEventListener( Event.SELECT, function ( ev:Event ):void{
+                    _fileRef.load();
+                } );
+            }
+            _fileRef.browse();
+        }
+
+        private function onPngLoaded( ev:Event ):void{
+            var tmp:ByteArray = _fileRef.data;
+            if( _uploadByPost ){
+                if( _postAuthRslt == null ){
+                    new AwsS3UploadService( uploadListModel.contextUpload ).authenticateResourceThumbnailUpload(
+                            onPostRslt, onPostError, 1234, "thumb-type", "thumbnail/slide/82874" ).callRemote();
+                }
+                else{
+                    postBytes();
+                }
+            }
+            else{
+                new AwsS3UploadService( uploadListModel.contextUpload ).postFlashThumbnail( onPostRslt, onPostError,
+                        uploadListModel.selectedUpload.applyTimeStamp, tmp, 11, 22, 33, 44 ).callRemote();
+            }
+        }
+
+        private var _postAuthRslt:Array;
+
+        private function onPostRslt( obj:* ):void{
+            CONFIG::debugging{
+                CC.log( "WinQueryUploadThenTransc.onPostRslt->arguments:" + arguments.join( "," ) );
+            }//debug
+            if( _uploadByPost ){
+                _postAuthRslt = obj as Array;
+                postBytes();
+            }
+        }
+
+        private function onPostError( e:* ):void{
+            CONFIG::debugging{
+                CC.log( "WinQueryUploadThenTransc.onPostError->arguments:" + arguments.join( "," ) );
+            }//debug
+        }
+
+
+        [Bindable(event="modelChanged")]
+        public function get uploadListModel():ListUploadsByUserId{
+            return model as ListUploadsByUserId;
+        }
+
+        private function postBytes():void{
+            new S3Post( _postAuthRslt[0], _postAuthRslt[1], _postAuthRslt[2], _postAuthRslt[3], _postAuthRslt[4], "thumbnail/slide/82874/" +
+                    _fileRef.name, _fileRef.name, "image/png", _fileRef.data ).doPost();
+        }
+
+        private function onCreatedComplete():void{
+            while( listUploadByUserId.controlsGroup.numElements > 0 ){
+                controlsGroup.addElementAt( listUploadByUserId.controlsGroup.getElementAt( 0 ), 0 );
+            }
+        }
+        ]]></fx:Script>
+    <fx:Binding source="Listing User Uploads: userId:{uploadListModel.userId},uploadTime:{uploadListModel.uploadTimeTo}"
+                destination="modelWin.title"/>
+    <win:layout>
+        <s:VerticalLayout/>
+    </win:layout>
+    <s:HGroup id="controlsGroup">
+        <s:Button enabled="{uploadListModel.selectedUpload!=null}" label="Query transcoding History"
+                  click="popUpTranscoding();"/>
+        <s:Button
+                label="Upload snapshot"
+                click="popSwfSnapshot();"/>
+        <s:CheckBox
+                label="Upload by post" selected="@{_uploadByPost}"/>
+        <s:Button enabled="{uploadListModel.selectedUpload!=null}" label="Encode with New Formats"
+                  click="model.context.escalate( uploadListModel, uploadListModel.selectedUpload.s3BucketKey)"/>
+    </s:HGroup>
+    <awss3upload:UIQueryListUploadByUserId id="listUploadByUserId" model="{uploadListModel}" width="100%"
+                                           height="100%"/>
+    <win:botleGroupContent>
+        <s:Label
+                text="{uploadListModel.lastErrorEvent==null?'':( uploadListModel.lastErrorEvent.errorID + ':' + uploadListModel.lastErrorEvent.text )}"/>
+    </win:botleGroupContent>
+</win:WebWindow>

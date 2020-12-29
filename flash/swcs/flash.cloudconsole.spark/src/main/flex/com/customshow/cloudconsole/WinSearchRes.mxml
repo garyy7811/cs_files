@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!--
+  Created by gary.y on 3/28/2016.
+-->
+<win:WebWindow xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:win="com.flashflexpro.as3lib.win.*" xmlns:client="com.customshow.configPerClient.*"
+               xmlns:solr="com.customshow.solr.*" xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:search="com.customshow.searchQuery.*">
+    <fx:Script><![CDATA[
+        import com.customshow.search.indexing.ListResBySearching;
+
+        [Bindable(event="modelChanged")]
+        public function get searchResLst():ListResBySearching{
+            return model as ListResBySearching;
+        }
+        ]]></fx:Script>
+    <mx:VDividedBox width="100%" height="100%">
+        <s:HGroup width="100%" height="100%" verticalAlign="bottom">
+            <s:TextArea width="100%" height="100%" text="@{searchResLst.queryStr}"/>
+            <s:Button label="GO!" click="searchResLst.reloadGrid()"/>
+        </s:HGroup>
+        <search:UIListResBySearching model="{searchResLst}" width="100%" height="100%"/>
+    </mx:VDividedBox>
+    <win:botleGroupContent>
+    </win:botleGroupContent>
+</win:WebWindow>
